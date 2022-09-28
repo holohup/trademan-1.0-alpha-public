@@ -133,3 +133,6 @@ dmypy.json
 
 #env
 .idea/
+
+#mac
+.DS_Store
