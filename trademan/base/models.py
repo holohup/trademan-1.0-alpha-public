@@ -70,3 +70,13 @@ class RestoreStops(BaseAssetModel):
     class Meta:
         verbose_name = 'Восстановление стопов'
         verbose_name_plural = 'Восстановления стопов'
+
+class Stops(models.Model):
+    stock = models.ForeignKey(Figi, on_delete=models.PROTECT, verbose_name='Акция')
+    whitelist = models.BooleanField(default=False, verbose_name='Stocks whitelist')
+    stop_blacklist = models.BooleanField(default=False, verbose_name='Blacklist for longs')
+    short_blacklist = models.BooleanField(default=False, verbose_name='Blacklist for shorts')
+
+    class Meta:
+        verbose_name = 'Стоп'
+        verbose_name_plural = 'Стопы'

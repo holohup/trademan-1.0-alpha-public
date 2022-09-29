@@ -2,3 +2,4 @@ django==2.2.19
 tinkoff-investments==0.2.0b36
 python-dotenv==0.21.0
 protobuf==3.20.1
+djangorestframework==3.12.4

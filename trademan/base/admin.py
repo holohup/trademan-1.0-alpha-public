@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Figi, SellBuy, Spread, RestoreStops
+from .models import Figi, SellBuy, Spread, RestoreStops, Stops
 
 
 @admin.register(SellBuy)
@@ -10,6 +10,12 @@ class SellBuyAdmin(admin.ModelAdmin):
     list_editable = ('amount', 'executed', 'active')
     list_filter = ('active',)
 
+@admin.register(Stops)
+class StopsAdmin(admin.ModelAdmin):
+    list_display = ('stock', 'stop_blacklist', 'short_blacklist', 'whitelist')
+    list_editable = ('stop_blacklist', 'short_blacklist', 'whitelist')
+    list_filter = ('stop_blacklist', 'short_blacklist', 'whitelist')
+    list_per_page = 200
 
 @admin.register(Spread)
 class SpreadAdmin(admin.ModelAdmin):
