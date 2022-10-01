@@ -1,5 +1,6 @@
 
 from tinkoff.invest.retrying.sync.client import RetryingClient
+from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest.utils import quotation_to_decimal
 from tinkoff.invest.exceptions import RequestError
 from tinkoff.invest.schemas import StopOrderType, StopOrderDirection, StopOrderExpirationType
@@ -10,8 +11,8 @@ from tools.utils import delta_minutes_to_utc
 
 
 
-def place_long_stop(figi, price, lots):
-    with RetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
+async def place_long_stop(figi, price, lots):
+    async with AsyncRetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
         params = {
             'figi': figi,
             'price': price,
@@ -23,10 +24,10 @@ def place_long_stop(figi, price, lots):
             'expiration_type': StopOrderExpirationType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
             'expire_date': delta_minutes_to_utc(ORDER_TTL)
         }
-        return client.stop_orders.post_stop_order(**params)
+        return await client.stop_orders.post_stop_order(**params)
 
-def place_short_stop(figi, price, lots):
-    with RetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
+async def place_short_stop(figi, price, lots):
+    async with AsyncRetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
         params = {
             'figi': figi,
             'price': price,
@@ -38,7 +39,7 @@ def place_short_stop(figi, price, lots):
             'expiration_type': StopOrderExpirationType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
             'expire_date': delta_minutes_to_utc(ORDER_TTL)
         }
-        return client.stop_orders.post_stop_order(**params)
+        return await client.stop_orders.post_stop_order(**params)
 
 
 def get_current_prices(assets):
@@ -53,7 +54,7 @@ def get_current_prices(assets):
             raise ValueError(f'{error}')
     return assets
 
-def cancel_all_orders():
-    with RetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
-        client.cancel_all_orders(account_id=TCS_ACCOUNT_ID)
+async def cancel_all_orders():
+    async with AsyncRetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
+        await client.cancel_all_orders(account_id=TCS_ACCOUNT_ID)
     return 'All active orders cancelled'

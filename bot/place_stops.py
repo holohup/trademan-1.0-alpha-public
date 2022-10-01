@@ -2,8 +2,6 @@ from settings import LONG_LEVELS, SHORT_LEVELS, STOPS_SUM
 from tools.classes import Asset
 from tools.get_data import get_shorts, get_stops
 from tools.orders import get_current_prices
-# from tools.utils import check_for_stop
-# from bot import updater
 
 def prepare_asset_data(data):
     assets = []
@@ -16,10 +14,12 @@ def prepare_asset_data(data):
         ))
     return get_current_prices(assets)
 
+
 def price_is_valid(price):
     return True if price > 0 else False
 
-def place_long_stops():
+
+async def place_long_stops():
     stops_assets = get_stops()
     assets = prepare_asset_data(stops_assets)
     orders = []
@@ -32,15 +32,13 @@ def place_long_stops():
             raise ValueError(f'Price is <=0! {asset}, {asset.price}')
     orders_placed = 0
     for order in orders:
-        # if check_for_stop():
-        #     return f'cancelling placing orders. total {orders_placed} placed.'
-        order[0].place_long_stop(order[1], order[2])
+        await order[0].place_long_stop(order[1], order[2])
         orders_placed += 1
     return f'Stop placement complete. {orders_placed} stops placed.\n' \
            f'Levels in %: {LONG_LEVELS}, sum: {STOPS_SUM}'
 
 
-def place_short_stops():
+async def place_short_stops():
     shorts_assets = get_shorts()
     assets = prepare_asset_data(shorts_assets)
     orders = []
@@ -53,9 +51,7 @@ def place_short_stops():
             raise ValueError(f'Price is <=0! {asset}, {asset.price}')
     orders_placed = 0
     for order in orders:
-        # if check_for_stop():
-        #     return f'cancelling placing orders. total {orders_placed} placed.'
-        order[0].place_short_stop(order[1], order[2])
+        await order[0].place_short_stop(order[1], order[2])
         orders_placed += 1
     return f'Short stops placement complete. {orders_placed} stops placed.\n' \
            f'Levels in %: {SHORT_LEVELS}, sum: {STOPS_SUM}'
