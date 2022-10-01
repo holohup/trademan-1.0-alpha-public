@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 from dotenv import load_dotenv
+
+DEBUG_DB = False
 load_dotenv()
 TCS_RW_TOKEN = os.getenv('TCS_RW_TOKEN')
 TCS_ACCOUNT_ID = os.getenv('ACCOUNT_ID')
@@ -55,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'trademan.daily_updater.daily_updater'
 ]
 
 ROOT_URLCONF = 'trademan.urls'
@@ -126,3 +129,35 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+if DEBUG_DB:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': True,
+        'formatters': {
+            'formatter': {
+                '()': 'django.utils.log.ServerFormatter',
+                'format': '[%(name)s %(asctime)s %(filename)s: %(lineno)d - %(funcName)s()] %(message)s',
+                'datefmt': '%Y-%m-%d %H:%M:%S',
+            }
+        },
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'formatter',
+            },
+        },
+        'loggers': {
+            'django': {
+                'handlers': ('console',),
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'django.db.backends': {
+                'handlers': ('console',),
+                'level': 'DEBUG',
+                'propagate': False,
+            },
+        },
+    }
