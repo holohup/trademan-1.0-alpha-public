@@ -1,32 +1,19 @@
 from settings import LONG_LEVELS, SHORT_LEVELS, STOPS_SUM
-from tools.classes import Asset
-from tools.get_data import get_shorts, get_stops
-from tools.orders import get_current_prices
-
-def prepare_asset_data(data):
-    assets = []
-    for asset in data:
-        assets.append(Asset(
-            figi=asset['figi'],
-            increment=asset['increment'],
-            ticker=asset['ticker'],
-            lot=asset['lot']
-        ))
-    return get_current_prices(assets)
-
+from tools.get_patch_prepare_data import async_get_api_data, get_current_prices, prepare_asset_data
+from decimal import Decimal
 
 def price_is_valid(price):
-    return True if price > 0 else False
+    return price > 0
 
 
 async def place_long_stops():
-    stops_assets = get_stops()
-    assets = prepare_asset_data(stops_assets)
+    stops_assets = await async_get_api_data('stops')
+    assets = get_current_prices(prepare_asset_data(stops_assets))
     orders = []
     for asset in assets:
         if price_is_valid(asset.price):
             for discount in LONG_LEVELS:
-                stop_price = (100-discount) * asset.price / 100
+                stop_price = (Decimal('100')-Decimal(discount)) * asset.price / 100
                 orders.append([asset, stop_price, int(STOPS_SUM / stop_price)])
         else:
             raise ValueError(f'Price is <=0! {asset}, {asset.price}')
@@ -39,13 +26,13 @@ async def place_long_stops():
 
 
 async def place_short_stops():
-    shorts_assets = get_shorts()
-    assets = prepare_asset_data(shorts_assets)
+    shorts_assets = await async_get_api_data('shorts')
+    assets = get_current_prices(prepare_asset_data(shorts_assets))
     orders = []
     for asset in assets:
         if price_is_valid(asset.price):
             for discount in SHORT_LEVELS:
-                stop_price = (100+discount) * asset.price / 100
+                stop_price = (Decimal('100')+Decimal(discount)) * asset.price / 100
                 orders.append([asset, stop_price, int(STOPS_SUM / stop_price)])
         else:
             raise ValueError(f'Price is <=0! {asset}, {asset.price}')
@@ -58,5 +45,6 @@ async def place_short_stops():
 
 
 if __name__ == '__main__':
-    print(place_long_stops())
+    pass
+    # print(get_restore_stops())
     # print(place_short_stops())
