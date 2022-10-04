@@ -53,14 +53,13 @@ class Asset:
         return await get_assets_executed(self.order_id) * self.lot
 
     async def get_price_to_place_order(self):
-        quotation = await get_price_to_place_order(self.figi, self.sell)
-        return quotation_to_decimal(quotation)
+        self.new_price = quotation_to_decimal(await get_price_to_place_order(self.figi, self.sell))
 
-    async def place_sellbuy_order(self, price: Decimal):
+    async def place_sellbuy_order(self):
         if self.sell:
-            self.price = decimal_to_quotation(price - Decimal(round(self.increment, 10)))
+            self.price = decimal_to_quotation(self.new_price - Decimal(round(self.increment, 10)))
         else:
-            self.price = decimal_to_quotation(price + Decimal(round(self.increment, 10)))
+            self.price = decimal_to_quotation(self.new_price + Decimal(round(self.increment, 10)))
 
         r = await place_sellbuy_order(self.figi, self.sell, self.price, self.get_lots(self.next_order_amount))
 
@@ -71,6 +70,7 @@ class Asset:
         ]:
             self.order_placed = True
             self.order_id = r.order_id
+            print(f'Поставлена заявка {self.ticker}: {self.next_order_amount} шт')
         else:
             print(f'Не удалось поставить заявку. {r}')
             self.order_placed = False
