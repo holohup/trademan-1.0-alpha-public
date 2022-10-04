@@ -46,4 +46,3 @@ async def sellbuy():
             if asset.order_placed:
                 await asset.cancel_order()
         return f'SellBuy routine cancelled. Lots already executed: {executed_tickers}.'
-
