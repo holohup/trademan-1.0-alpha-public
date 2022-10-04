@@ -32,7 +32,7 @@ SECRET_KEY = 'se))@dqt_6p=esf*x=@o6$7#28=pv7g-2tjtul_z2m*1ayxfn%'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.2.40']
 
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': True,
