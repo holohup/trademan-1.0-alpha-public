@@ -19,7 +19,10 @@ class SellBuyViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(
-            active=not serializer.validated_data.get('executed') >= self.get_object().amount
+            active=(self.get_object().amount
+                    - serializer.validated_data.get('executed')
+                    >= self.get_object().asset.lot
+                    )
         )
 
 

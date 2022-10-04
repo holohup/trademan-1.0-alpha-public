@@ -18,6 +18,11 @@ class Figi(models.Model):
     short_enabled = models.BooleanField(verbose_name='Short')
     buy_enabled = models.BooleanField(verbose_name='Buy')
     sell_enabled = models.BooleanField(verbose_name='Sell')
+    basic_asset_size = models.IntegerField(
+        'Коли-во б. актива во фьючерсе',
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return f'{self.ticker}'

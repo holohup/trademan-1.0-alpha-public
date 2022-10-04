@@ -15,10 +15,8 @@ def daily_updater(get_response):
                 print(f'Could not update prices! {error}')
                 raise error
             else:
-                print(f'Figis updated from TCS. Result:{result}')
+                print(f'Figis updated from TCS. Result:\n{result}')
                 date = current_date
-        else:
-            print('no update needed')
         response = get_response(request)
 
         # Code to be executed for each request/response after

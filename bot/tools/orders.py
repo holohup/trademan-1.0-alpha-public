@@ -2,7 +2,7 @@ from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest import AsyncClient
 from tinkoff.invest.schemas import StopOrderType, StopOrderDirection, StopOrderExpirationType
 from tinkoff.invest import exceptions, OrderDirection, OrderType
-from tinkoff.invest.schemas import Quotation
+from tinkoff.invest.schemas import Quotation, OrderState
 from settings import ORDER_TTL, RETRY_SETTINGS, TCS_RW_TOKEN, TCS_ACCOUNT_ID, TCS_RO_TOKEN
 from tools.utils import delta_minutes_to_utc
 from datetime import datetime
@@ -112,3 +112,9 @@ async def place_sellbuy_order(figi: str, sell: bool, price: Quotation, lots):
             raise error
         return r
 
+async def get_current_orders():
+    async with AsyncClient(TCS_RO_TOKEN) as client:
+        r: list[OrderState] = await client.orders.get_orders(account_id=TCS_ACCOUNT_ID)
+    return [
+        f'{i.figi}: [{i.lots_executed}/{i.lots_requested}] for '
+        f'{i.initial_security_price.units}.{int(i.initial_security_price.nano / 10**9)}' for i in r.orders]

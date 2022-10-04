@@ -5,12 +5,19 @@ from tinkoff.invest.utils import quotation_to_decimal
 from django.conf import settings
 from base.models import Figi
 from tinkoff.invest.schemas import RealExchange, Share, Future
-from typing import Any
+import sys
+
+if not all([settings.TCS_RO_TOKEN, settings.TCS_RW_TOKEN, settings.TCS_ACCOUNT_ID]):
+    message = (
+        'Не удалось загрузить все переменные из окружения. Переменные:\n'
+        f'TCS_ACCOUNT_ID: {settings.TCS_ACCOUNT_ID}\n'
+        f'TCS_RW_TOKEN: {settings.TCS_RW_TOKEN}\n'
+        f'TCS_RO_TOKEN: {settings.TCS_RO_TOKEN}'
+    )
+    sys.exit(message)
 
 
 def prevalidate_instrument(inst: any([Share, Future]), _type: str) -> bool:
-    # if quotation_to_decimal(inst.min_price_increment) <= 0:
-    #     print(inst.trading_status, inst.ticker)
     if _type == 'Share':
         return all((
                 inst.real_exchange == RealExchange.REAL_EXCHANGE_MOEX,
@@ -40,7 +47,6 @@ class Command(BaseCommand):
     help = 'Обновление базы акций и фьючерсов с ТКС'
 
     def handle(self, *args, **options):
-        clean_up_flag = False
         received_figi = set()
         result_message = ''
         with RetryingClient(
@@ -69,6 +75,7 @@ class Command(BaseCommand):
                     if prevalidate_instrument(inst=future, _type='Future'):
                         new_values = fill_fields(future)
                         new_values.update(type='F')
+                        new_values.update(basic_asset_size=int(quotation_to_decimal(future.basic_asset_size)))
                         received_figi.add(future.figi)
                         tcs_future, _ = Figi.objects.update_or_create(figi=future.figi, defaults=new_values)
 
