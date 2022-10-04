@@ -98,7 +98,6 @@ async def place_sellbuy_order(figi: str, sell: bool, price: Quotation, lots):
         'quantity': lots,
         'price': price,
     }
-    print(price)
     if sell:
         params['direction'] = OrderDirection.ORDER_DIRECTION_SELL
     else:
@@ -107,23 +106,9 @@ async def place_sellbuy_order(figi: str, sell: bool, price: Quotation, lots):
     async with AsyncClient(TCS_RW_TOKEN) as client:
     # async with AsyncRetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
         try:
-            print('before')
             r = await client.orders.post_order(**params)
-            print('after')
         except Exception as error:
             print(error)
             raise error
-
-        # except exceptions.RequestError as error:
-        #     if error.args[1] == '30079':
-        #         message = (
-        #             'Не получается поставить заявку.\n'
-        #              f'Параметры: {params}\n'
-        #              f'Ошибка:{error}'
-        #         )
-        #         print(message)
-        #         raise error
-        else:
-            print(f'Поставлена заявка {r.lots_requested}')
         return r
 
