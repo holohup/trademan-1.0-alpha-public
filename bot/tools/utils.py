@@ -7,7 +7,7 @@ from tinkoff.invest.utils import decimal_to_quotation
 
 
 def get_correct_price(price: Decimal, increment: Decimal) -> Quotation:
-    answer = Decimal(round(round((price / increment)) * increment, 10))
+    answer = price // increment * increment
     return decimal_to_quotation(answer)
 
 

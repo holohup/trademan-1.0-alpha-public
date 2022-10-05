@@ -7,8 +7,9 @@ class SellBuyAdmin(admin.ModelAdmin):
     list_display = ('asset', 'sell', 'amount', 'executed', 'active')
     list_display_links = ('asset',)
     autocomplete_fields = ('asset',)
-    list_editable = ('amount', 'executed', 'active')
+    list_editable = ('amount', 'sell', 'executed', 'active')
     list_filter = ('active',)
+
 
 @admin.register(Stops)
 class StopsAdmin(admin.ModelAdmin):
@@ -22,7 +23,7 @@ class SpreadAdmin(admin.ModelAdmin):
     list_display = ('asset', 'near_leg', 'price', 'sell', 'amount', 'executed', 'active')
     list_display_links = ('near_leg', 'asset')
     autocomplete_fields = ('near_leg', 'asset')
-    list_editable = ('amount', 'executed', 'price', 'active')
+    list_editable = ('amount', 'sell', 'executed', 'price', 'active')
     list_filter = ('active',)
 
 
@@ -40,7 +41,7 @@ class FigiAdmin(admin.ModelAdmin):
     list_display = (
         'ticker', 'lot', 'min_price_increment', 'figi', 'name',
         'type', 'api_trading_available', 'short_enabled', 'buy_enabled',
-        'sell_enabled'
+        'sell_enabled', 'basic_asset_size'
     )
     list_filter = ('type',)
     search_fields = ('ticker', 'figi', 'name')

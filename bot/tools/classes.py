@@ -4,7 +4,10 @@ from tools.orders import get_price_to_place_order, place_sellbuy_order
 from tinkoff.invest.exceptions import RequestError
 from tinkoff.invest.utils import quotation_to_decimal, decimal_to_quotation
 from tinkoff.invest.schemas import OrderExecutionReportStatus
-from decimal import Decimal
+from decimal import Decimal, getcontext
+
+getcontext().prec = 10
+
 
 class Asset:
     def __init__(
@@ -56,12 +59,15 @@ class Asset:
         self.new_price = quotation_to_decimal(await get_price_to_place_order(self.figi, self.sell))
 
     async def place_sellbuy_order(self):
-        if self.sell:
-            self.price = decimal_to_quotation(self.new_price - Decimal(round(self.increment, 10)))
-        else:
-            self.price = decimal_to_quotation(self.new_price + Decimal(round(self.increment, 10)))
 
-        r = await place_sellbuy_order(self.figi, self.sell, self.price, self.get_lots(self.next_order_amount))
+        if self.sell:
+            self.price = decimal_to_quotation(self.new_price - self.increment)
+        else:
+            self.price = decimal_to_quotation(self.new_price + self.increment)
+
+        r = await place_sellbuy_order(
+            self.figi, self.sell, self.price, self.get_lots(self.next_order_amount)
+        )
 
         if r.execution_report_status in [
             OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_NEW,

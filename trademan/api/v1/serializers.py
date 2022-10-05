@@ -17,7 +17,7 @@ class BasicDataSerializer(serializers.ModelSerializer):
         return obj.asset.figi
 
     def get_increment(self, obj):
-        return obj.asset.min_price_increment
+        return str(obj.asset.min_price_increment)
 
     def get_ticker(self, obj):
         return obj.asset.ticker
@@ -43,6 +43,8 @@ class SpreadsSerializer(BasicDataSerializer):
     near_leg_increment = serializers.SerializerMethodField()
     near_leg_lot = serializers.SerializerMethodField()
     near_leg_ticker = serializers.SerializerMethodField()
+    near_leg_type = serializers.SerializerMethodField()
+    base_asset_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = Spread
@@ -50,25 +52,34 @@ class SpreadsSerializer(BasicDataSerializer):
             'id',
             'figi', 'ticker', 'increment', 'lot',
             'near_leg_figi', 'near_leg_ticker', 'near_leg_increment', 'near_leg_lot',
-            'sell', 'price', 'amount', 'executed'
+            'sell', 'price', 'amount', 'executed',
+            'near_leg_type', 'base_asset_amount'
         )
         read_only_fields = (
             'id',
             'figi', 'ticker', 'increment', 'lot',
             'near_leg_figi', 'near_leg_ticker', 'near_leg_increment', 'near_leg_lot',
-            'sell', 'price', 'amount'
+            'sell', 'price', 'amount',
+            'near_leg_type', 'base_asset_amount'
         )
     def get_near_leg_figi(self, obj):
         return obj.near_leg.figi
 
     def get_near_leg_increment(self, obj):
-        return obj.near_leg.min_price_increment
+        return str(obj.near_leg.min_price_increment)
 
     def get_near_leg_ticker(self, obj):
         return obj.near_leg.ticker
 
     def get_near_leg_lot(self, obj):
         return obj.near_leg.lot
+
+    def get_near_leg_type(self, obj):
+        return obj.near_leg.type
+
+    def get_base_asset_amount(self, obj):
+        return obj.asset.basic_asset_size
+
 
 class RestoreStopsSerializer(BasicDataSerializer):
 

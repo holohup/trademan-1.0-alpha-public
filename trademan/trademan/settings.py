@@ -34,6 +34,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['192.168.2.40']
 
+REST_FRAMEWORK = {
+    'COERCE_DECIMAL_TO_STRING': True,
+}
 
 # Application definition
 

@@ -6,6 +6,7 @@ from cancel_all_orders import cancel_orders
 from restore_stops import restore_stops
 from sellbuy import sellbuy
 # from monitor import monitor
+from instant_commands import get_current_orders, test
 
 RUNNING_TASKS = []
 
@@ -38,6 +39,13 @@ async def cancel_all_orders_handler(message: types.Message):
         stop_running_tasks()
     await trades_handler('Cancelling all active orders', cancel_orders(), message)
 
+@dp.message_handler(commands=['orders'], is_me=True)
+async def orders_handler(message: types.Message):
+    await trades_handler('Retrieving current orders', get_current_orders(), message)
+
+@dp.message_handler(commands=['test'], is_me=True)
+async def test_handler(message: types.Message):
+    await trades_handler('Testing current tests!', test(), message)
 
 async def trades_handler(greeting: str, func, message: types.Message):
     await message.answer(greeting)
