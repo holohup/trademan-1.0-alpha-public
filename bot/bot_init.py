@@ -2,7 +2,6 @@ from aiogram import Bot, Dispatcher
 from aiogram.dispatcher.filters import BoundFilter
 from settings import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
 from aiogram.types import Message
-import asyncio
 
 bot = Bot(token=TELEGRAM_TOKEN)
 dp = Dispatcher(bot)

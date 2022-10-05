@@ -1,4 +1,3 @@
-import requests
 from settings import SHORTS_ENDPOINT, ENDPOINT_HOST, STOPS_ENDPOINT
 from settings import RESTORESTOPS_ENDPOINT, SELLBUY_ENDPOINT, SPREADS_ENDPOINT
 from tinkoff.invest.retrying.sync.client import RetryingClient

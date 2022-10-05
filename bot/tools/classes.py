@@ -1,7 +1,6 @@
 from tools.utils import get_correct_price, get_lots
 from tools.orders import place_long_stop, place_short_stop, cancel_order, get_assets_executed
 from tools.orders import get_price_to_place_order, place_sellbuy_order
-from tinkoff.invest.exceptions import RequestError
 from tinkoff.invest.utils import quotation_to_decimal, decimal_to_quotation
 from tinkoff.invest.schemas import OrderExecutionReportStatus
 from decimal import Decimal, getcontext
@@ -92,4 +91,3 @@ class Asset:
             self.executed = sum(self.order_cache.values())
             self.next_order_amount = self.amount - self.executed
             print(f'Кэш {self.ticker} . Всего исполненo: {self.executed}, кэш: {self.order_cache}')
-
