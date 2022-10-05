@@ -8,7 +8,6 @@ from tools.utils import delta_minutes_to_utc
 from datetime import datetime
 
 
-
 async def place_long_stop(figi, price, lots):
     async with AsyncRetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
         params = {

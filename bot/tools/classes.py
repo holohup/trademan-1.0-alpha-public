@@ -59,10 +59,6 @@ class Asset:
         self.new_price = quotation_to_decimal(await get_price_to_place_order(self.figi, self.sell))
 
     async def place_sellbuy_order(self):
-        # if self.sell:
-        #     self.price = decimal_to_quotation(self.new_price - Decimal(round(self.increment, 10)))
-        # else:
-        #     self.price = decimal_to_quotation(self.new_price + Decimal(round(self.increment, 10)))
 
         if self.sell:
             self.price = decimal_to_quotation(self.new_price - self.increment)
