@@ -5,7 +5,7 @@ from place_stops import place_short_stops, place_long_stops
 from cancel_all_orders import cancel_orders
 from restore_stops import restore_stops
 from sellbuy import sellbuy
-# from monitor import monitor
+from spreads import spreads
 from instant_commands import get_current_orders, test
 
 RUNNING_TASKS = []
@@ -75,6 +75,11 @@ async def restore_stops_handler(message: types.Message):
 @dp.message_handler(commands=['sellbuy'], is_me=True)
 async def sellbuy_handler(message: types.Message):
     await trades_handler('Selling and buying stocks from the list', sellbuy(), message)
+
+
+@dp.message_handler(commands=['spreads'], is_me=True)
+async def spreads_handler(message: types.Message):
+    await trades_handler('Starting spreads monitoring and trading', spreads(), message)
 
 
 @dp.message_handler(commands=['status', 'stats', 'hello'], is_me=True)

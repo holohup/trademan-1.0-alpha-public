@@ -2,6 +2,7 @@ from tools.get_patch_prepare_data import prepare_asset_data, async_get_api_data,
 from tools.utils import perform_working_hours_check, get_seconds_till_open
 import logging
 import asyncio
+from settings import SLEEP_PAUSE
 
 
 async def process_asset(asset):
@@ -18,6 +19,7 @@ async def process_asset(asset):
                 await asset.place_sellbuy_order()
 
             asset.last_price = asset.new_price
+            await asyncio.sleep(SLEEP_PAUSE)
 
         else:
             sleep_time = get_seconds_till_open()
@@ -41,7 +43,7 @@ async def sellbuy():
         for asset in assets:
             if asset.order_placed:
                 await asset.cancel_order()
-                await asset.update_executed()
+            await asset.update_executed()
             if asset.executed > 0:
                 await async_patch_executed('sellbuy', asset.id, asset.executed)
                 executed_tickers[asset.ticker] = asset.executed

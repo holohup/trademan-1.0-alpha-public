@@ -3,7 +3,7 @@ from settings import RESTORESTOPS_ENDPOINT, SELLBUY_ENDPOINT, SPREADS_ENDPOINT
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.utils import quotation_to_decimal
 from settings import RETRY_SETTINGS, TCS_RO_TOKEN
-from tools.classes import Asset
+from tools.classes import Asset, Spread
 from http import HTTPStatus
 import aiohttp
 import asyncio
@@ -56,6 +56,38 @@ def prepare_asset_data(data):
             executed=asset.get('executed'),
         ))
     return assets
+
+
+def prepare_spreads_data(data):
+    spreads = []
+    for spread in data:
+        spreads.append(Spread(
+            far_leg=Asset(
+                figi=spread['figi'],
+                increment=spread['increment'],
+                ticker=spread['ticker'],
+                lot=spread['lot'],
+                sell=spread['sell'],
+                amount=spread['amount']
+            ),
+            near_leg=Asset(
+                figi=spread['near_leg_figi'],
+                increment=spread['near_leg_increment'],
+                ticker=spread['near_leg_ticker'],
+                lot=spread['near_leg_lot'],
+                sell=not spread['sell']
+            ),
+            price=spread['price'],
+            amount=spread['amount'],
+            executed=spread['executed'],
+            near_leg_type=spread['near_leg_type'],
+            base_asset_amount=spread['base_asset_amount'],
+            sell=spread['sell'],
+            id=spread['id']
+        ))
+    return spreads
+
+
 
 if __name__ == '__main__':
     print(

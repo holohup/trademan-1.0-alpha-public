@@ -88,6 +88,40 @@ async def get_price_to_place_order(figi: str, sell: bool) -> Quotation:
         return r.bids[1].price
 
 
+async def get_closest_execution_price(figi: str, sell: bool) -> Quotation:
+    async with AsyncRetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
+        r = await client.market_data.get_order_book(figi=figi, depth=1)
+    if not r.asks or not r.bids:
+        raise ValueError('Нет ни одного аска в стакане! Возможно, сессия еще не началась.')
+    if sell:
+        return r.bids[0].price
+    else:
+        return r.asks[0].price
+
+
+async def perform_market_trade(figi: str, sell: bool, lots: int):
+    params = {
+        'account_id': TCS_ACCOUNT_ID,
+        'order_type': OrderType.ORDER_TYPE_MARKET,
+        'order_id': str(datetime.utcnow().timestamp()),
+        'figi': figi,
+        'quantity': lots,
+    }
+    if sell:
+        params['direction'] = OrderDirection.ORDER_DIRECTION_SELL
+    else:
+        params['direction'] = OrderDirection.ORDER_DIRECTION_BUY
+
+    async with AsyncClient(TCS_RW_TOKEN) as client:
+    # async with AsyncRetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
+        try:
+            r = await client.orders.post_order(**params)
+        except Exception as error:
+            print(error)
+            raise error
+        return r
+
+
 async def place_sellbuy_order(figi: str, sell: bool, price: Quotation, lots):
     params = {
         'account_id': TCS_ACCOUNT_ID,

@@ -34,7 +34,7 @@ STOPS_SUM = 300000
 ORDER_TTL = 120
 
 # tinkoff settings
-
+SLEEP_PAUSE = 1
 RETRY_SETTINGS = RetryClientSettings(use_retry=True, max_retry_attempt=100)
 
 load_dotenv()
