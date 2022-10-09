@@ -19,12 +19,16 @@ async def process_asset(asset):
                 await asset.place_sellbuy_order()
 
             asset.last_price = asset.new_price
-            await asyncio.sleep(SLEEP_PAUSE)
+            await asyncio.gather(
+                asyncio.create_task(asyncio.sleep(SLEEP_PAUSE)),
+                asyncio.create_task(async_patch_executed('sellbuy', asset.id, asset.executed))
+            )
 
         else:
             sleep_time = get_seconds_till_open()
-            logging.info(f'Not a trading time. Waiting for {sleep_time // 60} minutes.')
+            logging.warning(f'Not a trading time. Waiting for {sleep_time // 60} minutes.')
             await asyncio.sleep(sleep_time)
+            logging.warning(f'Resuming session.')
 
     await async_patch_executed('sellbuy', asset.id, asset.executed)
     return {asset.ticker: asset.executed}
@@ -40,13 +44,25 @@ async def sellbuy():
         return f'Покупка-продажа завершены. Исполнены заявки по инструментам: {result}'
     except asyncio.CancelledError as error:
         executed_tickers = {}
+        await asyncio.gather(
+            *[asyncio.create_task(asset.cancel_order()) for asset in assets if asset.order_placed]
+        )
+        await asyncio.gather(*[asyncio.create_task(asset.update_executed()) for asset in assets if asset.order_id])
+        await asyncio.gather(*[asyncio.create_task(
+            async_patch_executed('sellbuy', asset.id, asset.executed)
+        ) for asset in assets if asset.executed > 0])
         for asset in assets:
-            if asset.order_placed:
-                await asset.cancel_order()
-            await asset.update_executed()
             if asset.executed > 0:
-                await async_patch_executed('sellbuy', asset.id, asset.executed)
                 executed_tickers[asset.ticker] = asset.executed
+
+        # for asset in assets:
+        #     if asset.order_placed:
+        #         await asset.cancel_order()
+        #     await asset.update_executed()
+        #     if asset.executed > 0:
+        #         await async_patch_executed('sellbuy', asset.id, asset.executed)
+        #         executed_tickers[asset.ticker] = asset.executed
+        print('Stopping sellbuy')
         return f'SellBuy routine cancelled. Lots already executed: {executed_tickers}.'
 
 if __name__ == '__main__':

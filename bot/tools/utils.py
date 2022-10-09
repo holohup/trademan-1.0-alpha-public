@@ -55,11 +55,11 @@ def get_midnights_to_wait(current_time: datetime) -> int:
             or current_time.weekday() > WORK_DAYS[1]
             or (
             current_time.weekday() == WORK_DAYS[1]
-            and current_time.time >= get_open_and_close_time(max)
+            and current_time.time() >= get_open_and_close_time(max)
             )
     ):
         return 7 - current_time.weekday() + WORK_DAYS[0]
-    if current_time.time >= get_open_and_close_time(max):
+    if current_time.time() >= get_open_and_close_time(max):
         return 1
     return 0
 
@@ -87,4 +87,4 @@ def get_seconds_till_open() -> int:
 
 if __name__ == '__main__':
 
-    pass
+    print(perform_working_hours_check())

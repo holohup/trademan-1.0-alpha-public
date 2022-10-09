@@ -30,6 +30,9 @@ class Asset:
         self.new_price = Decimal(0)
         self.last_price = Decimal(0)
         self.closest_execution_price = Decimal(0)
+        if executed and executed > 0:
+            self.order_cache['initial'] = executed
+            self.next_order_amount = amount - executed
 
     def __str__(self):
         return self.ticker
@@ -98,7 +101,7 @@ class Asset:
         ]:
             self.order_placed = True
             self.order_id = r.order_id
-            print(f'Поставлена заявка {self.ticker}: {self.next_order_amount} шт')
+            # print(f'Поставлена заявка {self.ticker}: {self.next_order_amount} шт')
         else:
             print(f'Не удалось поставить заявку. {r}')
             self.order_placed = False
@@ -154,6 +157,5 @@ class Spread:
             await self.near_leg.update_executed()
         if self.far_leg.executed * self.ratio > self.near_leg.executed:
             self.near_leg.next_order_amount = self.far_leg.executed * self.ratio - self.near_leg.executed
-            print(self.near_leg.next_order_amount, self.far_leg.amount, self.far_leg.executed, self.ratio)
             await self.near_leg.perform_market_trade()
             self.executed = self.far_leg.executed

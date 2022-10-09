@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Figi, SellBuy, Spread, RestoreStops, Stops
+from .models import Figi, SellBuy, Spread, RestoreStops, Stops, Bonds
 
 
 @admin.register(SellBuy)
@@ -48,6 +48,10 @@ class FigiAdmin(admin.ModelAdmin):
     list_max_show_all = 5000
     list_per_page = 200
 
-
-
-
+@admin.register(Bonds)
+class BondsAdmin(admin.ModelAdmin):
+    list_display = ('asset', 'whitelist')
+    list_editable = ('whitelist',)
+    list_filter = ('whitelist',)
+    list_per_page = 100
+    autocomplete_fields = ('asset',)
