@@ -42,7 +42,7 @@ async def sellbuy():
         print(f'Starting assets: {assets}')
         result = await asyncio.gather(*[asyncio.create_task(process_asset(asset), name=asset.ticker) for asset in assets])
         return f'Покупка-продажа завершены. Исполнены заявки по инструментам: {result}'
-    except asyncio.CancelledError as error:
+    except asyncio.CancelledError:
         executed_tickers = {}
         await asyncio.gather(
             *[asyncio.create_task(asset.cancel_order()) for asset in assets if asset.order_placed]
@@ -51,9 +51,10 @@ async def sellbuy():
         await asyncio.gather(*[asyncio.create_task(
             async_patch_executed('sellbuy', asset.id, asset.executed)
         ) for asset in assets if asset.executed > 0])
-        for asset in assets:
-            if asset.executed > 0:
-                executed_tickers[asset.ticker] = asset.executed
+        executed_tickers = {asset.ticker: asset.executed for asset in assets if asset.executed > 0}
+        # for asset in assets:
+        #     if asset.executed > 0:
+        #         executed_tickers[asset.ticker] = asset.executed
 
         # for asset in assets:
         #     if asset.order_placed:
