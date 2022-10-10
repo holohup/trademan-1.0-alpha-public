@@ -1,6 +1,6 @@
 from decimal import Decimal
 from datetime import datetime, timezone, timedelta
-from settings import ZONE, WORK_DAYS, OFFSET_ADJUSTED_WORK_HOURS
+from bot.settings import ZONE, WORK_DAYS, OFFSET_ADJUSTED_WORK_HOURS
 from tinkoff.invest.schemas import Quotation
 from tinkoff.invest.utils import decimal_to_quotation
 
@@ -41,7 +41,7 @@ def seconds_till_open_from_midnight() -> int:
     return seconds_till_open
 
 
-def seconds_till_midnight(current_time:datetime) -> int:
+def seconds_till_midnight(current_time: datetime) -> int:
     return (
         ((24 - current_time.hour - 1) * 60 * 60)
         + ((60 - current_time.minute - 1) * 60)
@@ -81,10 +81,16 @@ def get_seconds_till_open() -> int:
             - datetime.combine(current_time.date(), current_time.time())
         ) for session_start_time in sess_start_times
     ]
+    time_deltas_till_open = [
+        time_delta for time_delta in time_deltas_till_open if time_delta > timedelta(0)
+    ]
     minimum_delta = min(time_deltas_till_open)
     return minimum_delta.seconds + 1
 
 
 if __name__ == '__main__':
-
-    print(perform_working_hours_check())
+    current_time = datetime.now(ZONE)
+    print(get_seconds_till_open() // 60 / 60)
+    # print(current_time.weekday(), WORK_DAYS[1])
+    # print(current_time.weekday())
+    # print(current_time.time() >= get_open_and_close_time(max))
