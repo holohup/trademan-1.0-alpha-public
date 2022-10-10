@@ -11,7 +11,8 @@ class Figi(models.Model):
     )
     type = models.CharField(
         max_length=1,
-        choices=(('S', 'Stock'), ('F', 'Future'), ('B', 'Bond')),
+        # choices=(('S', 'Stock'), ('F', 'Future'), ('B', 'Bond')),
+        choices=(('S', 'Stock'), ('F', 'Future')),
         verbose_name='Акция или фьючерс'
     )
     api_trading_available = models.BooleanField(verbose_name='API')
@@ -109,15 +110,15 @@ class Stops(models.Model):
         verbose_name_plural = 'Стопы'
 
 
-class Bonds(models.Model):
-    asset = models.ForeignKey(
-        Figi,
-        on_delete=models.CASCADE,
-        verbose_name='Облигация',
-        related_name='bonds'
-    )
-    whitelist = models.BooleanField(default=True, verbose_name='Bonds whitelist')
-
-    class Meta:
-        verbose_name = 'Облигация'
-        verbose_name_plural = 'Облигации'
+# class Bonds(models.Model):
+#     asset = models.ForeignKey(
+#         Figi,
+#         on_delete=models.CASCADE,
+#         verbose_name='Облигация',
+#         related_name='bonds'
+#     )
+#     whitelist = models.BooleanField(default=True, verbose_name='Bonds whitelist')
+#
+#     class Meta:
+#         verbose_name = 'Облигация'
+#         verbose_name_plural = 'Облигации'

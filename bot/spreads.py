@@ -20,6 +20,7 @@ def ok_to_place_order(spread):
 
 
 async def process_spread(spread):
+    last_executed = spread.executed
     while spread.executed < spread.amount:
         if perform_working_hours_check():
             await asyncio.gather(asyncio.create_task(spread.far_leg.get_price_to_place_order()),
@@ -43,10 +44,10 @@ async def process_spread(spread):
                 print(f'{datetime.now().time()}: Spread placed {spread}, delta: {get_delta_prices(spread)}, price: {spread.price}')
 
             spread.far_leg.last_price = spread.far_leg.new_price
-            await asyncio.gather(
-                asyncio.create_task(asyncio.sleep(SLEEP_PAUSE)),
-                asyncio.create_task(async_patch_executed('spreads', spread.id, spread.executed))
-            )
+            if spread.executed > last_executed:
+                await asyncio.create_task(async_patch_executed('spreads', spread.id, spread.executed))
+            last_executed = spread.executed
+            await asyncio.gather(asyncio.create_task(asyncio.sleep(SLEEP_PAUSE)))
 
         else:
             sleep_time = get_seconds_till_open()

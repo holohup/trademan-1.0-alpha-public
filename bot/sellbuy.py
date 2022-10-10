@@ -7,28 +7,28 @@ from settings import SLEEP_PAUSE
 
 async def process_asset(asset):
     while asset.next_order_amount >= asset.lot:
-        if perform_working_hours_check():
-            await asset.get_price_to_place_order()
-            if asset.new_price != asset.last_price and asset.order_placed:
-                await asset.cancel_order()
-            else:
-                logging.info(f'Price unchanged, not cancelling the order for {asset.ticker}.')
-            if asset.order_id:
-                await asset.update_executed()
-            if not asset.order_placed and asset.next_order_amount >= asset.lot:
-                await asset.place_sellbuy_order()
-
-            asset.last_price = asset.new_price
-            await asyncio.gather(
-                asyncio.create_task(asyncio.sleep(SLEEP_PAUSE)),
-                asyncio.create_task(async_patch_executed('sellbuy', asset.id, asset.executed))
-            )
-
+        # if perform_working_hours_check():
+        await asset.get_price_to_place_order()
+        if asset.new_price != asset.last_price and asset.order_placed:
+            await asset.cancel_order()
         else:
-            sleep_time = get_seconds_till_open()
-            logging.warning(f'Not a trading time. Waiting for {sleep_time // 60} minutes.')
-            await asyncio.sleep(sleep_time)
-            logging.warning(f'Resuming session.')
+            logging.info(f'Price unchanged, not cancelling the order for {asset.ticker}.')
+        if asset.order_id:
+            await asset.update_executed()
+        if not asset.order_placed and asset.next_order_amount >= asset.lot:
+            await asset.place_sellbuy_order()
+
+        asset.last_price = asset.new_price
+        await asyncio.gather(
+            asyncio.create_task(asyncio.sleep(SLEEP_PAUSE)),
+            asyncio.create_task(async_patch_executed('sellbuy', asset.id, asset.executed))
+        )
+        #
+        # else:
+        #     sleep_time = get_seconds_till_open()
+        #     logging.warning(f'Not a trading time. Waiting for {sleep_time // 60} minutes.')
+        #     await asyncio.sleep(sleep_time)
+        #     logging.warning(f'Resuming session.')
 
     await async_patch_executed('sellbuy', asset.id, asset.executed)
     return {asset.ticker: asset.executed}
