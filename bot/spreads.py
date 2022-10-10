@@ -69,7 +69,7 @@ async def spreads():
             *[asyncio.create_task(process_spread(spread), name=str(spread)) for spread in spreads])
         return f'Торговля спредами завершена: {result}'
 
-    except asyncio.CancelledError as error:
+    except asyncio.CancelledError:
         await asyncio.gather(
             *[asyncio.create_task(spread.near_leg.cancel_order()) for spread in spreads if spread.near_leg.order_placed],
             *[asyncio.create_task(spread.far_leg.cancel_order()) for spread in spreads if spread.far_leg.order_placed]

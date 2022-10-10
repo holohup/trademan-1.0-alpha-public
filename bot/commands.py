@@ -8,13 +8,15 @@ from sellbuy import sellbuy
 from spreads import spreads
 from instant_commands import get_current_orders, test
 
-RUNNING_TASKS = []
+RUNNING_TASKS = dict()
 
 
 def stop_running_tasks():
-    for task in RUNNING_TASKS:
-        task.cancel()
-        RUNNING_TASKS.remove(task)
+    to_stop = RUNNING_TASKS.copy()
+    for task, coro in to_stop.items():
+        coro.cancel()
+        RUNNING_TASKS.pop(task)
+
 
 
 @dp.message_handler(commands=['start', 'help'], is_me=True)
@@ -35,8 +37,8 @@ async def stop_handler(message: types.Message):
 
 @dp.message_handler(commands=['tasks'], is_me=True)
 async def tasks_handler(message: types.Message):
-    result = asyncio.all_tasks()
-    await message.answer(f'Running tasks: RUNNING_TASKS: {RUNNING_TASKS}, asyncio: {result}')
+    tasks = ', '.join([task for task in RUNNING_TASKS.keys()])
+    await message.answer(f'Running tasks: {tasks}')
 
 
 @dp.message_handler(commands=['cancel'], is_me=True)
@@ -59,10 +61,10 @@ async def test_handler(message: types.Message):
 async def trades_handler(greeting: str, func, message: types.Message):
     await message.answer(greeting)
     result = asyncio.create_task(func)
-    RUNNING_TASKS.append(result)
+    RUNNING_TASKS[greeting] = result
     await result
-    if result in RUNNING_TASKS:
-        RUNNING_TASKS.remove(result)
+    if result in RUNNING_TASKS.values():
+        RUNNING_TASKS.pop(greeting)
     await message.answer(result.result())
 
 
@@ -88,7 +90,7 @@ async def sellbuy_handler(message: types.Message):
 
 @dp.message_handler(commands=['spreads'], is_me=True)
 async def spreads_handler(message: types.Message):
-    await trades_handler('Starting spreads monitoring and trading', spreads(), message)
+    await trades_handler('Spreads monitoring and trading', spreads(), message)
 
 
 @dp.message_handler(commands=['status', 'stats', 'hello'], is_me=True)
