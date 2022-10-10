@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
     # logging.basicConfig(level=logging.INFO)
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.WARNING,
         format=(
             '%(asctime)s [%(levelname)s] '
             '%(filename)s >> %(lineno)d '

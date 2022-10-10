@@ -28,11 +28,6 @@ def prevalidate_instrument(inst: any([Share, Future]), _type: str) -> bool:
             inst.real_exchange == RealExchange.REAL_EXCHANGE_RTS,
             quotation_to_decimal(inst.min_price_increment) > 0,
         ))
-    if _type == 'Bond':
-        return all((
-            inst.real_exchange == RealExchange.REAL_EXCHANGE_MOEX,
-            quotation_to_decimal(inst.min_price_increment) > 0,
-        ))
 
 
 def fill_fields(inst: any([Share, Future])) -> dict:
@@ -63,8 +58,6 @@ class Command(BaseCommand):
                 result_message += 'Stocks update received\n'
                 response_futures = client.instruments.futures()
                 result_message += 'Futures update received\n'
-                # response_bonds = client.instruments.bonds()
-                # result_message += 'Bonds update received\n'
             except Exception as error:
                 result_message += 'Error updating prices\n'
                 raise CommandError(f'Data update failed! {error}')
@@ -85,13 +78,6 @@ class Command(BaseCommand):
                         new_values.update(basic_asset_size=int(quotation_to_decimal(future.basic_asset_size)))
                         received_figi.add(future.figi)
                         tcs_future, _ = Figi.objects.update_or_create(figi=future.figi, defaults=new_values)
-
-                # for bond in response_bonds.instruments:
-                #     if prevalidate_instrument(inst=bond, _type='Bond'):
-                #         new_values = fill_fields(bond)
-                #         new_values.update(type='B')
-                #         received_figi.add(bond.figi)
-                #         tcs_bond, _ = Figi.objects.update_or_create(figi=bond.figi, defaults=new_values)
 
                 if clean_up_flag:
                     for figi in Figi.objects.all():

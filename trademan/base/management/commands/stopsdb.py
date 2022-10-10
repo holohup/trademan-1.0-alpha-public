@@ -25,4 +25,4 @@ class Command(BaseCommand):
                 'stop_blacklist': stock.ticker in STOP_BLACKLIST,
                 'short_blacklist': stock.ticker in SHORT_BLACKLIST,
             }
-            stop_stock, _ = Stops.objects.update_or_create(stock=stock, defaults=new_values)
+            stop_stock, _ = Stops.objects.update_or_create(asset=stock, defaults=new_values)

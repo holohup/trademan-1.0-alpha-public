@@ -33,19 +33,28 @@ async def stop_handler(message: types.Message):
     await message.answer(f'Finished stopping. Running tasks: {RUNNING_TASKS}')
 
 
+@dp.message_handler(commands=['tasks'], is_me=True)
+async def tasks_handler(message: types.Message):
+    result = asyncio.all_tasks()
+    await message.answer(f'Running tasks: RUNNING_TASKS: {RUNNING_TASKS}, asyncio: {result}')
+
+
 @dp.message_handler(commands=['cancel'], is_me=True)
 async def cancel_all_orders_handler(message: types.Message):
     while RUNNING_TASKS:
         stop_running_tasks()
     await trades_handler('Cancelling all active orders', cancel_orders(), message)
 
+
 @dp.message_handler(commands=['orders'], is_me=True)
 async def orders_handler(message: types.Message):
     await trades_handler('Retrieving current orders', get_current_orders(), message)
 
+
 @dp.message_handler(commands=['test'], is_me=True)
 async def test_handler(message: types.Message):
     await trades_handler('Testing current tests!', test(), message)
+
 
 async def trades_handler(greeting: str, func, message: types.Message):
     await message.answer(greeting)

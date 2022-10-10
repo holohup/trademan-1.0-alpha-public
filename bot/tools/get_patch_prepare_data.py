@@ -61,6 +61,10 @@ def prepare_asset_data(data):
 def prepare_spreads_data(data):
     spreads = []
     for spread in data:
+        if spread['near_leg_type'] == 'S':
+            ratio = spread['base_asset_amount']
+        else:
+            ratio = 1
         spreads.append(Spread(
             far_leg=Asset(
                 figi=spread['figi'],
@@ -68,14 +72,17 @@ def prepare_spreads_data(data):
                 ticker=spread['ticker'],
                 lot=spread['lot'],
                 sell=spread['sell'],
-                amount=spread['amount']
+                amount=spread['amount'],
+                executed=spread['executed']
             ),
             near_leg=Asset(
                 figi=spread['near_leg_figi'],
                 increment=spread['near_leg_increment'],
                 ticker=spread['near_leg_ticker'],
                 lot=spread['near_leg_lot'],
-                sell=not spread['sell']
+                sell=not spread['sell'],
+                amount=spread['amount'] * ratio,
+                executed=spread['executed'] * ratio
             ),
             price=spread['price'],
             amount=spread['amount'],
