@@ -77,15 +77,17 @@ async def get_assets_executed(order_id):
 
 
 async def get_price_to_place_order(figi: str, sell: bool) -> Quotation:
-    # async with AsyncClient(TCS_RO_TOKEN) as client:
     async with AsyncRetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
-        r = await client.market_data.get_order_book(figi=figi, depth=2)
+        # r = await client.market_data.get_order_book(figi=figi, depth=2)
+        r = await client.market_data.get_order_book(figi=figi, depth=1)
     if not r.asks or not r.bids:
         raise ValueError('Нет ни одного аска в стакане! Возможно, сессия еще не началась.')
     if sell:
-        return r.asks[1].price
+        # return r.asks[1].price
+        return r.asks[0].price
     else:
-        return r.bids[1].price
+        # return r.bids[1].price
+        return r.bids[0].price
 
 
 async def get_closest_execution_price(figi: str, sell: bool) -> Quotation:

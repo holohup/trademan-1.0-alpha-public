@@ -86,9 +86,11 @@ class Asset:
     async def place_sellbuy_order(self):
 
         if self.sell:
-            self.price = decimal_to_quotation(self.new_price - self.increment)
+            # self.price = decimal_to_quotation(self.new_price - self.increment)
+            self.price = decimal_to_quotation(self.new_price)
         else:
-            self.price = decimal_to_quotation(self.new_price + self.increment)
+            # self.price = decimal_to_quotation(self.new_price + self.increment)
+            self.price = decimal_to_quotation(self.new_price)
 
         r = await place_sellbuy_order(
             self.figi, self.sell, self.price, self.get_lots(self.next_order_amount)
@@ -110,10 +112,7 @@ class Asset:
     async def update_executed(self):
         assets_executed = await self.get_assets_executed()
         if assets_executed > 0:
-            self.order_cache[self.order_id] = max(
-                assets_executed,
-                self.order_cache.get(self.order_id, 0)
-            )
+            self.order_cache[self.order_id] = max(assets_executed, self.order_cache.get(self.order_id, 0))
             self.executed = sum(self.order_cache.values())
             self.next_order_amount = self.amount - self.executed
             print(f'Кэш {self.ticker} . Всего исполненo: {self.executed}, кэш: {self.order_cache}')
