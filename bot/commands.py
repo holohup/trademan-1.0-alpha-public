@@ -6,7 +6,7 @@ from cancel_all_orders import cancel_orders
 from restore_stops import restore_stops
 from sellbuy import sellbuy
 from spreads import spreads
-from instant_commands import get_current_orders, test
+from instant_commands import get_current_orders, test, get_current_spread_prices
 
 RUNNING_TASKS = dict()
 
@@ -51,6 +51,11 @@ async def cancel_all_orders_handler(message: types.Message):
 @dp.message_handler(commands=['orders'], is_me=True)
 async def orders_handler(message: types.Message):
     await trades_handler('Retrieving current orders', get_current_orders(), message)
+
+
+@dp.message_handler(commands=['sprices'], is_me=True)
+async def orders_handler(message: types.Message):
+    await trades_handler('Current spread prices:', get_current_spread_prices(), message)
 
 
 @dp.message_handler(commands=['test'], is_me=True)

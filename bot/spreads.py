@@ -8,6 +8,8 @@ from datetime import datetime
 
 
 def get_delta_prices(spread: Spread):
+    if spread.near_leg.ticker == 'USDRUBF' and spread.far_leg.ticker == 'SiZ2':  # TODO: ЗАГЛУШКА! Переписать.
+        return spread.far_leg.new_price - spread.near_leg.closest_execution_price * spread.base_asset_amount
     if spread.near_leg_type == 'S':
         return spread.far_leg.new_price - spread.near_leg.closest_execution_price * spread.base_asset_amount
     return spread.far_leg.new_price - spread.near_leg.closest_execution_price
@@ -41,7 +43,6 @@ async def process_spread(spread):
         if perform_working_hours_check():
             await asyncio.gather(asyncio.create_task(spread.far_leg.get_price_to_place_order()),
                                  asyncio.create_task(spread.near_leg.get_closest_execution_price()))
-
             if spread.far_leg.new_price != spread.far_leg.last_price and spread.far_leg.order_placed:
                 await spread.far_leg.cancel_order()
             else:
@@ -58,25 +59,26 @@ async def process_spread(spread):
             ):
                 await spread.far_leg.place_sellbuy_order()
                 print(
-                    f'{datetime.now().time()}: Spread placed {spread}, '
-                    f'delta: {get_delta_prices(spread)}, desired spread price: {spread.price}'
+                    f'{datetime.now().time()}: Spread far leg placed {spread.far_leg.ticker}, '
+                    f'delta: {get_delta_prices(spread)}, desired spread price: {spread.price}, '
+                    f'placed {spread.far_leg.next_order_amount} at price {spread.far_leg.new_price}'
                 )
 
             spread.far_leg.last_price = spread.far_leg.new_price
             if spread.executed > last_executed:
                 print(f'Spreads pinging server: {spread}, executed:{spread.executed}')
                 await asyncio.create_task(async_patch_executed('spreads', spread.id, spread.executed))
-            last_executed = spread.executed
+                last_executed = spread.executed
             await asyncio.sleep(SLEEP_PAUSE)
 
         else:
             sleep_time = get_seconds_till_open()
-            logging.warning(f'Not a trading time. Waiting for {sleep_time // 60} minutes.')
+            logging.warning(f'{spread}: Not a trading time. Waiting for {sleep_time // 60} minutes.')
             await asyncio.gather(
                 asyncio.create_task(asyncio.sleep(sleep_time)),
                 asyncio.create_task(cancel_active_orders_and_update_data([spread]))
             )
-            logging.warning(f'Resuming session.')
+            logging.warning(f'{spread}: Resuming session.')
 
     await async_patch_executed('spreads', spread.id, spread.executed)
     return spread
