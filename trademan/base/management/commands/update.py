@@ -63,7 +63,7 @@ class Command(BaseCommand):
                 result_message += 'Stocks update received\n'
                 response_futures = client.instruments.futures()
                 result_message += 'Futures update received\n'
-                result_currencies = client.instruments.currencies()
+                # result_currencies = client.instruments.currencies()
                 # response_bonds = client.instruments.bonds()
                 # result_message += 'Bonds update received\n'
             except Exception as error:

@@ -5,9 +5,15 @@ from tools.orders import perform_market_trade
 from tinkoff.invest.utils import quotation_to_decimal, decimal_to_quotation
 from tinkoff.invest.schemas import OrderExecutionReportStatus
 from decimal import Decimal, getcontext
+from dataclasses import dataclass
 
 getcontext().prec = 10
 
+@dataclass()
+class CacheItem:
+    id: str
+    amount: int
+    price: float
 
 class Asset:
     def __init__(
@@ -158,3 +164,8 @@ class Spread:
             self.near_leg.next_order_amount = self.far_leg.executed * self.ratio - self.near_leg.executed
             await self.near_leg.perform_market_trade()
             self.executed = self.far_leg.executed
+
+
+if __name__ == '__main__':
+    a = Cache('FIGI', 1, 200.5)
+    print(a, a.id, a.price, a.amount)
