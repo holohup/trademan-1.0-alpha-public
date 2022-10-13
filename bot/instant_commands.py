@@ -1,7 +1,7 @@
 import asyncio
 
 from spreads import get_delta_prices
-from tools.get_patch_prepare_data import async_get_api_data, prepare_asset_data, prepare_spreads_data
+from tools.get_patch_prepare_data import async_get_api_data, prepare_spreads_data, async_check_health
 from tools.orders import get_current_orders
 
 
@@ -10,8 +10,13 @@ async def orders():
 
 
 async def test():
-    assets = prepare_asset_data(await async_get_api_data('sellbuy'))
-    return [(100 - asset.increment, 100 + asset.increment) for asset in assets]
+    result = await check_health()
+    return result
+
+
+async def check_health():
+    result = await async_check_health()
+    return result == 200
 
 
 async def get_current_spread_prices():

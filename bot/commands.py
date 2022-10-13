@@ -4,13 +4,13 @@ from aiogram import types
 
 from bot_init import dp
 from cancel_all_orders import cancel_orders
-from instant_commands import get_current_orders, test, get_current_spread_prices
+from instant_commands import get_current_orders, test, get_current_spread_prices, check_health
 from place_stops import place_short_stops, place_long_stops
 from restore_stops import restore_stops
 from sellbuy import sellbuy
 from spreads import spreads
 
-RUNNING_TASKS = dict()
+RUNNING_TASKS = {}
 
 
 def stop_running_tasks():
@@ -49,64 +49,70 @@ async def cancel_all_orders_handler(message: types.Message):
     while RUNNING_TASKS:
         stop_running_tasks()
     await trades_handler(
-        'Cancelling all active orders', cancel_orders(), message
+        'Cancelling all active orders', cancel_orders, message
     )
 
 
 @dp.message_handler(commands=['orders'], is_me=True)
 async def orders_handler(message: types.Message):
     await trades_handler(
-        'Retrieving current orders', get_current_orders(), message
+        'Retrieving current orders', get_current_orders, message
     )
 
 
 @dp.message_handler(commands=['sprices'], is_me=True)
 async def spreads_prices_handler(message: types.Message):
     await trades_handler(
-        'Current spread prices:', get_current_spread_prices(), message
+        'Current spread prices:', get_current_spread_prices, message
     )
 
 
 @dp.message_handler(commands=['test'], is_me=True)
 async def test_handler(message: types.Message):
-    await trades_handler('Testing current tests!', test(), message)
+    await trades_handler('Testing current tests!', test, message)
 
 
 async def trades_handler(greeting: str, func, message: types.Message):
-    await message.answer(greeting)
-    result = asyncio.create_task(func)
-    RUNNING_TASKS[greeting] = result
-    await result
-    if result in RUNNING_TASKS.values():
-        RUNNING_TASKS.pop(greeting)
-    await message.answer(result.result())
+    if await check_health():
+        if greeting not in RUNNING_TASKS:
+            await message.answer(greeting)
+            result = asyncio.create_task(func())
+            RUNNING_TASKS[greeting] = result
+            await result
+            if result in RUNNING_TASKS.values():
+                RUNNING_TASKS.pop(greeting)
+            await message.answer(result.result())
+        else:
+            await message.answer(f'{greeting} already running!')
+    else:
+        await message.answer('Server not working!')
 
 
 @dp.message_handler(commands=['stops'], is_me=True)
 async def place_long_stops_handler(message: types.Message):
-    await trades_handler('Placing long stops', place_long_stops(), message)
+    await trades_handler('Placing long stops', place_long_stops, message)
 
 
 @dp.message_handler(commands=['shorts'], is_me=True)
 async def place_short_stops_handler(message: types.Message):
-    await trades_handler('Placing short stops', place_short_stops(), message)
+    await trades_handler('Placing short stops', place_short_stops, message)
 
 
 @dp.message_handler(commands=['restore'], is_me=True)
 async def restore_stops_handler(message: types.Message):
-    await trades_handler('Restoring stop orders', restore_stops(), message)
+    await trades_handler('Restoring stop orders', restore_stops, message)
 
 
 @dp.message_handler(commands=['sellbuy'], is_me=True)
 async def sellbuy_handler(message: types.Message):
     await trades_handler(
-        'Selling and buying stocks from the list', sellbuy(), message
+        'Selling and buying stocks from the list', sellbuy, message
     )
 
 
 @dp.message_handler(commands=['spreads'], is_me=True)
 async def spreads_handler(message: types.Message):
-    await trades_handler('Spreads monitoring and trading', spreads(), message)
+    await trades_handler('Spreads monitoring and trading', spreads, message)
 
 
 @dp.message_handler(commands=['status', 'stats', 'hello'], is_me=True)
