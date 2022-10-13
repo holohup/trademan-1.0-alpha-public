@@ -129,9 +129,6 @@ dmypy.json
 .pyre/
 
 #env
-.env
-
-#env
 .idea/
 
 #mac

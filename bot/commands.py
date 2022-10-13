@@ -1,12 +1,14 @@
-from aiogram import types
 import asyncio
+
+from aiogram import types
+
 from bot_init import dp
-from place_stops import place_short_stops, place_long_stops
 from cancel_all_orders import cancel_orders
+from instant_commands import get_current_orders, test, get_current_spread_prices
+from place_stops import place_short_stops, place_long_stops
 from restore_stops import restore_stops
 from sellbuy import sellbuy
 from spreads import spreads
-from instant_commands import get_current_orders, test, get_current_spread_prices
 
 RUNNING_TASKS = dict()
 
@@ -18,14 +20,15 @@ def stop_running_tasks():
         RUNNING_TASKS.pop(task)
 
 
-
 @dp.message_handler(commands=['start', 'help'], is_me=True)
 async def help_handler(message: types.Message):
-    await message.answer('Bot is operational! The commands are:\n'
-                         'stops, shorts,\n'
-                         'restore, sellbuy,\n'
-                         'monitor,\n'
-                         'stop, cancel')
+    await message.answer(
+        'Bot is operational! The commands are:\n'
+        'stops, shorts,\n'
+        'restore, sellbuy,\n'
+        'monitor,\n'
+        'stop, cancel'
+    )
 
 
 @dp.message_handler(commands=['stop'], is_me=True)
@@ -45,17 +48,23 @@ async def tasks_handler(message: types.Message):
 async def cancel_all_orders_handler(message: types.Message):
     while RUNNING_TASKS:
         stop_running_tasks()
-    await trades_handler('Cancelling all active orders', cancel_orders(), message)
+    await trades_handler(
+        'Cancelling all active orders', cancel_orders(), message
+    )
 
 
 @dp.message_handler(commands=['orders'], is_me=True)
 async def orders_handler(message: types.Message):
-    await trades_handler('Retrieving current orders', get_current_orders(), message)
+    await trades_handler(
+        'Retrieving current orders', get_current_orders(), message
+    )
 
 
 @dp.message_handler(commands=['sprices'], is_me=True)
-async def orders_handler(message: types.Message):
-    await trades_handler('Current spread prices:', get_current_spread_prices(), message)
+async def spreads_prices_handler(message: types.Message):
+    await trades_handler(
+        'Current spread prices:', get_current_spread_prices(), message
+    )
 
 
 @dp.message_handler(commands=['test'], is_me=True)
@@ -90,7 +99,9 @@ async def restore_stops_handler(message: types.Message):
 
 @dp.message_handler(commands=['sellbuy'], is_me=True)
 async def sellbuy_handler(message: types.Message):
-    await trades_handler('Selling and buying stocks from the list', sellbuy(), message)
+    await trades_handler(
+        'Selling and buying stocks from the list', sellbuy(), message
+    )
 
 
 @dp.message_handler(commands=['spreads'], is_me=True)
@@ -101,9 +112,3 @@ async def spreads_handler(message: types.Message):
 @dp.message_handler(commands=['status', 'stats', 'hello'], is_me=True)
 async def status_handler(message: types.Message):
     await message.answer('Working...')
-
-
-@dp.message_handler(commands=['monitor'], is_me=True)
-async def sellbuy_handler(message: types.Message):
-    await trades_handler('Starting spreads monitoring', monitor(), message)
-

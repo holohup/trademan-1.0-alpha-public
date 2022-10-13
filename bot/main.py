@@ -1,10 +1,11 @@
 import logging
+import sys
+
 from aiogram import executor
+
 from bot_init import dp
 import commands
-import sys
 from settings import TCS_RO_TOKEN, TCS_RW_TOKEN, TCS_ACCOUNT_ID, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
-
 
 if __name__ == '__main__':
 
@@ -20,7 +21,13 @@ if __name__ == '__main__':
     )
 
     if not all(
-        [TCS_RO_TOKEN, TCS_RW_TOKEN, TCS_ACCOUNT_ID, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
+            [
+                TCS_RO_TOKEN,
+                TCS_RW_TOKEN,
+                TCS_ACCOUNT_ID,
+                TELEGRAM_TOKEN,
+                TELEGRAM_CHAT_ID,
+            ]
     ):
         message = (
             'Не удалось загрузить все переменные из окружения. Переменные:\n'
@@ -34,5 +41,3 @@ if __name__ == '__main__':
         sys.exit(message)
 
     executor.start_polling(dp, skip_updates=True)
-
-
