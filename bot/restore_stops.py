@@ -13,5 +13,6 @@ async def restore_stops():
             stops_placed.append(stop.ticker)
     return f'Stops successfully restored for {stops_placed}'
 
+
 if __name__ == '__main__':
     pass
