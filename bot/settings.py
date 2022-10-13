@@ -55,6 +55,7 @@ SHORTS_ENDPOINT = 'api/v1/shorts/'
 SELLBUY_ENDPOINT = 'api/v1/sellbuy/'
 SPREADS_ENDPOINT = 'api/v1/spreads/'
 RESTORESTOPS_ENDPOINT = 'api/v1/restorestops/'
+HEALTH_ENDPOINT = 'api/v1/health/'
 
 if __name__ == '__main__':
     print(OFFSET_ADJUSTED_WORK_HOURS)

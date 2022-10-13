@@ -2,7 +2,7 @@ import asyncio
 from http import HTTPStatus
 
 import aiohttp
-from settings import RESTORESTOPS_ENDPOINT, SELLBUY_ENDPOINT, SPREADS_ENDPOINT
+from settings import RESTORESTOPS_ENDPOINT, SELLBUY_ENDPOINT, SPREADS_ENDPOINT, HEALTH_ENDPOINT
 from settings import RETRY_SETTINGS, TCS_RO_TOKEN
 from settings import SHORTS_ENDPOINT, ENDPOINT_HOST, STOPS_ENDPOINT
 from tinkoff.invest.retrying.sync.client import RetryingClient
@@ -30,6 +30,13 @@ async def async_get_api_data(command: str):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             return await response.json()
+
+
+async def async_check_health():
+    url = ENDPOINT_HOST + HEALTH_ENDPOINT
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            return response.status
 
 
 def get_current_prices(assets):
