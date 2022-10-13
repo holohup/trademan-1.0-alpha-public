@@ -1,6 +1,10 @@
-from .serializers import StopsSerializer, SellBuySerializer, SpreadsSerializer, RestoreStopsSerializer
+from http import HTTPStatus
+
 from base.models import Stops, Spread, SellBuy, RestoreStops
+from django.http import HttpResponse
 from rest_framework import viewsets
+
+from .serializers import StopsSerializer, SellBuySerializer, SpreadsSerializer, RestoreStopsSerializer
 
 
 class StopsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -40,3 +44,6 @@ class RestoreStopsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = RestoreStops.objects.filter(active=True).select_related('asset')
     serializer_class = RestoreStopsSerializer
 
+
+def health(request):
+    return HttpResponse(status=HTTPStatus.OK)
