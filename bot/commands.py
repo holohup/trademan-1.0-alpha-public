@@ -1,6 +1,7 @@
 import asyncio
 
 from aiogram import types
+from grpc.aio._call import AioRpcError
 
 from bot_init import dp
 from cancel_all_orders import cancel_orders
@@ -9,6 +10,7 @@ from place_stops import place_short_stops, place_long_stops
 from restore_stops import restore_stops
 from sellbuy import sellbuy
 from spreads import spreads
+from queue_handler import QUEUE
 
 RUNNING_TASKS = {}
 
@@ -74,16 +76,21 @@ async def test_handler(message: types.Message):
 
 async def trades_handler(greeting: str, func, message: types.Message):
     if await check_health():
-        if greeting not in RUNNING_TASKS:
-            await message.answer(greeting)
-            result = asyncio.create_task(func())
-            RUNNING_TASKS[greeting] = result
-            await result
+        try:
+            if greeting not in RUNNING_TASKS:
+                await message.answer(greeting)
+                result = asyncio.create_task(func())
+                RUNNING_TASKS[greeting] = result
+                await result
+            else:
+                await message.answer(f'{greeting} already running!')
+        except (AioRpcError, AttributeError, ValueError) as error:
+            await QUEUE.put(f'Error executing {greeting}: {error}')
+        else:
+            await message.answer(result.result())
+        finally:
             if result in RUNNING_TASKS.values():
                 RUNNING_TASKS.pop(greeting)
-            await message.answer(result.result())
-        else:
-            await message.answer(f'{greeting} already running!')
     else:
         await message.answer('Server not working!')
 
@@ -118,3 +125,7 @@ async def spreads_handler(message: types.Message):
 @dp.message_handler(commands=['status', 'stats', 'hello'], is_me=True)
 async def status_handler(message: types.Message):
     await message.answer('Working...')
+
+
+if __name__ == '__main__':
+    pass
