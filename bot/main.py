@@ -40,4 +40,12 @@ if __name__ == '__main__':
         logging.critical(message)
         sys.exit(message)
 
-    executor.start_polling(dp, skip_updates=True)
+    # executor.start_polling(dp, skip_updates=True)
+    import asyncio
+    from queue_handler import worker
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.create_task(worker())
+    loop.create_task(executor.start_polling(dp, skip_updates=True), name='bot')
+    loop.run_forever()

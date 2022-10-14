@@ -6,23 +6,14 @@ from settings import SLEEP_PAUSE
 from tools.classes import Spread
 from tools.get_patch_prepare_data import prepare_spreads_data, async_get_api_data, async_patch_executed
 from tools.utils import perform_working_hours_check, get_seconds_till_open
+from queue_handler import QUEUE
 
 
 def get_delta_prices(spread: Spread):
-    if (
-            spread.near_leg.ticker == 'USDRUBF' and spread.far_leg.ticker == 'SiZ2'
-    ):  # TODO: ЗАГЛУШКА! Переписать.
-        return (
-                spread.far_leg.new_price
-                - spread.near_leg.closest_execution_price
-                * spread.base_asset_amount
-        )
+    if spread.near_leg.ticker == 'USDRUBF' and spread.far_leg.ticker == 'SiZ2':  # TODO: ЗАГЛУШКА! Переписать.
+        return spread.far_leg.new_price - spread.near_leg.closest_execution_price * spread.base_asset_amount
     if spread.near_leg_type == 'S':
-        return (
-                spread.far_leg.new_price
-                - spread.near_leg.closest_execution_price
-                * spread.base_asset_amount
-        )
+        return spread.far_leg.new_price - spread.near_leg.closest_execution_price * spread.base_asset_amount
     return spread.far_leg.new_price - spread.near_leg.closest_execution_price
 
 
@@ -74,14 +65,9 @@ async def process_spread(spread):
         if perform_working_hours_check():
             await asyncio.gather(
                 asyncio.create_task(spread.far_leg.get_price_to_place_order()),
-                asyncio.create_task(
-                    spread.near_leg.get_closest_execution_price()
-                ),
+                asyncio.create_task(spread.near_leg.get_closest_execution_price()),
             )
-            if (
-                    spread.far_leg.new_price != spread.far_leg.last_price
-                    and spread.far_leg.order_placed
-            ):
+            if spread.far_leg.new_price != spread.far_leg.last_price and spread.far_leg.order_placed:
                 await spread.far_leg.cancel_order()
             else:
                 logging.info(
@@ -99,20 +85,16 @@ async def process_spread(spread):
                     and ok_to_place_order(spread)
             ):
                 await spread.far_leg.place_sellbuy_order()
-                print(
-                    f'{datetime.now().time()}: Spread far leg placed {spread.far_leg.ticker}, '
-                    f'delta: {get_delta_prices(spread)}, desired spread price: {spread.price}, '
+                await QUEUE.put(
+                    f'{datetime.now().time()}: Spread far leg placed {spread.far_leg.ticker}, \n'
+                    f'delta: {get_delta_prices(spread)}, desired spread price: {spread.price}, \n'
                     f'placed {spread.far_leg.next_order_amount} at price {spread.far_leg.new_price}'
                 )
 
             spread.far_leg.last_price = spread.far_leg.new_price
             if spread.executed > last_executed:
-                print(
-                    f'Spreads pinging server: {spread}, executed:{spread.executed}'
-                )
-                await asyncio.create_task(
-                    async_patch_executed('spreads', spread.id, spread.executed)
-                )
+                await async_patch_executed('spreads', spread.id, spread.executed)
+                await QUEUE.put(f'{spread}: executed [{spread.executed} / {spread.amount}]')
                 last_executed = spread.executed
             await asyncio.sleep(SLEEP_PAUSE)
 
