@@ -2,20 +2,11 @@ import asyncio
 from http import HTTPStatus
 
 import aiohttp
-from settings import RESTORESTOPS_ENDPOINT, SELLBUY_ENDPOINT, SPREADS_ENDPOINT, HEALTH_ENDPOINT
+from settings import ENDPOINTS, ENDPOINT_HOST
 from settings import RETRY_SETTINGS, TCS_RO_TOKEN
-from settings import SHORTS_ENDPOINT, ENDPOINT_HOST, STOPS_ENDPOINT
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.utils import quotation_to_decimal
 from tools.classes import Asset, Spread
-
-ENDPOINTS = {
-    'shorts': SHORTS_ENDPOINT,
-    'stops': STOPS_ENDPOINT,
-    'restore_stops': RESTORESTOPS_ENDPOINT,
-    'spreads': SPREADS_ENDPOINT,
-    'sellbuy': SELLBUY_ENDPOINT,
-}
 
 
 async def async_patch_executed(command: str, id: int, executed: int):
@@ -33,7 +24,7 @@ async def async_get_api_data(command: str):
 
 
 async def async_check_health():
-    url = ENDPOINT_HOST + HEALTH_ENDPOINT
+    url = ENDPOINT_HOST + ENDPOINTS['health']
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             return response.status

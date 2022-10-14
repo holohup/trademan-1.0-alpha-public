@@ -50,12 +50,16 @@ TELEGRAM_CHAT_ID = int(os.getenv('TG_CHAT_ID'))
 # endpoints
 
 ENDPOINT_HOST = 'http://192.168.2.40:8000/'
-STOPS_ENDPOINT = 'api/v1/stops/'
-SHORTS_ENDPOINT = 'api/v1/shorts/'
-SELLBUY_ENDPOINT = 'api/v1/sellbuy/'
-SPREADS_ENDPOINT = 'api/v1/spreads/'
-RESTORESTOPS_ENDPOINT = 'api/v1/restorestops/'
-HEALTH_ENDPOINT = 'api/v1/health/'
+
+ENDPOINTS = {
+    'shorts': 'api/v1/shorts/',
+    'stops': 'api/v1/stops/',
+    'restore_stops': 'api/v1/restorestops/',
+    'spreads': 'api/v1/spreads/',
+    'sellbuy': 'api/v1/sellbuy/',
+    'health': 'api/v1/health/'
+}
+
 
 if __name__ == '__main__':
     print(OFFSET_ADJUSTED_WORK_HOURS)
