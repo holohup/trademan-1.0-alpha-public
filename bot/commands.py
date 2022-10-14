@@ -10,7 +10,6 @@ from place_stops import place_short_stops, place_long_stops
 from restore_stops import restore_stops
 from sellbuy import sellbuy
 from spreads import spreads
-from queue_handler import QUEUE
 
 RUNNING_TASKS = {}
 
@@ -75,24 +74,25 @@ async def test_handler(message: types.Message):
 
 
 async def trades_handler(greeting: str, func, message: types.Message):
-    if await check_health():
-        try:
-            if greeting not in RUNNING_TASKS:
-                await message.answer(greeting)
-                result = asyncio.create_task(func())
-                RUNNING_TASKS[greeting] = result
-                await result
-            else:
-                await message.answer(f'{greeting} already running!')
-        except (AioRpcError, AttributeError, ValueError) as error:
-            await QUEUE.put(f'Error executing {greeting}: {error}')
-        else:
-            await message.answer(result.result())
-        finally:
-            if result in RUNNING_TASKS.values():
-                RUNNING_TASKS.pop(greeting)
-    else:
+    if greeting in RUNNING_TASKS:
+        await message.answer(f'{greeting} already running!')
+        return
+
+    if not await check_health():
         await message.answer('Server not working!')
+        return
+
+    await message.answer(greeting)
+    try:
+        result = asyncio.create_task(func())
+        RUNNING_TASKS[greeting] = result
+        await result
+    except (AioRpcError, AttributeError, ValueError) as error:
+        await message.answer(f'Error executing {greeting}: {error}')
+    else:
+        await message.answer(result.result())
+    finally:
+        RUNNING_TASKS.pop(greeting)
 
 
 @dp.message_handler(commands=['stops'], is_me=True)
