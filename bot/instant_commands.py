@@ -36,7 +36,7 @@ async def get_current_spread_prices():
             *[asyncio.create_task(spread.near_leg.get_closest_execution_price()) for spread in spreads],
         )
     except ValueError as error:
-        QUEUE.put(error)
+        await QUEUE.put(error)
     result = ''
     for spread in spreads:
         result += f'{spread}: current: {get_delta_prices(spread)}, desired: {spread.price}\n'
