@@ -67,7 +67,7 @@ class Command(BaseCommand):
                 # response_bonds = client.instruments.bonds()
                 # result_message += 'Bonds update received\n'
             except Exception as error:
-                result_message += 'Error updating prices\n'
+                result_message += 'Error updating stocks!\n'
                 raise CommandError(f'Data update failed! {error}')
             else:
                 clean_up_flag = True
