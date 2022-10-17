@@ -4,7 +4,7 @@ from tinkoff.invest.schemas import OrderExecutionReportStatus
 from tinkoff.invest.utils import quotation_to_decimal, decimal_to_quotation
 from tools.orders import get_price_to_place_order, place_sellbuy_order, get_closest_execution_price
 from tools.orders import perform_market_trade
-from tools.orders import place_long_stop, place_short_stop, cancel_order, get_assets_executed
+from tools.orders import place_long_stop, place_short_stop, cancel_order, get_execution_report
 from tools.utils import get_correct_price, get_lots
 
 getcontext().prec = 10
@@ -36,13 +36,14 @@ class Asset:
         self.executed = executed
         self.order_placed = order_placed
         self.order_id = order_id
-        self.order_cache = {}
+        self.order_cache = []
         self.next_order_amount = amount
         self.new_price = Decimal(0)
         self.last_price = Decimal(0)
         self.closest_execution_price = Decimal(0)
+        self.average_execution_price = Decimal(0)
         if executed and executed > 0:
-            self.order_cache['initial'] = executed
+            self.order_cache.append(('initial', executed, Decimal(0)))  # order id, assets executed, average price
             self.next_order_amount = amount - executed
 
     def __str__(self):
@@ -76,7 +77,7 @@ class Asset:
         self.order_placed = False
 
     async def get_assets_executed(self):
-        return await get_assets_executed(self.order_id) * self.lot
+        return await get_execution_report(self.order_id) * self.lot
 
     async def get_price_to_place_order(self):
         self.new_price = quotation_to_decimal(
@@ -99,6 +100,7 @@ class Asset:
             OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_FILL,
         ]:
             self.order_id = r.order_id
+            self.order_cache.append((self.order_id, r.lots_executed, quotation_to_decimal(r.executed_order_price)))
             # self.executed += self.get_lots(self.next_order_amount) * self.lot
             print(
                 f'Исполнена заявка {self.ticker}: {self.next_order_amount} шт'
@@ -137,13 +139,23 @@ class Asset:
             self.order_placed = False
         return self.order_placed
 
+    # (self.order_id, r.lots_executed, quotation_to_decimal(r.executed_order_price)
     async def update_executed(self):
-        assets_executed = await self.get_assets_executed()
-        if assets_executed > 0:
-            self.order_cache[self.order_id] = max(
-                assets_executed, self.order_cache.get(self.order_id, 0)
-            )
-            self.executed = sum(self.order_cache.values())
+        execution_report = await self.get_assets_executed()
+        if execution_report.lots_executed > 0:
+            patch_element = False
+            for order in self.order_cache:
+                if self.order_id == order[0]:
+                    patch_element = order
+
+            if patch_element:
+                self.order_cache.pop(patch_element)
+
+            self.order_cache.append((self.order_id, execution_report.lots_executed * self.lot,
+                                     quotation_to_decimal(execution_report.executed_order_price)))
+
+            self.executed = sum([order[1] for order in self.order_cache])
+            self.average_execution_price = sum([order[2] for order in self.order_cache]) / self.executed
             self.next_order_amount = self.amount - self.executed
             print(
                 f'Кэш {self.ticker} . Всего исполненo: {self.executed}, '
@@ -202,6 +214,9 @@ class Spread:
             )
             await self.near_leg.perform_market_trade()
             self.executed = self.far_leg.executed
+
+    def get_average_execution_price(self):
+        return self.near_leg.average_execution_price * self.ratio - self.far_leg.average_execution_price
 
 
 if __name__ == '__main__':

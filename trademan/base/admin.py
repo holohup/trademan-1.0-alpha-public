@@ -20,11 +20,11 @@ class StopsAdmin(admin.ModelAdmin):
 
 @admin.register(Spread)
 class SpreadAdmin(admin.ModelAdmin):
-    list_display = ('asset', 'near_leg', 'price', 'sell', 'amount', 'executed', 'active')
+    list_display = ('asset', 'near_leg', 'price', 'sell', 'amount', 'executed', 'active', 'exec_price')
     list_display_links = ('near_leg', 'asset')
     autocomplete_fields = ('near_leg', 'asset')
-    list_editable = ('amount', 'sell', 'executed', 'price', 'active')
-    list_filter = ('active',)
+    list_editable = ('amount', 'sell', 'executed', 'price', 'active', 'exec_price')
+    list_filter = ('active', 'exec_price')
 
 
 @admin.register(RestoreStops)

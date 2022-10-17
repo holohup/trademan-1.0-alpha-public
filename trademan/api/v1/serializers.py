@@ -52,7 +52,7 @@ class SpreadsSerializer(BasicDataSerializer):
             'id',
             'figi', 'ticker', 'increment', 'lot',
             'near_leg_figi', 'near_leg_ticker', 'near_leg_increment', 'near_leg_lot',
-            'sell', 'price', 'amount', 'executed',
+            'sell', 'price', 'amount', 'executed', 'exec_price'
             'near_leg_type', 'base_asset_amount'
         )
         read_only_fields = (
@@ -62,6 +62,7 @@ class SpreadsSerializer(BasicDataSerializer):
             'sell', 'price', 'amount',
             'near_leg_type', 'base_asset_amount'
         )
+
     def get_near_leg_figi(self, obj):
         return obj.near_leg.figi
 

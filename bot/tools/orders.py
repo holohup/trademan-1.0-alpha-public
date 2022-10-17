@@ -60,7 +60,7 @@ async def cancel_order(order_id):
                 )
 
 
-async def get_assets_executed(order_id):
+async def get_execution_report(order_id):
     # async with AsyncClient(TCS_RO_TOKEN) as client:
     async with AsyncRetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
         try:
@@ -76,9 +76,8 @@ async def get_assets_executed(order_id):
             print(message)
             raise exceptions.AioRequestError(200, message, metadata=message)
         else:
-            r = r.lots_executed
-            if r > 0:
-                print(f'Получен ответ о кол-ве исполненных заявок: {r}')
+            if r.lots_executed > 0:
+                print(f'Получен ответ о кол-ве исполненных заявок: {r.lots_executed}')
         return r
 
 

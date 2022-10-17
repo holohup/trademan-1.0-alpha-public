@@ -73,6 +73,7 @@ class Spread(BaseAssetModel):
         related_name='near_leg'
     )
     price = models.IntegerField(verbose_name='Цена спреда')
+    exec_price = models.DecimalField(decimal_places=10, max_digits=20, verbose_name='Средняя цена исполнения')
 
     def __str__(self):
         action = 'Sell ' if self.sell else 'Buy '
