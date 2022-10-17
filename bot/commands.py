@@ -83,16 +83,17 @@ async def trades_handler(greeting: str, func, message: types.Message):
         return
 
     await message.answer(greeting)
+    result = asyncio.create_task(func())
+    RUNNING_TASKS[greeting] = result
     try:
-        result = asyncio.create_task(func())
-        RUNNING_TASKS[greeting] = result
         await result
     except (AioRpcError, AttributeError, ValueError) as error:
         await message.answer(f'Error executing {greeting}: {error}')
     else:
         await message.answer(result.result())
     finally:
-        RUNNING_TASKS.pop(greeting)
+        if greeting in RUNNING_TASKS:
+            RUNNING_TASKS.pop(greeting)
 
 
 @dp.message_handler(commands=['stops'], is_me=True)

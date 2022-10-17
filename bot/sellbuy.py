@@ -8,31 +8,34 @@ from queue_handler import QUEUE
 
 
 async def process_asset(asset):
-    while asset.next_order_amount >= asset.lot:
-        await asset.get_price_to_place_order()
-        if asset.new_price != asset.last_price and asset.order_placed:
-            await asset.cancel_order()
-        else:
-            logging.info(
-                f'Price unchanged, not cancelling the order for {asset.ticker}.'
+    try:
+        while asset.next_order_amount >= asset.lot:
+            await asset.get_price_to_place_order()
+            if asset.new_price != asset.last_price and asset.order_placed:
+                await asset.cancel_order()
+            else:
+                logging.info(
+                    f'Price unchanged, not cancelling the order for {asset.ticker}.'
+                )
+            if asset.order_id:
+                await asset.update_executed()
+            if not asset.order_placed and asset.next_order_amount >= asset.lot:
+                await asset.place_sellbuy_order()
+
+            asset.last_price = asset.new_price
+            await asyncio.gather(
+                asyncio.create_task(asyncio.sleep(SLEEP_PAUSE)),
+                asyncio.create_task(
+                    async_patch_executed('sellbuy', asset.id, asset.executed)
+                ),
             )
-        if asset.order_id:
-            await asset.update_executed()
-        if not asset.order_placed and asset.next_order_amount >= asset.lot:
-            await asset.place_sellbuy_order()
+    except Exception as error:
+        QUEUE.put(error)
+    else:
+        await async_patch_executed('sellbuy', asset.id, asset.executed)
+        await QUEUE.put(f'Sellbuy for {asset.ticker} finished')
 
-        asset.last_price = asset.new_price
-        await asyncio.gather(
-            asyncio.create_task(asyncio.sleep(SLEEP_PAUSE)),
-            asyncio.create_task(
-                async_patch_executed('sellbuy', asset.id, asset.executed)
-            ),
-        )
-
-    await async_patch_executed('sellbuy', asset.id, asset.executed)
-    await QUEUE.put(f'Sellbuy for {asset.ticker} finished')
-
-    return {asset.ticker: asset.executed}
+        return {asset.ticker: asset.executed}
 
 
 async def sellbuy():
