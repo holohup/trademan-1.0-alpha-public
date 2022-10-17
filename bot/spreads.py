@@ -2,11 +2,11 @@ import asyncio
 import logging
 from datetime import datetime
 
+from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
 from tools.classes import Spread
 from tools.get_patch_prepare_data import prepare_spreads_data, async_get_api_data, async_patch_executed
 from tools.utils import perform_working_hours_check, get_seconds_till_open
-from queue_handler import QUEUE
 
 
 def get_delta_prices(spread: Spread):
@@ -96,12 +96,14 @@ async def process_spread(spread):
                 spread.far_leg.last_price = spread.far_leg.new_price
                 if spread.executed > last_executed:
                     await async_patch_executed('spreads', spread.id, spread.executed)
-                    await QUEUE.put(f'{spread}: executed [{spread.executed} / {spread.amount}]')
+                    await QUEUE.put(
+                        f'{spread}: executed [{spread.executed} / {spread.amount}] '
+                        f'for {spread.get_average_execution_price()}')
                     last_executed = spread.executed
                 await asyncio.sleep(SLEEP_PAUSE)
 
             except Exception as error:
-                await QUEUE.put(error)
+                await QUEUE.put(f'[{spread}]: {error}')
 
         else:
             sleep_time = get_seconds_till_open()
