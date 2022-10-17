@@ -77,7 +77,7 @@ class Asset:
         self.order_placed = False
 
     async def get_assets_executed(self):
-        return await get_execution_report(self.order_id) * self.lot
+        return await get_execution_report(self.order_id)
 
     async def get_price_to_place_order(self):
         self.new_price = quotation_to_decimal(
