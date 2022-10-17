@@ -8,8 +8,9 @@ from queue_handler import QUEUE
 
 
 async def process_asset(asset):
-    try:
-        while asset.next_order_amount >= asset.lot:
+
+    while asset.next_order_amount >= asset.lot:
+        try:
             await asset.get_price_to_place_order()
             if asset.new_price != asset.last_price and asset.order_placed:
                 await asset.cancel_order()
@@ -29,13 +30,12 @@ async def process_asset(asset):
                     async_patch_executed('sellbuy', asset.id, asset.executed)
                 ),
             )
-    except Exception as error:
-        QUEUE.put(error)
-    else:
-        await async_patch_executed('sellbuy', asset.id, asset.executed)
-        await QUEUE.put(f'Sellbuy for {asset.ticker} finished')
+        except Exception as error:
+            await QUEUE.put(error)
 
-        return {asset.ticker: asset.executed}
+    await async_patch_executed('sellbuy', asset.id, asset.executed)
+    await QUEUE.put(f'Sellbuy for {asset.ticker} finished')
+    return {asset.ticker: asset.executed}
 
 
 async def sellbuy():
