@@ -100,8 +100,13 @@ class Asset:
             OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_FILL,
         ]:
             self.order_id = r.order_id
-            self.order_cache.append((self.order_id, r.lots_executed, quotation_to_decimal(r.executed_order_price)))
-            # self.executed += self.get_lots(self.next_order_amount) * self.lot
+            self.order_cache.append((self.order_id, r.lots_executed * self.lot,
+                                     quotation_to_decimal(r.total_order_amount)))
+            self.executed = sum([order[1] for order in self.order_cache])
+            self.average_execution_price = sum([order[2] for order in self.order_cache]) / self.executed
+
+            print(f'Кэш {self.ticker}: {self.order_cache}')
+
             print(
                 f'Исполнена заявка {self.ticker}: {self.next_order_amount} шт'
             )
@@ -146,6 +151,7 @@ class Asset:
             patch_element = False
             for order in self.order_cache:
                 if self.order_id == order[0]:
+                    print(type(order), type(order[0]), order[0], self.order_cache)
                     patch_element = order
 
             if patch_element:
@@ -216,7 +222,7 @@ class Spread:
             self.executed = self.far_leg.executed
 
     def get_average_execution_price(self):
-        return self.near_leg.average_execution_price * self.ratio - self.far_leg.average_execution_price
+        return float(self.far_leg.average_execution_price - self.near_leg.average_execution_price * self.ratio)
 
 
 if __name__ == '__main__':

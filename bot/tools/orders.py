@@ -130,6 +130,7 @@ async def perform_market_trade(figi: str, sell: bool, lots: int):
         except Exception as error:
             print(error)
             raise error
+        print(r.order_id, r.executed_order_price, r.lots_requested, r.lots_executed, r.total_order_amount)
         return r
 
 
