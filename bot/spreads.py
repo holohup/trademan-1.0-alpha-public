@@ -51,7 +51,7 @@ async def cancel_active_orders_and_update_data(spreads):
     await asyncio.gather(
         *[
             asyncio.create_task(
-                async_patch_executed('spreads', spread.id, spread.executed, spread.get_average_execution_price())
+                async_patch_executed('spreads', spread.id, spread.executed, spread.avg_execution_price)
             )
             for spread in spreads
             if spread.executed > 0
@@ -96,10 +96,10 @@ async def process_spread(spread):
                 spread.far_leg.last_price = spread.far_leg.new_price
                 if spread.executed > last_executed:
                     await async_patch_executed('spreads', spread.id, spread.executed,
-                                               spread.get_average_execution_price())
+                                               spread.avg_execution_price)
                     await QUEUE.put(
                         f'{spread}: executed [{spread.executed} / {spread.amount}] '
-                        f'for {spread.get_average_execution_price()}')
+                        f'for {spread.avg_execution_price}')
                     last_executed = spread.executed
                 await asyncio.sleep(SLEEP_PAUSE)
 
@@ -119,7 +119,7 @@ async def process_spread(spread):
             )
             logging.warning(f'{spread}: Resuming session.')
 
-    await async_patch_executed('spreads', spread.id, spread.executed)
+    await async_patch_executed('spreads', spread.id, spread.executed, spread.avg_execution_price)
     return spread
 
 
@@ -140,7 +140,7 @@ async def spreads():
     except asyncio.CancelledError:
         await cancel_active_orders_and_update_data(spreads)
         result = {
-            str(spread): spread.executed
+            str(spread): (spread.executed, spread.avg_execution_price)
             for spread in spreads
             if spread.executed > 0
         }

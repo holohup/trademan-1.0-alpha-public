@@ -43,7 +43,7 @@ class BaseAssetModel(models.Model):
     )
     sell = models.BooleanField(verbose_name='Продать?')
     amount = models.PositiveIntegerField(verbose_name='Количество')
-    executed = models.PositiveIntegerField(default=0, verbose_name='Сколько уже исполнено')
+    executed = models.PositiveIntegerField(default=0, verbose_name='Уже исполнено')
 
     def __str__(self):
         action = 'Sell' if self.sell else 'Buy'
@@ -73,7 +73,7 @@ class Spread(BaseAssetModel):
         related_name='near_leg'
     )
     price = models.IntegerField(verbose_name='Цена спреда')
-    exec_price = models.FloatField(verbose_name='Ср. цена исполнения')
+    exec_price = models.FloatField(verbose_name='Ср. цена исполнения', default = 0)
 
     def __str__(self):
         action = 'Sell ' if self.sell else 'Buy '

@@ -36,14 +36,14 @@ class Asset:
         self.executed = executed
         self.order_placed = order_placed
         self.order_id = order_id
-        self.order_cache = []
+        self.order_cache = {}
         self.next_order_amount = amount
         self.new_price = Decimal(0)
         self.last_price = Decimal(0)
         self.closest_execution_price = Decimal(0)
-        self.average_execution_price = Decimal(0)
+        self.last_order_execution_price = Decimal(0)
         if executed and executed > 0:
-            self.order_cache.append(('initial', executed, Decimal(0)))  # order id, assets executed, average price
+            self.order_cache['initial'] = executed
             self.next_order_amount = amount - executed
 
     def __str__(self):
@@ -100,15 +100,12 @@ class Asset:
             OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_FILL,
         ]:
             self.order_id = r.order_id
-            self.order_cache.append((self.order_id, r.lots_executed * self.lot,
-                                     quotation_to_decimal(r.total_order_amount)))
-            self.executed = sum([order[1] for order in self.order_cache])
-            self.average_execution_price = sum([order[2] for order in self.order_cache]) / self.executed
+            self.last_order_execution_price = quotation_to_decimal(r.total_order_amount)
+            self.order_placed = False
 
-            print(f'Кэш {self.ticker}: {self.order_cache}')
 
             print(
-                f'Исполнена заявка {self.ticker}: {self.next_order_amount} шт'
+                f'Исполнена заявка {self.ticker}: {self.next_order_amount} шт, Кэш {self.ticker}: {self.order_cache}'
             )
         else:
             print(f'Не удалось поставить заявку. {r}')
@@ -144,29 +141,21 @@ class Asset:
             self.order_placed = False
         return self.order_placed
 
-    # (self.order_id, r.lots_executed, quotation_to_decimal(r.executed_order_price)
     async def update_executed(self):
         execution_report = await self.get_assets_executed()
         if execution_report.lots_executed > 0:
-            patch_element = False
-            for order in self.order_cache:
-                if self.order_id == order[0]:
-                    print(type(order), type(order[0]), order[0], self.order_cache)
-                    patch_element = order
-
-            if patch_element:
-                self.order_cache.pop(patch_element)
-
-            self.order_cache.append((self.order_id, execution_report.lots_executed * self.lot,
-                                     quotation_to_decimal(execution_report.executed_order_price)))
-
-            self.executed = sum([order[1] for order in self.order_cache])
-            self.average_execution_price = sum([order[2] for order in self.order_cache]) / self.executed
-            self.next_order_amount = self.amount - self.executed
-            print(
-                f'Кэш {self.ticker} . Всего исполненo: {self.executed}, '
-                f'кэш: {self.order_cache}'
+            self.order_cache[self.order_id] = max(
+                execution_report.lots_executed * self.lot, self.order_cache.get(self.order_id, 0)
             )
+            self.executed = sum(self.order_cache.values())
+            self.last_order_execution_price = (quotation_to_decimal(execution_report.executed_order_price))
+            self.next_order_amount = self.amount - self.executed
+            #
+            # print(
+            #     f'Кэш {self.ticker} . Всего исполненo: {self.executed}, '
+            #     f'кэш: {self.order_cache}, next order amount: {self.next_order_amount}, '
+            #     f'at sum price:{self.last_order_execution_price}'
+            # )
 
 
 class Spread:
@@ -181,6 +170,7 @@ class Spread:
             executed: int,
             near_leg_type: str,
             base_asset_amount: int,
+            exec_price: Decimal(0)
     ):
         self.far_leg = far_leg
         self.near_leg = near_leg
@@ -188,6 +178,7 @@ class Spread:
         self.price = price
         self.id = id
         self.amount = amount
+        self.avg_execution_price = exec_price
         self.executed = executed
         self.near_leg_type = near_leg_type
         self.base_asset_amount = base_asset_amount
@@ -197,18 +188,14 @@ class Spread:
 
     def __str__(self):
         direction = 'Sell' if self.sell else 'Buy'
-        return f'{direction} {self.near_leg.ticker} - {self.far_leg.ticker}'
-        # return (
-        #     f'{direction} [{self.executed}/{self.amount}] '
-        #     f'{self.near_leg.ticker} - {self.far_leg.ticker} for {self.price}'
-        # )
+        return f'{direction} {self.amount} {self.near_leg.ticker} - {self.far_leg.ticker} for {self.price}'
 
     def __repr__(self):
         direction = 'Sell' if self.sell else 'Buy'
         return (
-            f'{direction} [{self.executed}/{self.amount}] '
+            f'\n {direction} [{self.executed}/{self.amount}] '
             f'{self.near_leg_type} {self.near_leg.ticker} - '
-            f'F {self.far_leg.ticker} for {self.price}'
+            f'F {self.far_leg.ticker} for {self.price} avg={self.avg_execution_price}'
         )
 
     async def even_execution(self):
@@ -219,10 +206,14 @@ class Spread:
                     self.far_leg.executed * self.ratio - self.near_leg.executed
             )
             await self.near_leg.perform_market_trade()
-            self.executed = self.far_leg.executed
+            await self.near_leg.update_executed()
 
-    def get_average_execution_price(self):
-        return float(self.far_leg.average_execution_price - self.near_leg.average_execution_price * self.ratio)
+            last_orders_execution_price = float(
+                    self.far_leg.last_order_execution_price - self.near_leg.last_order_execution_price
+            )
+            total_execution_price = last_orders_execution_price + self.avg_execution_price * self.executed
+            self.executed = self.far_leg.executed
+            self.avg_execution_price = total_execution_price / self.executed
 
 
 if __name__ == '__main__':
