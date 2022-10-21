@@ -99,6 +99,7 @@ def prepare_spreads_data(data):
                 base_asset_amount=spread['base_asset_amount'],
                 sell=spread['sell'],
                 id=spread['id'],
+                exec_price=spread['exec_price']
             )
         )
     return spreads
