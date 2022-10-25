@@ -9,10 +9,13 @@ from tinkoff.invest.utils import quotation_to_decimal
 from tools.classes import Asset, Spread
 
 
-async def async_patch_executed(command: str, id: int, executed: int):
+async def async_patch_executed(command: str, id: int, executed: int, price: float = 0):
+    data = {'executed': executed}
+    if price:
+        data['exec_price'] = price
     url = ENDPOINT_HOST + ENDPOINTS[command] + str(id) + '/'
     async with aiohttp.ClientSession() as session:
-        async with session.patch(url, data={'executed': executed}) as response:
+        async with session.patch(url, data=data) as response:
             return response.status == HTTPStatus.OK
 
 
@@ -96,6 +99,7 @@ def prepare_spreads_data(data):
                 base_asset_amount=spread['base_asset_amount'],
                 sell=spread['sell'],
                 id=spread['id'],
+                exec_price=spread['exec_price']
             )
         )
     return spreads

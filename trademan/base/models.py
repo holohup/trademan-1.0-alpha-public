@@ -34,7 +34,7 @@ class Figi(models.Model):
 
 
 class BaseAssetModel(models.Model):
-    active = models.BooleanField(default=True, verbose_name='Активная заявка?')
+    active = models.BooleanField(default=True, verbose_name='Активно?')
     asset = models.ForeignKey(
         Figi,
         on_delete=models.CASCADE,
@@ -43,7 +43,7 @@ class BaseAssetModel(models.Model):
     )
     sell = models.BooleanField(verbose_name='Продать?')
     amount = models.PositiveIntegerField(verbose_name='Количество')
-    executed = models.PositiveIntegerField(default=0, verbose_name='Сколько уже исполнено')
+    executed = models.PositiveIntegerField(default=0, verbose_name='Исполнено')
 
     def __str__(self):
         action = 'Sell' if self.sell else 'Buy'
@@ -63,16 +63,17 @@ class Spread(BaseAssetModel):
     asset = models.ForeignKey(
         Figi,
         on_delete=models.CASCADE,
-        verbose_name='Дальняя нога',
+        verbose_name='Дальн. нога',
         related_name='%(class)s'
     )
     near_leg = models.ForeignKey(
         Figi,
         on_delete=models.CASCADE,
-        verbose_name='Ближняя нога',
+        verbose_name='Ближн. нога',
         related_name='near_leg'
     )
     price = models.IntegerField(verbose_name='Цена спреда')
+    exec_price = models.FloatField(verbose_name='Ср. цена исполн.', default = 0)
 
     def __str__(self):
         action = 'Sell ' if self.sell else 'Buy '

@@ -11,7 +11,7 @@ WORK_HOURS = {
     'day': (time(14, 5), time(18, 39, 59)),
     'evening': (time(19, 5), time(23, 40)),
 }
-TIME_OFFSET = timedelta(seconds=15)
+TIME_OFFSET = timedelta(seconds=30)
 ZONE = zoneinfo.ZoneInfo('Europe/Moscow')
 
 OFFSET_ADJUSTED_WORK_HOURS = {

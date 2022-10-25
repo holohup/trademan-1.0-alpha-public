@@ -39,5 +39,5 @@ async def get_current_spread_prices():
         await QUEUE.put(error)
     result = ''
     for spread in spreads:
-        result += f'{spread}: current: {get_delta_prices(spread)}, desired: {spread.price}\n'
+        result += f'{spread}: current: {get_delta_prices(spread)}\n'
     return result

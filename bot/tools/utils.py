@@ -104,7 +104,9 @@ def get_seconds_till_open() -> int:
 
 if __name__ == '__main__':
     current_time = datetime.now(ZONE)
-    print(get_seconds_till_open() // 60 / 60)
+    print(get_seconds_till_open())
+    print(perform_working_hours_check())
+    # print(datetime.now(ZONE))
     # print(current_time.weekday(), WORK_DAYS[1])
     # print(current_time.weekday())
     # print(current_time.time() >= get_open_and_close_time(max))
