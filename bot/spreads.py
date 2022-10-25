@@ -18,9 +18,10 @@ def get_delta_prices(spread: Spread):
 
 
 def ok_to_place_order(spread):
-    if spread.sell:
-        return get_delta_prices(spread) > spread.price
-    return get_delta_prices(spread) < spread.price
+    return get_delta_prices(spread) > spread.price if spread.sell else get_delta_prices(spread) < spread.price
+    # if spread.sell:
+    #     return get_delta_prices(spread) > spread.price
+    # return get_delta_prices(spread) < spread.price
 
 
 async def cancel_active_orders_and_update_data(spreads):
@@ -63,50 +64,7 @@ async def process_spread(spread):
     last_executed = spread.executed
 
     while spread.executed < spread.amount:
-        if perform_working_hours_check():
-            try:
-                await asyncio.gather(
-                    asyncio.create_task(spread.far_leg.get_price_to_place_order()),
-                    asyncio.create_task(spread.near_leg.get_closest_execution_price()),
-                )
-                if spread.far_leg.new_price != spread.far_leg.last_price and spread.far_leg.order_placed:
-                    await spread.far_leg.cancel_order()
-                else:
-                    logging.info(
-                        f'Price unchanged, not cancelling the order for '
-                        f'{spread.far_leg.ticker}.'
-                    )
-
-                if spread.far_leg.order_id:
-                    await spread.far_leg.update_executed()
-                    await spread.even_execution()
-
-                if (
-                        not spread.far_leg.order_placed
-                        and spread.far_leg.next_order_amount >= spread.far_leg.lot
-                        and ok_to_place_order(spread)
-                ):
-                    await spread.far_leg.place_sellbuy_order()
-                    await QUEUE.put(
-                        f'{datetime.now().time()}: Spread far leg placed {spread.far_leg.ticker}, \n'
-                        f'delta: {get_delta_prices(spread)}, desired spread price: {spread.price}, \n'
-                        f'placed {spread.far_leg.next_order_amount} at price {spread.far_leg.new_price}'
-                    )
-
-                spread.far_leg.last_price = spread.far_leg.new_price
-                if spread.executed > last_executed:
-                    await async_patch_executed('spreads', spread.id, spread.executed,
-                                               spread.avg_execution_price)
-                    await QUEUE.put(
-                        f'{spread}: executed [{spread.executed} / {spread.amount}] '
-                        f'for {spread.avg_execution_price}')
-                    last_executed = spread.executed
-                await asyncio.sleep(SLEEP_PAUSE)
-
-            except Exception as error:
-                await QUEUE.put(f'[{spread}]: {error}')
-
-        else:
+        if not perform_working_hours_check():
             sleep_time = get_seconds_till_open()
             logging.warning(
                 f'{spread}: Not a trading time. Waiting for {sleep_time // 60} minutes.'
@@ -118,6 +76,46 @@ async def process_spread(spread):
                 ),
             )
             logging.warning(f'{spread}: Resuming session.')
+
+        try:
+            await asyncio.gather(
+                asyncio.create_task(spread.far_leg.get_price_to_place_order()),
+                asyncio.create_task(spread.near_leg.get_closest_execution_price()),
+            )
+
+            if spread.far_leg.order_placed:
+                if (spread.far_leg.new_price != spread.far_leg.last_price
+                        or not ok_to_place_order(spread)):
+                    await spread.far_leg.cancel_order()
+                else:
+                    logging.info(f'Prices unchanged, not cancelling the order for {spread.far_leg.ticker}.')
+                await spread.far_leg.update_executed()
+                await spread.even_execution()
+
+            if (
+                    not spread.far_leg.order_placed
+                    and spread.far_leg.next_order_amount >= spread.far_leg.lot
+                    and ok_to_place_order(spread)
+            ):
+                await spread.far_leg.place_sellbuy_order()
+                await QUEUE.put(
+                    f'{datetime.now().time()}: Spread far leg placed {spread.far_leg.ticker}, \n'
+                    f'delta: {get_delta_prices(spread)}, desired spread price: {spread.price}, \n'
+                    f'placed {spread.far_leg.next_order_amount} at price {spread.far_leg.new_price}'
+                )
+
+            spread.far_leg.last_price = spread.far_leg.new_price
+            if spread.executed > last_executed:
+                await async_patch_executed('spreads', spread.id, spread.executed,
+                                           spread.avg_execution_price)
+                await QUEUE.put(
+                    f'{spread}: executed [{spread.executed} / {spread.amount}] '
+                    f'for {spread.avg_execution_price}')
+                last_executed = spread.executed
+            await asyncio.sleep(SLEEP_PAUSE)
+
+        except Exception as error:
+            await QUEUE.put(f'[{spread}]: {error}')
 
     await async_patch_executed('spreads', spread.id, spread.executed, spread.avg_execution_price)
     return spread
