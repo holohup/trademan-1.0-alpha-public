@@ -1,5 +1,6 @@
 from decimal import Decimal, getcontext
 
+import tinkoff.invest
 from tinkoff.invest.schemas import OrderExecutionReportStatus
 from tinkoff.invest.utils import quotation_to_decimal, decimal_to_quotation
 from tools.orders import get_price_to_place_order, place_sellbuy_order, get_closest_execution_price
@@ -41,7 +42,8 @@ class Asset:
         self.new_price = Decimal(0)
         self.last_price = Decimal(0)
         self.closest_execution_price = Decimal(0)
-        self.last_order_execution_price = Decimal(0)
+        self.orders_average_price = Decimal(0)
+        self.orders_prices_cache = {}
         if executed and executed > 0:
             self.order_cache['initial'] = executed
             self.next_order_amount = amount - executed
@@ -74,7 +76,7 @@ class Asset:
 
     async def cancel_order(self):
         await cancel_order(self.order_id)
-        self.order_placed = False
+        print(f'{self.ticker} order cancelled.')
 
     async def get_assets_executed(self):
         return await get_execution_report(self.order_id)
@@ -89,37 +91,97 @@ class Asset:
             await get_closest_execution_price(self.figi, self.sell)
         )
 
+    def parse_order_response(self, response: tinkoff.invest.PostOrderResponse):
+        self.order_id = response.order_id
+        if response.execution_report_status in [
+            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_UNSPECIFIED,
+            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_REJECTED,
+        ]:
+            print(f'Заяка не активна и не отменена мной. {response}')
+            self.order_placed = False
+            print(response.execution_report_status)
+            return
+
+        # if response.execution_report_status == OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_CANCELLED:
+        #     self.order_placed = False
+        # else:
+        self.order_placed = True
+
+        if response.lots_executed == 0:
+            return
+
+        self.order_cache[self.order_id] = max(
+            response.lots_executed * self.lot, self.order_cache.get(self.order_id, 0)
+        )
+        self.executed = sum(self.order_cache.values())
+        executed_without_initial = self.executed - self.order_cache.get('initial', 0)
+        self.orders_prices_cache[self.order_id] = quotation_to_decimal(response.executed_order_price)
+        total_executed_price = 0
+        for order_id, amount in self.order_cache.items():
+            total_executed_price += amount * self.orders_prices_cache[order_id] if order_id != 'initial' else 0
+        self.orders_average_price = total_executed_price / Decimal(executed_without_initial)
+        self.next_order_amount = self.amount - self.executed
+        sell = 'Sell' if self.sell else 'Buy'
+        print(
+            f'parse_order_response: Заявка {sell} {self.next_order_amount} {self.ticker}: '
+            f'{response.lots_executed} лот., Кэш: {self.order_cache}. Executed without initial: '
+            f'{executed_without_initial}, Prices cache: {self.orders_prices_cache}, '
+            f'average price without initial: {self.orders_average_price}, next_order_amount: '
+            f'{self.next_order_amount}, total_executed_price = {total_executed_price}'
+        )
+
+    def parse_order_status(self, response: tinkoff.invest.OrderState):
+        # self.order_id = response.order_id
+        # if response.execution_report_status in [
+        #     OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_UNSPECIFIED,
+        #     OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_REJECTED,
+        # ]:
+        #     print(f'Заяка не активна и не отменена мной. {response}')
+        #     self.order_placed = False
+        #     print(response.execution_report_status)
+        #     return
+
+        if response.execution_report_status == OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_CANCELLED:
+            self.order_placed = False
+        # else:
+        #     self.order_placed = True
+
+        if response.lots_executed == 0:
+            return
+
+        self.order_cache[self.order_id] = max(
+            response.lots_executed * self.lot, self.order_cache.get(self.order_id, 0)
+        )
+        self.executed = sum(self.order_cache.values())
+        executed_without_initial = self.executed - self.order_cache.get('initial', 0)
+        self.orders_prices_cache[self.order_id] = quotation_to_decimal(response.average_position_price)
+        total_executed_price = Decimal(0)
+        for order_id, amount in self.order_cache.items():
+            total_executed_price += amount * self.orders_prices_cache[order_id] if order_id != 'initial' else 0
+        self.orders_average_price = total_executed_price / Decimal(executed_without_initial)
+        self.next_order_amount = self.amount - self.executed
+        sell = 'Sell' if self.sell else 'Buy'
+        print(
+            f'parse_order_status: Заявка {sell} {self.next_order_amount} {self.ticker}: '
+            f'{response.lots_executed} лот., Кэш: {self.order_cache}. Executed without initial: '
+            f'{executed_without_initial}, Prices cache: {self.orders_prices_cache}, '
+            f'average price without initial: {self.orders_average_price}, next_order_amount: '
+            f'{self.next_order_amount}, total_executed_price = {total_executed_price}'
+        )
+
     async def perform_market_trade(self):
         r = await perform_market_trade(
             self.figi, self.sell, self.get_lots(self.next_order_amount)
         )
-
-        if r.execution_report_status in [
-            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_NEW,
-            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_PARTIALLYFILL,
-            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_FILL,
-        ]:
-            self.order_id = r.order_id
-            self.last_order_execution_price = quotation_to_decimal(r.total_order_amount)
-            self.order_placed = False
-
-
-            print(
-                f'Исполнена заявка {self.ticker}: {self.next_order_amount} шт, Кэш {self.ticker}: {self.order_cache}'
-            )
-        else:
-            print(f'Не удалось поставить заявку. {r}')
-            self.order_placed = False
-        return self.order_placed
+        self.parse_order_response(r)
 
     async def place_sellbuy_order(self):
 
-        if self.sell:
-            # self.price = decimal_to_quotation(self.new_price - self.increment)
-            self.price = decimal_to_quotation(self.new_price)
-        else:
-            # self.price = decimal_to_quotation(self.new_price + self.increment)
-            self.price = decimal_to_quotation(self.new_price)
+        self.price = decimal_to_quotation(self.new_price)
+        # if self.sell:
+        #     self.price = decimal_to_quotation(self.new_price - self.increment)
+        # else:
+        #     self.price = decimal_to_quotation(self.new_price + self.increment)
 
         r = await place_sellbuy_order(
             self.figi,
@@ -127,35 +189,11 @@ class Asset:
             self.price,
             self.get_lots(self.next_order_amount),
         )
-
-        if r.execution_report_status in [
-            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_NEW,
-            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_PARTIALLYFILL,
-            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_FILL,
-        ]:
-            self.order_placed = True
-            self.order_id = r.order_id
-            # print(f'Поставлена заявка {self.ticker}: {self.next_order_amount} шт')
-        else:
-            print(f'Не удалось поставить заявку. {r}')
-            self.order_placed = False
-        return self.order_placed
+        self.parse_order_response(r)
 
     async def update_executed(self):
-        execution_report = await self.get_assets_executed()
-        if execution_report.lots_executed > 0:
-            self.order_cache[self.order_id] = max(
-                execution_report.lots_executed * self.lot, self.order_cache.get(self.order_id, 0)
-            )
-            self.executed = sum(self.order_cache.values())
-            self.last_order_execution_price = (quotation_to_decimal(execution_report.executed_order_price))
-            self.next_order_amount = self.amount - self.executed
-            #
-            # print(
-            #     f'Кэш {self.ticker} . Всего исполненo: {self.executed}, '
-            #     f'кэш: {self.order_cache}, next order amount: {self.next_order_amount}, '
-            #     f'at sum price:{self.last_order_execution_price}'
-            # )
+        r = await self.get_assets_executed()
+        self.parse_order_status(r)
 
 
 class Spread:
@@ -178,7 +216,9 @@ class Spread:
         self.price = price
         self.id = id
         self.amount = amount
-        self.avg_execution_price = exec_price
+        self.initial_exec_price = exec_price
+        self.initial_executed = executed
+        self.avg_execution_price = 0
         self.executed = executed
         self.near_leg_type = near_leg_type
         self.base_asset_amount = base_asset_amount
@@ -199,21 +239,30 @@ class Spread:
         )
 
     async def even_execution(self):
-        if self.near_leg.order_id:
-            await self.near_leg.update_executed()
-        if self.far_leg.executed * self.ratio > self.near_leg.executed:
-            self.near_leg.next_order_amount = (
-                    self.far_leg.executed * self.ratio - self.near_leg.executed
-            )
-            await self.near_leg.perform_market_trade()
-            await self.near_leg.update_executed()
+        if not self.far_leg.executed * self.ratio > self.near_leg.executed:
+            return
+        self.near_leg.next_order_amount = (self.far_leg.executed * self.ratio - self.near_leg.executed)
+        await self.near_leg.perform_market_trade()
 
-            last_orders_execution_price = float(
-                    self.far_leg.last_order_execution_price - self.near_leg.last_order_execution_price
-            )
-            total_execution_price = last_orders_execution_price + self.avg_execution_price * self.executed
-            self.executed = self.far_leg.executed
-            self.avg_execution_price = total_execution_price / self.executed
+        far_leg_avg_price = self.far_leg.orders_average_price
+        near_leg_avg_price = self.near_leg.orders_average_price * Decimal(self.ratio)
+        session_orders_execution_price = float(far_leg_avg_price - near_leg_avg_price)
+
+        # executed_without_initial = self.far_leg.executed - self.far_leg.order_cache.get('initial', 0)
+        # total_execution_price = float(
+        #     session_orders_execution_price) * executed_without_initial + self.avg_execution_price * self.executed
+        print(self.executed)
+        self.executed = self.far_leg.executed
+        self.avg_execution_price = (
+                self.initial_exec_price * self.initial_executed + (self.executed - self.initial_executed)
+                * session_orders_execution_price
+        ) / self.executed
+
+        # self.avg_execution_price = session_orders_execution_price
+
+        print(f'even_execution: far_leg_avg: {far_leg_avg_price}, near_leg_avg: {near_leg_avg_price}, '
+              f'session_avg: {session_orders_execution_price},'
+              f' total_avg_with_initial: {self.avg_execution_price}, total_executed: {self.executed}, ')
 
 
 if __name__ == '__main__':

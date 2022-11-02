@@ -11,7 +11,7 @@ WORK_HOURS = {
     'day': (time(14, 5), time(18, 39, 59)),
     'evening': (time(19, 5), time(23, 40)),
 }
-TIME_OFFSET = timedelta(seconds=25)
+TIME_OFFSET = timedelta(seconds=30)
 ZONE = zoneinfo.ZoneInfo('Europe/Moscow')
 
 OFFSET_ADJUSTED_WORK_HOURS = {
@@ -37,7 +37,7 @@ STOPS_SUM = 300000
 ORDER_TTL = 120
 
 # tinkoff settings
-SLEEP_PAUSE = 0.5
+SLEEP_PAUSE = 1
 RETRY_SETTINGS = RetryClientSettings(use_retry=True, max_retry_attempt=100)
 
 load_dotenv()
