@@ -7,6 +7,7 @@ from settings import SLEEP_PAUSE
 from tools.classes import Spread
 from tools.get_patch_prepare_data import prepare_spreads_data, async_get_api_data, async_patch_executed
 from tools.utils import perform_working_hours_check, get_seconds_till_open
+from tinkoff.invest.exceptions import RequestError
 
 
 def get_delta_prices(spread: Spread):
@@ -114,6 +115,15 @@ async def process_spread(spread):
                 last_executed = spread.executed
             await asyncio.sleep(SLEEP_PAUSE)
 
+        except AttributeError:
+            await QUEUE.put(f'{spread}: ratelimit_reset error, waiting for 1 minute')
+            await asyncio.sleep(60)
+            print(f'continuing with {spread}')
+
+        except RequestError as error:
+            await QUEUE.put(f'{spread} RequestError: msg: {error.metadata.message}, '
+                            f'details: {error.details}, code: {error.code}, md: {error.metadata}')
+
         except Exception as error:
             await QUEUE.put(f'[{spread}]: {error}')
 
@@ -144,3 +154,4 @@ async def spreads():
         }
         print('Stopping spreads')
         return f'Spreads routine cancelled. Status: {result}.'
+
