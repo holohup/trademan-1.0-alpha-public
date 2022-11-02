@@ -155,7 +155,7 @@ class Asset:
         self.executed = sum(self.order_cache.values())
         executed_without_initial = self.executed - self.order_cache.get('initial', 0)
         self.orders_prices_cache[self.order_id] = quotation_to_decimal(response.average_position_price)
-        total_executed_price = 0
+        total_executed_price = Decimal(0)
         for order_id, amount in self.order_cache.items():
             total_executed_price += amount * self.orders_prices_cache[order_id] if order_id != 'initial' else 0
         self.orders_average_price = total_executed_price / Decimal(executed_without_initial)
@@ -216,7 +216,9 @@ class Spread:
         self.price = price
         self.id = id
         self.amount = amount
-        self.avg_execution_price = exec_price
+        self.initial_exec_price = exec_price
+        self.initial_executed = executed
+        self.avg_execution_price = 0
         self.executed = executed
         self.near_leg_type = near_leg_type
         self.base_asset_amount = base_asset_amount
@@ -244,16 +246,23 @@ class Spread:
 
         far_leg_avg_price = self.far_leg.orders_average_price
         near_leg_avg_price = self.near_leg.orders_average_price * Decimal(self.ratio)
-        session_orders_execution_price = far_leg_avg_price - near_leg_avg_price
-        executed_without_initial = self.far_leg.executed - self.far_leg.order_cache.get('initial', 0)
-        total_execution_price = float(
-            session_orders_execution_price) * executed_without_initial + self.avg_execution_price * self.executed
-        self.executed = self.far_leg.executed
+        session_orders_execution_price = float(far_leg_avg_price - near_leg_avg_price)
 
-        self.avg_execution_price = total_execution_price / self.executed
-        print(f'even_execution: {far_leg_avg_price}, {near_leg_avg_price}, {session_orders_execution_price},'
-              f' {self.avg_execution_price}, {self.executed}, {total_execution_price},'
-              f'{self.executed}, {self.avg_execution_price}, {executed_without_initial}')
+        # executed_without_initial = self.far_leg.executed - self.far_leg.order_cache.get('initial', 0)
+        # total_execution_price = float(
+        #     session_orders_execution_price) * executed_without_initial + self.avg_execution_price * self.executed
+        print(self.executed)
+        self.executed = self.far_leg.executed
+        self.avg_execution_price = (
+                self.initial_exec_price * self.initial_executed + (self.executed - self.initial_executed)
+                * session_orders_execution_price
+        ) / self.executed
+
+        # self.avg_execution_price = session_orders_execution_price
+
+        print(f'even_execution: far_leg_avg: {far_leg_avg_price}, near_leg_avg: {near_leg_avg_price}, '
+              f'session_avg: {session_orders_execution_price},'
+              f' total_avg_with_initial: {self.avg_execution_price}, total_executed: {self.executed}, ')
 
 
 if __name__ == '__main__':
