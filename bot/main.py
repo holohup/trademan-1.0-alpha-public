@@ -45,6 +45,7 @@ if __name__ == '__main__':
     from queue_handler import worker
 
     loop = asyncio.get_event_loop() #for python 3.10 new_event_loop()
+
     # asyncio.set_event_loop(loop) - for python 3.10
     loop.create_task(worker())
     loop.create_task(executor.start_polling(dp, skip_updates=True), name='bot')
