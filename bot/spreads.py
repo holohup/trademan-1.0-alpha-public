@@ -125,7 +125,8 @@ async def process_spread(spread):
                             f'details: {error.details}, code: {error.code}, md: {error.metadata}')
 
         except Exception as error:
-            await QUEUE.put(f'[{spread}]: {error}')
+            await QUEUE.put(f'[{spread}]: {error}. Waiting for 60 secs.')
+            await asyncio.sleep(60)
 
     await async_patch_executed('spreads', spread.id, spread.executed, spread.avg_execution_price)
     return spread
