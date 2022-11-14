@@ -9,6 +9,7 @@ from tools.get_patch_prepare_data import prepare_spreads_data, async_get_api_dat
 from tools.utils import perform_working_hours_check, get_seconds_till_open
 from tinkoff.invest.exceptions import RequestError
 
+REPORT_ORDERS = False
 
 def get_delta_prices(spread: Spread):
     if spread.near_leg.ticker == 'USDRUBF' and spread.far_leg.ticker == 'SiZ2':  # TODO: ЗАГЛУШКА! Переписать.
@@ -99,11 +100,12 @@ async def process_spread(spread):
                     and ok_to_place_order(spread)
             ):
                 await spread.far_leg.place_sellbuy_order()
-                await QUEUE.put(
-                    f'{datetime.now().time()}: Spread far leg placed {spread.far_leg.ticker}, \n'
-                    f'delta: {get_delta_prices(spread)}, desired spread price: {spread.price}, \n'
-                    f'placed {spread.far_leg.next_order_amount} at price {spread.far_leg.new_price}'
-                )
+                if REPORT_ORDERS:
+                    await QUEUE.put(
+                        f'{datetime.now().time()}: Spread far leg placed {spread.far_leg.ticker}, \n'
+                        f'delta: {get_delta_prices(spread)}, desired spread price: {spread.price}, \n'
+                        f'placed {spread.far_leg.next_order_amount} at price {spread.far_leg.new_price}'
+                    )
 
             spread.far_leg.last_price = spread.far_leg.new_price
             if spread.executed > last_executed:
