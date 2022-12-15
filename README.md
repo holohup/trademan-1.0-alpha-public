@@ -1,2 +1,2 @@
 # trademan
-python trading bot with django backend
+python trading telegram bot with django backend for tinkoff invest api
