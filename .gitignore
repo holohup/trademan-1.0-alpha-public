@@ -138,7 +138,4 @@ dmypy.json
 #vscode
 .vscode/
 /bot/venv39/
-*/Dockerfile
 */.dockerignore
-
-Dockerfile_1st
