@@ -115,7 +115,7 @@ docker-compose up -d
 ```
 ### How to check if everything's working
 
-- Issue a healthcheck command to the bot. If everything is working the bot will ping the server health check endpoint and will message you with 'True' if everything's ok.
+- Issue a healthcheck command **/test** to the bot. If everything is working the bot will ping the server health check endpoint and will message you with 'True' if everything's ok.
 - Time to dig a bit deeper. Stop the webserver, create a superuser and issue a management command to download and parse the latest FIGI data from Tinkoff API to the database. It's done on a daily basis using middleware, but initially the command can be run once to speed-up the process.
 ```
 python manage.py createsuperuser

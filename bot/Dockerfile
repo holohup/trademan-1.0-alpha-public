@@ -1,23 +1,16 @@
 FROM arm32v7/python:3.9.15-slim-bullseye as base
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 RUN apt-get update && apt-get -y install gcc
 COPY requirements.txt .
 RUN pip install --index-url=https://www.piwheels.org/simple --no-cache-dir -r requirements.txt
 
 FROM arm32v7/python:3.9.15-slim-bullseye
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 COPY --from=base /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
 COPY --from=base /usr/local/bin/ /usr/local/bin/
-RUN apt-get update && apt-get install libatomic1 -y
 WORKDIR /bot
+RUN apt-get update && apt-get install libatomic1 -y
 COPY . .
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV TCS_RO_TOKEN=
-ENV TCS_RW_TOKEN=
-ENV TG_TOKEN=
-ENV TG_CHAT_ID=
-ENV ACCOUNT_ID=
 RUN addgroup --system bot && adduser --system --group bot
 USER bot
 CMD ["python3", "main.py"]
