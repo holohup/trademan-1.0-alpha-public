@@ -2,7 +2,7 @@
 
 ## About this project
 
-Asynchronous Python trading helper for Tinkoff clients with a Django backend. A pet-project started while learning Python @ Yandex.Practicum to improve programming skills, learn asynchronous programming and help me to:
+Asynchronous Python trading helper for Tinkoff Invest clients with a Django backend. A pet-project started while learning Python @ Yandex.Practicum to improve programming skills, learn asynchronous programming and help me to:
 - Buy or sell stocks / futures at better prices without hassle
 - Improve MOEX (Moscow Stock Exchange) functionality available at Tinkoff Investments, making it possible to create market-neutral positions: calendar spreads featuring a future as a far leg and future or stock as a near leg. Wait for a desired price and start placing orders.
 - Automate routine tasks like placing alot of stop-like orders to buy stocks when the market crashes or cancel many orders at maximum speed.
@@ -42,19 +42,6 @@ C -- total statistics --> A
 Basically, you set up what you want the robot to do in the web-interface. Then you send the bot a telegram command, he reads data from the base server and starts executing it.
 
 Bot and Base can be placed on different servers, but the Bot checks if the Base is alive and will refuse to function if it's down (and will send you a message about it).
-
-## Supported bot comands.
-
-Although you might see more Bot commands in the source code, here's the list of thoroughly tested and currently supported ones:
-
-- **/sellbuy** - process all sell/buy orders in the queue immediately - check for current bids and offers and place an order in the right direction at the current best bid or offer. The execution status is cached, when it changes, the bot reports User and updates the database.
-- **/spreads**
-- **/sprices**
-- **/stops**
-- **/shorts**
-- **/stop**
-- **/cancel**
-- **/tasks**
 
 ## Installation
 
@@ -123,7 +110,8 @@ docker-compose down && docker-compose up -d
 ### How to check if everything's working
 
 - Issue a healthcheck command **/test** to the bot. If everything is working the bot will ping the server health check endpoint and will message you with 'True' if everything's ok (and will also say something stupid - he's just a bot after all!).
-- Time to dig a bit deeper. Stop the webserver, create a superuser and issue a management command to download and parse the latest FIGI data from Tinkoff API to the database. It's done on a daily basis using middleware, but initially the command can be run once to speed-up the process.
+- Use your browser to check that the API endpoints are available: go to http://127.0.0.1:8000/api/v1/
+- Time to dig deeper. Stop the webserver, create a superuser and issue a management command to download and parse the latest FIGI data from Tinkoff API to the database. It's done on a daily basis using middleware, but initially the command can be run once to speed-up the process.
 ```
 python manage.py createsuperuser
 ```
@@ -152,11 +140,23 @@ python manage.py runserver
 > Avg. execution price: 0
 >
 And save it.
-- Now issue a command to the bot: **/sprices** . It should return the current price if the it's the exchange working time, or error and a price of zero if the stock exchange is closed now.
+- Now issue a command to the bot: **/sprices** . It should return the current spread price if the it's the exchange working time, or error and a price of zero if the stock exchange is closed now.
 
 ### A deeper dive into project settings
 
 
+## Supported bot comands.
+
+Although you might see more Bot commands in the source code, here's the list of thoroughly tested and currently supported ones:
+
+- **/sellbuy** - process all sell/buy orders in the queue immediately - check for current bids and offers and place an order in the right direction at the current best bid or offer. The execution status is cached, when it changes, the bot reports User and updates the database.
+- **/spreads**
+- **/sprices**
+- **/stops**
+- **/shorts**
+- **/stop**
+- **/cancel**
+- **/tasks**
 
 ## Plans for the future
 
