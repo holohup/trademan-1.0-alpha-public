@@ -20,3 +20,6 @@ Despite the fact that this is an English-language portfolio, the product itself 
 The project consists of two separate entities:
 - **Bot** if a frontend interface for users, it takes the commands, executes them and reports on execution status and possible errors. It uses **Base's** api to load configurations and update execution statuses there. The code is in the _bot_ directory.
 - **Base** is a database. It holds the information about current tasks for the bot, updates FIGI information from the Tinkoff API, and also provides a web-interface to place new instructions for the bot. If features a RESTful API which the **bot** uses to communicate.
+
+
+
