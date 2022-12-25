@@ -14,7 +14,6 @@ async def orders():
 
 async def test():
     result = await check_health()
-    await QUEUE.put('this is a test message')
     return result
 
 

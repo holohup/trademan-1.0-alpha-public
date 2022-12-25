@@ -80,11 +80,29 @@ Here're the instructions, assuming you'll be running both services on the same c
 git clone https://github.com/holohup/trademan-1.0-alpha-public.git && cd trademan-1.0-alpha-public
 ```
 
-### First steps: setup, first launch and testing
+### First steps: setup, first launch
 
 - Fill in the _.env.sample_ files in _/bot_ and _/trademan_ folders, remove the extensions.
 - Edit the _trademan/trademan/settings.py_ file: if your server IP will be different from _127.0.0.1_, add it's address to ALLOWED_HOSTS
 - Edit the _bot/settings.py_ file: replace the ENDPOINT_HOST IP with the one you used in the previous step
+- From the project root directory execute the following instructions (in any order):
+```
+cd bot && python3.9 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && deactivate && cd ..
+```
+```
+cd trademan && python3.9 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python manage.py migrate && deactivate && cd ..
+```
+You have just created two separate virtual environments and installed dependencies required to run the code!
+- Finally, launch two terminals, and execute the following scripts in each from the root project folder:
+
+```
+cd trademan && source venv/bin/activate && python manage.py runserver
+```
+```
+cd bot && source venv/bin/activate && python main.py
+```
+
+If everything went according to the plan, the project has been launched! Congratulations!
 
 ### Installation on a Raspberry Pi via docker-compose
 
@@ -95,9 +113,34 @@ git clone https://github.com/holohup/trademan-1.0-alpha-public.git && cd tradema
 ```
 docker-compose up -d
 ```
+### How to check if everything's working
 
+- Issue a healthcheck command to the bot. If everything is working the bot will ping the server health check endpoint and will message you with 'True' if everything's ok.
+- Time to dig a bit deeper. Stop the webserver, create a superuser and issue a management command to download and parse the latest FIGI data from Tinkoff API to the database. It's done on a daily basis using middleware, but initially the command can be run once to speed-up the process.
+```
+python manage.py createsuperuser
+```
+```
+python manage.py update
+```
+```
+python manage.py runserver
+```
+- Now, go to 127.0.0.1:8000/admin/ (or your IP address and port) using the superuser requisites and go to Base -> Figis. There should be around 600 entries in the database. 
+- As of now, we have checked that the bot can connect to the base and that the base can connect to Tinkoff API. Our last check needs to show that the bot can connect to the API too. In your web browser go to http://127.0.0.1:8000/admin/base/spread/ -> Add Spread and add a spread. Since we're testing, it can contain anything: for example:
+> [v] Active
+> [ ] Sell
+> Amount: 1
+> Executed: 0
+> Far leg: GZZ4 (Gazprom 2024 December Future)
+> Near leg: GAZP (Gazprom stock)
+> Spread price: 0
+> Avg. execution price: 0
+And save it.
+- Now issue a command to the bot: _/sprices_ . It should return the current price if the it's the exchange working time, or error and a price of zero if the stock exchange is closed now.
 
 ### A deeper dive into project settings
+
 
 ## Plans for the future
 
@@ -122,3 +165,4 @@ docker-compose up -d
 - Django validation for multiplicity of orders amounts to minimum lots
 - Better (more intuitive) caching for **/spreads** and **/sellbuy**: use NamedTuples instead of dictionaries.
 - Add _None_ for **/tasks** if no tasks are currently running.
+- Remove ONDELETECASCADE in models if the Tinkoff API doesn't return a FIGI, instead, make it inactive, since Tinkoff's API sometimes glitches.
