@@ -11,3 +11,4 @@ I use it on a Raspberry Pi, which adds some complications to find a working comb
 
 This is already 3rd iteration of the product and it's under heavy development - I'm learning through constant refactoring, it's a pretty painful, but working strategy.
 
+Despite the fact that this is an English-language portfolio, the product itself will not be translated to English, because you have to speak Russian in order to use Tinkoff Broker.
