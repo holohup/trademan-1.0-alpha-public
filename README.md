@@ -4,7 +4,7 @@
 
 Asynchronous Python trading helper for Tinkoff clients with a Django backend. A pet-project started while learning Python @ Yandex.Practicum to improve programming skills, learn asynchronous programming and help me to:
 - Buy or sell stocks / futures at better prices without hassle
-- Improve MOEX (Moscow Stock Exchange) functionality available at Tinkoff Investments, making it possible to create market delta-neutral positions: calendar spreads featuring a future as a far leg and future or stock as a near leg. Capture better prices.
+- Improve MOEX (Moscow Stock Exchange) functionality available at Tinkoff Investments, making it possible to create market-neutral positions: calendar spreads featuring a future as a far leg and future or stock as a near leg. Wait for a desired price and start placing orders.
 - Automate routine tasks like placing alot of stop-like orders to buy stocks when the market crashes or cancel many orders at maximum speed.
 
 This product is provided as is, it's a educational product, use it at your own risk and be sure to check the working logic, as it works with real assets on your broker account. 
@@ -14,6 +14,8 @@ I use it on a Raspberry Pi, which adds some complications to find a working comb
 This is already 3rd iteration of the product and it's under heavy development - I'm learning through constant refactoring, it's a pretty painful, but working strategy.
 
 Despite the fact that this is an English-language portfolio, the product itself will not be translated to English, because you have to speak Russian in order to use Tinkoff Broker.
+
+_This is not a trading robot, but a helper to get better prices and execute safe (market neutral) strategies. It doesn't require a server on M1, fast-speed connection, etc._
 
 ## How it works - from a flight view perspective
 
@@ -33,7 +35,7 @@ B -- executions status --> C
 C -- tasks --> B
 D{Tinkoff API} -- data for instruments--> C
 B -- orders --> D
-D -- orders status --> B
+D -- orders statuses / errors --> B
 C -- total statistics --> A
 ```
 
@@ -41,7 +43,7 @@ Basically, you set up what you want the robot to do in the web-interface. Then y
 
 Bot and Base can be placed on different servers, but the Bot checks if the Base is alive and will refuse to function if it's down (and will send you a message about it).
 
-## Supported comands.
+## Supported bot comands.
 
 Although you might see more Bot commands in the source code, here's the list of thoroughly tested ones and currently supported:
 
@@ -53,3 +55,36 @@ Although you might see more Bot commands in the source code, here's the list of 
 - **/stop**
 - **/cancel**
 - **/tasks**
+
+## Installation
+
+### Acquiring credencials
+
+### Installation via docker-compose
+
+### First steps: setup, first launch and testing
+
+### A deeper dive into project settings
+
+## Plans for the future
+
+### Global
+
+- Refactor using Martin's Clean Code principles
+- Add average execution prices for **/sellbuy**
+- Separate trading schedule for futures on MOEX
+- Implement various stop-type order types for **/restore** command to become fully usable
+- Test coverage for all aspects, including Decimal - Float - MoneyValue conversions and Decimal initializations
+- Implement current margin amounts before starting new trade jobs, with Telegram warnings.
+- Implement a **/status** command which returns a Telegram reply with the current status for each currently active command.
+- Django - validate extra fields like API-trading availability before reporting active tasks to the bot.
+- Ability to modify orders via bot commands, not through the web-interface.
+- Add **/stops** command support for bonds.
+
+
+### Quick fixes and bugs
+- Add a bot command to restart django and to reload data from Tinkoff API (at the moment the management commands are ready, just need to link them to the bot)
+- Redirect all logs to files
+- Add 1 minute pause before **/sellbuy** reactivation on ratelimit_reset error
+- Django validation for multiplicity of orders amounts to minimum lots
+- Better (more intuitive) caching for **/spreads** and **/sellbuy**: use NamedTuples instead of dictionaries.
