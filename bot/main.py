@@ -43,9 +43,10 @@ if __name__ == '__main__':
         sys.exit(message)
 
     # loop = asyncio.new_event_loop() # for python 3.10
+    # asyncio.set_event_loop(loop) # for python 3.10
+
     loop = asyncio.get_event_loop()  # for python 3.8
 
-    # asyncio.set_event_loop(loop) # for python 3.10
     loop.create_task(worker())
     loop.create_task(executor.start_polling(dp, skip_updates=True), name='bot')
     loop.run_forever()
