@@ -140,6 +140,5 @@ dmypy.json
 /bot/venv39/
 */Dockerfile
 */.dockerignore
-docker-compose.yml
 
 Dockerfile_1st
