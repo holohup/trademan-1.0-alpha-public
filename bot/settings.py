@@ -1,6 +1,8 @@
 import os
 import zoneinfo
 from datetime import timedelta, time, datetime
+from dotenv import load_dotenv
+from tinkoff.invest.retrying.settings import RetryClientSettings
 
 # messing with working hours time
 PAUSE_BETWEEN_UPDATES = 60
@@ -25,9 +27,6 @@ OFFSET_ADJUSTED_WORK_HOURS = {
     )
     for key, value in WORK_HOURS.items()
 }
-
-from dotenv import load_dotenv
-from tinkoff.invest.retrying.settings import RetryClientSettings
 
 # place stops and shorts
 
