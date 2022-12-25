@@ -60,7 +60,16 @@ Although you might see more Bot commands in the source code, here's the list of 
 
 ### Acquiring credencials
 
-### Installation via docker-compose
+### Installation
+
+#### Installation on a Raspberry Pi via docker-compose
+
+Is a pretty straightforward proccess:
+```
+git clone https://github.com/holohup/trademan-1.0-alpha-public.git && cd trademan-1.0-alpha-public && docker-compose build
+```
+
+#### Installation on other systems using venv
 
 ### First steps: setup, first launch and testing
 
