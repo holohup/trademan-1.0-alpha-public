@@ -11,6 +11,7 @@ from tinkoff.invest.exceptions import RequestError
 
 REPORT_ORDERS = False
 
+
 def get_delta_prices(spread: Spread):
     if spread.near_leg.ticker == 'USDRUBF' and spread.far_leg.ticker == 'SiZ2':  # TODO: ЗАГЛУШКА! Переписать.
         return spread.far_leg.new_price - spread.near_leg.closest_execution_price * spread.base_asset_amount
@@ -21,9 +22,6 @@ def get_delta_prices(spread: Spread):
 
 def ok_to_place_order(spread):
     return get_delta_prices(spread) > spread.price if spread.sell else get_delta_prices(spread) < spread.price
-    # if spread.sell:
-    #     return get_delta_prices(spread) > spread.price
-    # return get_delta_prices(spread) < spread.price
 
 
 async def cancel_active_orders_and_update_data(spreads):
@@ -66,6 +64,7 @@ async def process_spread(spread):
     last_executed = spread.executed
 
     while spread.executed < spread.amount:
+        # if not True:
         if not perform_working_hours_check():
             sleep_time = get_seconds_till_open()
             logging.warning(
@@ -157,4 +156,3 @@ async def spreads():
         }
         print('Stopping spreads')
         return f'Spreads routine cancelled. Status: {result}.'
-

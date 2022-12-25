@@ -1,11 +1,13 @@
 import logging
 import sys
-
+import asyncio
 from aiogram import executor
 
 from bot_init import dp
 import commands
 from settings import TCS_RO_TOKEN, TCS_RW_TOKEN, TCS_ACCOUNT_ID, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+from queue_handler import worker
+
 
 if __name__ == '__main__':
 
@@ -40,13 +42,11 @@ if __name__ == '__main__':
         logging.critical(message)
         sys.exit(message)
 
-    # executor.start_polling(dp, skip_updates=True)
-    import asyncio
-    from queue_handler import worker
+    # loop = asyncio.new_event_loop() # for python 3.10
+    # asyncio.set_event_loop(loop) # for python 3.10
 
-    loop = asyncio.get_event_loop() #for python 3.10 new_event_loop()
+    loop = asyncio.get_event_loop()  # for python 3.8
 
-    # asyncio.set_event_loop(loop) - for python 3.10
     loop.create_task(worker())
     loop.create_task(executor.start_polling(dp, skip_updates=True), name='bot')
     loop.run_forever()
