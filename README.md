@@ -11,7 +11,7 @@ This product is provided as is, it's a educational product, use it at your own r
 
 I use it on a Raspberry Pi, which adds some complications to find a working combination of OS image and Python version that works with all dependencies on ARMv7 architecture, bear with it - some instructions in Dockerfiles might seem too complicated and excessive, but it's working this way and it's easier to run/stop a container stack via Portainer web-interface then to run virtual environments for both front- and backend.
 
-This is already 3rd iteration of the product and it's under heavy development - I'm learning through constant refactoring, it's a pretty painful, but working strategy.
+This is already the 3rd iteration of the product and it's under heavy development - I'm learning through constant refactoring, it's a pretty painful, but working strategy.
 
 Despite the fact that this is an English-language portfolio, the product itself will not be translated to English, because you have to speak Russian in order to use Tinkoff Broker.
 
@@ -58,20 +58,44 @@ Although you might see more Bot commands in the source code, here's the list of 
 
 ## Installation
 
+### Prerequisites
+
+Make sure you have a working installation of **Python3.9** on your machine. This version is used to maket it compatible with the latest Raspberry Pi OS build, for python 3.10 some _asyncio_ commands (creating a loop) work a bit different. Also, for a Raspberry Pi you will need working installations of _docker_ and _docker-compose_.
+
 ### Acquiring credencials
 
-### Installation
+You will need to get the following tokens:
+- Tinkoff API **Readonly** and **Full-access** tokens. Instructions: https://tinkoff.github.io/investAPI/token/
+- Telegram Bot token: in your telegram app contact @**BotFather**, issue a _/newbot_ command and follow the instructions untill you get the token. The instruction is here: https://core.telegram.org/bots/features#creating-a-new-bot .
+- You will also need to know your chat id and telegram id. The former can be found upon contacting @**getmy_id** bot and telling him _/start_
+- Finally, you will need the ID of your Tinkoff Investments account. When you already have the tokens, you can get a list of your accounts via API and choose the right one. Instructions: https://tinkoff.github.io/investAPI/users/#getaccounts .
 
-#### Installation on a Raspberry Pi via docker-compose
+Proceed when you've got all 5 artifacts, as each one is vital to the code :)
 
-Is a pretty straightforward proccess:
+### Installation on a pc / server
+
+Here're the instructions, assuming you'll be running both services on the same computer for testing purposes.
+
 ```
-git clone https://github.com/holohup/trademan-1.0-alpha-public.git && cd trademan-1.0-alpha-public && docker-compose build
+git clone https://github.com/holohup/trademan-1.0-alpha-public.git && cd trademan-1.0-alpha-public
 ```
-
-#### Installation on other systems using venv
 
 ### First steps: setup, first launch and testing
+
+- Fill in the _.env.sample_ files in _/bot_ and _/trademan_ folders, remove the extensions.
+- Edit the _trademan/trademan/settings.py_ file: if your server IP will be different from _127.0.0.1_, add it's address to ALLOWED_HOSTS
+- Edit the _bot/settings.py_ file: replace the ENDPOINT_HOST IP with the one you used in the previous step
+
+### Installation on a Raspberry Pi via docker-compose
+
+- Fill in both Dockerfiles in _/bot_ and _/trademan_ folders with your creditencials
+- Fill the required fields in the _settings.py_ files in both folders, just like when installing the project to a pc / server.
+- Execute the docker-compose command from the root project folder:
+
+```
+docker-compose up -d
+```
+
 
 ### A deeper dive into project settings
 
@@ -97,3 +121,4 @@ git clone https://github.com/holohup/trademan-1.0-alpha-public.git && cd tradema
 - Add 1 minute pause before **/sellbuy** reactivation on ratelimit_reset error
 - Django validation for multiplicity of orders amounts to minimum lots
 - Better (more intuitive) caching for **/spreads** and **/sellbuy**: use NamedTuples instead of dictionaries.
+- Add _None_ for **/tasks** if no tasks are currently running.
