@@ -49,7 +49,7 @@ TELEGRAM_CHAT_ID = int(os.getenv('TG_CHAT_ID'))
 
 # endpoints
 
-ENDPOINT_HOST = 'http://192.168.2.179:8000/'
+ENDPOINT_HOST = 'http://192.168.2.180:8000/'
 
 ENDPOINTS = {
     'shorts': 'api/v1/shorts/',
