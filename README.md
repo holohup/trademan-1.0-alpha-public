@@ -60,7 +60,7 @@ Although you might see more Bot commands in the source code, here's the list of 
 
 ### Prerequisites
 
-Make sure you have a working installation of **Python3.9** on your machine. This version is used to maket it compatible with the latest Raspberry Pi OS build, for python 3.10 some _asyncio_ commands (creating a loop) work a bit different. Also, for a Raspberry Pi you will need working installations of _docker_ and _docker-compose_.
+Make sure you have a working installation of **Python3.9** on your machine. This version is used to maket it compatible with the latest Raspberry Pi OS build, for python 3.10 some _asyncio_ commands (creating a loop) work a bit different. Also, for a Raspberry Pi you will need working installations of **_docker_** and **_docker-compose_**.
 
 ### Acquiring credencials
 
@@ -126,18 +126,26 @@ python manage.py update
 ```
 python manage.py runserver
 ```
-- Now, go to 127.0.0.1:8000/admin/ (or your IP address and port) using the superuser requisites and go to Base -> Figis. There should be around 600 entries in the database. 
+- Now, go to http://127.0.0.1:8000/admin/ (or your IP address and port) using the superuser requisites and go to Base -> Figis. There should be around 600 entries in the database. 
 - As of now, we have checked that the bot can connect to the base and that the base can connect to Tinkoff API. Our last check needs to show that the bot can connect to the API too. In your web browser go to http://127.0.0.1:8000/admin/base/spread/ -> Add Spread and add a spread. Since we're testing, it can contain anything: for example:
 > [v] Active
+>
 > [ ] Sell
+>
 > Amount: 1
+>
 > Executed: 0
+>
 > Far leg: GZZ4 (Gazprom 2024 December Future)
+>
 > Near leg: GAZP (Gazprom stock)
+>
 > Spread price: 0
+>
 > Avg. execution price: 0
+>
 And save it.
-- Now issue a command to the bot: _/sprices_ . It should return the current price if the it's the exchange working time, or error and a price of zero if the stock exchange is closed now.
+- Now issue a command to the bot: **/sprices** . It should return the current price if the it's the exchange working time, or error and a price of zero if the stock exchange is closed now.
 
 ### A deeper dive into project settings
 
@@ -161,8 +169,9 @@ And save it.
 ### Quick fixes and bugs
 - Add a bot command to restart django and to reload data from Tinkoff API (at the moment the management commands are ready, just need to link them to the bot)
 - Redirect all logs to files
-- Add 1 minute pause before **/sellbuy** reactivation on ratelimit_reset error
+- Add a pause before **/sellbuy** reactivation on ratelimit_reset error
 - Django validation for multiplicity of orders amounts to minimum lots
 - Better (more intuitive) caching for **/spreads** and **/sellbuy**: use NamedTuples instead of dictionaries.
 - Add _None_ for **/tasks** if no tasks are currently running.
 - Remove ONDELETECASCADE in models if the Tinkoff API doesn't return a FIGI, instead, make it inactive, since Tinkoff's API sometimes glitches.
+- Make a separate healthcheck command, reserve _/test_ for testing as it was planned.
