@@ -23,7 +23,7 @@ The project consists of two separate entities:
 - **Bot** if a frontend interface for users, it takes the commands, executes them and reports on execution status and possible errors. It uses **Base's** API to load configurations and update execution statuses there. The code is in the _bot_ directory.
 - **Base** is a database. It holds the information about current tasks for the bot, updates FIGI information from the Tinkoff API, and also provides a web-interface to place new instructions for the bot. If features a RESTful API which the **bot** uses to communicate.
 
-To put it simple, here's a diagram. In order to not overcomplicate it, I've skipped diffent interfaces for human and service interactions between the entities, but be aware that, as a rule of thumb humans communicate with services via telegram messages or web interface, services communicate with each user with jsons.
+To put it simple, here's a diagram. In order to not overcomplicate it, I've skipped diffent interfaces for human and service interactions between the entities, but be aware that, as a rule of thumb humans communicate with services via telegram messages or web interface, services communicate with each user using jsons.
 
 ```mermaid
 graph LR
@@ -45,7 +45,7 @@ Bot and Base can be placed on different servers, but the Bot checks if the Base 
 
 ## Supported bot comands.
 
-Although you might see more Bot commands in the source code, here's the list of thoroughly tested ones and currently supported:
+Although you might see more Bot commands in the source code, here's the list of thoroughly tested and currently supported ones:
 
 - **/sellbuy** - process all sell/buy orders in the queue immediately - check for current bids and offers and place an order in the right direction at the current best bid or offer. The execution status is cached, when it changes, the bot reports User and updates the database.
 - **/spreads**
@@ -60,9 +60,9 @@ Although you might see more Bot commands in the source code, here's the list of 
 
 ### Prerequisites
 
-Make sure you have a working installation of **Python3.9** on your machine. This version is used to maket it compatible with the latest Raspberry Pi OS build, for python 3.10 some _asyncio_ commands (creating a loop) work a bit different. Also, for a Raspberry Pi you will need working installations of **_docker_** and **_docker-compose_**.
+Make sure you have a working installation of **Python3.9** on your machine. This version is used to make it compatible with the latest Raspberry Pi OS build, for python 3.10 some _asyncio_ commands (creating a loop) work a bit different. Also, for a Raspberry Pi you will need working installations of **_docker_** and **_docker-compose_**.
 
-### Acquiring credencials
+### 1. Acquiring credencials
 
 You will need to get the following tokens:
 - Tinkoff API **Readonly** and **Full-access** tokens. Instructions: https://tinkoff.github.io/investAPI/token/
@@ -72,7 +72,7 @@ You will need to get the following tokens:
 
 Proceed when you've got all 5 artifacts, as each one is vital to the code :)
 
-### Installation on a pc / server
+### 2. Installation on a pc / server
 
 Here're the instructions, assuming you'll be running both services on the same computer for testing purposes.
 
@@ -80,12 +80,12 @@ Here're the instructions, assuming you'll be running both services on the same c
 git clone https://github.com/holohup/trademan-1.0-alpha-public.git && cd trademan-1.0-alpha-public
 ```
 
-### First steps: setup, first launch
+### 3. First steps: setup, first launch
 
-- Fill in the _.env.sample_ files in _/bot_ and _/trademan_ folders, remove the extensions.
-- Edit the _trademan/trademan/settings.py_ file: if your server IP will be different from _127.0.0.1_, add it's address to ALLOWED_HOSTS
-- Edit the _bot/settings.py_ file: replace the ENDPOINT_HOST IP with the one you used in the previous step
-- From the project root directory execute the following instructions (in any order):
+- 3a. Fill in the _.env.sample_ files in _/bot_ and _/trademan_ folders, remove the extensions.
+- 3b. Edit the _trademan/trademan/settings.py_ file: if your server IP will be different from _127.0.0.1_, add it's address to ALLOWED_HOSTS
+- 3c. Edit the _bot/settings.py_ file: replace the ENDPOINT_HOST IP with the one you used in the previous step
+- 3d. From the project root directory execute the following instructions (in any order):
 ```
 cd bot && python3.9 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && deactivate && cd ..
 ```
@@ -93,7 +93,7 @@ cd bot && python3.9 -m venv venv && source venv/bin/activate && pip install -r r
 cd trademan && python3.9 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python manage.py migrate && deactivate && cd ..
 ```
 You have just created two separate virtual environments and installed dependencies required to run the code!
-- Finally, launch two terminals, and execute the following scripts in each from the root project folder:
+- 3e. Finally, launch two terminals, and execute the following scripts in each from the root project folder:
 
 ```
 cd trademan && source venv/bin/activate && python manage.py runserver
@@ -106,16 +106,16 @@ If everything went according to the plan, the project has been launched! Congrat
 
 ### Installation on a Raspberry Pi via docker-compose
 
-- Fill in both Dockerfiles in _/bot_ and _/trademan_ folders with your creditencials
-- Fill the required fields in the _settings.py_ files in both folders, just like when installing the project to a pc / server.
+- Complete all steps up to **3c**. The only difference is that you can't specify _127.0.0.1_ as the server address, since the bot container will think it's his own IP. Choose an address in your internal network (Something like 192.168.0.15)
 - Execute the docker-compose command from the root project folder:
 
 ```
 docker-compose up -d
 ```
+
 ### How to check if everything's working
 
-- Issue a healthcheck command **/test** to the bot. If everything is working the bot will ping the server health check endpoint and will message you with 'True' if everything's ok.
+- Issue a healthcheck command **/test** to the bot. If everything is working the bot will ping the server health check endpoint and will message you with 'True' if everything's ok (and will also say something stupid - he's just a bot after all!).
 - Time to dig a bit deeper. Stop the webserver, create a superuser and issue a management command to download and parse the latest FIGI data from Tinkoff API to the database. It's done on a daily basis using middleware, but initially the command can be run once to speed-up the process.
 ```
 python manage.py createsuperuser
@@ -148,6 +148,7 @@ And save it.
 - Now issue a command to the bot: **/sprices** . It should return the current price if the it's the exchange working time, or error and a price of zero if the stock exchange is closed now.
 
 ### A deeper dive into project settings
+
 
 
 ## Plans for the future
