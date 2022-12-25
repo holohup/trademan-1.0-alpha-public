@@ -9,7 +9,7 @@ Asynchronous Python trading helper for Tinkoff clients with a Django backend. A 
 
 This product is provided as is, it's a educational product, use it at your own risk and be sure to check the working logic, as it works with real assets on your broker account. 
 
-I use it on a Raspberry Pi, which adds some complications to find a working combination of OS image and Python version that works with all dependencies on ARMv7 architecture, bear with it - some instructions in Dockerfiles might seem too complicated and excessive, but it's working this way and it's easier to run/stop a container stack via Portainer web-interface then to run virtual environments for both front- and backend. **This build also works on x86-based machines. x86 doesn't require so much dancing with dependencies and versions. However, it is not recommended to alter Dockerfiles/docker-compose.yml, in case you'll eventually want to run it on a Pi**
+I use it on a Raspberry Pi, which adds some complications to find a working combination of OS image and Python version that works with all dependencies on ARMv7 architecture, bear with it - some instructions in Dockerfiles might seem too complicated and excessive, but it's working this way and it's easier to run/stop a container stack via Portainer web-interface then to run virtual environments for both front- and backend.
 
 This is already 3rd iteration of the product and it's under heavy development - I'm learning through constant refactoring, it's a pretty painful, but working strategy.
 
@@ -60,7 +60,16 @@ Although you might see more Bot commands in the source code, here's the list of 
 
 ### Acquiring credencials
 
-### Installation via docker-compose
+### Installation
+
+#### Installation on a Raspberry Pi via docker-compose
+
+Is a pretty straightforward proccess:
+```
+git clone https://github.com/holohup/trademan-1.0-alpha-public.git && cd trademan-1.0-alpha-public && docker-compose build
+```
+
+#### Installation on other systems using venv
 
 ### First steps: setup, first launch and testing
 
