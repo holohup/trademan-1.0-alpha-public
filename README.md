@@ -112,7 +112,14 @@ If everything went according to the plan, the project has been launched! Congrat
 ```
 docker-compose up -d
 ```
-
+- Change the permissions for the _/trademan_ folder so that the container would be able to write to the database and apply the migrations:
+```
+chmod 757 trademan && docker-compose exec web python manage.py migrate
+```
+- Finally, restart the containers:
+```
+docker-compose down && docker-compose up -d
+```
 ### How to check if everything's working
 
 - Issue a healthcheck command **/test** to the bot. If everything is working the bot will ping the server health check endpoint and will message you with 'True' if everything's ok (and will also say something stupid - he's just a bot after all!).
