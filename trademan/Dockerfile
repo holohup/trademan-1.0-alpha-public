@@ -4,7 +4,6 @@ WORKDIR /base
 RUN apt-get update && apt-get -y install gcc
 COPY . .
 RUN pip install -U -i https://www.piwheels.org/simple --no-cache-dir -r requirements.txt
-RUN python manage.py migrate
 RUN addgroup --system base && adduser --system --group base
 USER base
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
