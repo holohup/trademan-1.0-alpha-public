@@ -15,12 +15,23 @@ This is already 3rd iteration of the product and it's under heavy development - 
 
 Despite the fact that this is an English-language portfolio, the product itself will not be translated to English, because you have to speak Russian in order to use Tinkoff Broker.
 
-## How it works - view in general
+## How it works - from a flight view perspective
 
 The project consists of two separate entities:
 - **Bot** if a frontend interface for users, it takes the commands, executes them and reports on execution status and possible errors. It uses **Base's** api to load configurations and update execution statuses there. The code is in the _bot_ directory.
 - **Base** is a database. It holds the information about current tasks for the bot, updates FIGI information from the Tinkoff API, and also provides a web-interface to place new instructions for the bot. If features a RESTful API which the **bot** uses to communicate.
 
+```mermaid
+graph LR
 
-
+A((User)) -- commands --> B[Bot]
+B -- reports --> A
+A -- tasks --> C[Base]
+B -- executions status --> C
+C -- tasks --> B
+D{Tinkoff API} -- data for instruments--> C
+B -- orders --> D
+D -- orders status --> B
+C -- total statistics --> A
+```
 
