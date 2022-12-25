@@ -4,7 +4,7 @@
 
 Asynchronous Python trading helper for Tinkoff clients with a Django backend. A pet-project started while learning Python @ Yandex.Practicum to improve programming skills, learn asynchronous programming and help me to:
 - Buy or sell stocks / futures at better prices without hassle
-- Improve MOEX functionality available at Tinkoff Investments, making it possible to create market delta-neutral positions: calendar spreads featuring a future as a far leg and future or stock as a near leg. Capture better prices.
+- Improve MOEX (Moscow Stock Exchange) functionality available at Tinkoff Investments, making it possible to create market delta-neutral positions: calendar spreads featuring a future as a far leg and future or stock as a near leg. Capture better prices.
 - Automate routine tasks like placing alot of stop-like orders to buy stocks when the market crashes or cancel many orders at maximum speed.
 
 This product is provided as is, it's a educational product, use it at your own risk and be sure to check the working logic, as it works with real assets on your broker account. 
@@ -18,8 +18,10 @@ Despite the fact that this is an English-language portfolio, the product itself 
 ## How it works - from a flight view perspective
 
 The project consists of two separate entities:
-- **Bot** if a frontend interface for users, it takes the commands, executes them and reports on execution status and possible errors. It uses **Base's** api to load configurations and update execution statuses there. The code is in the _bot_ directory.
+- **Bot** if a frontend interface for users, it takes the commands, executes them and reports on execution status and possible errors. It uses **Base's** API to load configurations and update execution statuses there. The code is in the _bot_ directory.
 - **Base** is a database. It holds the information about current tasks for the bot, updates FIGI information from the Tinkoff API, and also provides a web-interface to place new instructions for the bot. If features a RESTful API which the **bot** uses to communicate.
+
+To put it simple, here's a diagram. In order to not overcomplicate it, I've skipped diffent interfaces for human and service interactions between the entities, but be aware that, as a rule of thumb humans communicate with services via telegram messages or web interface, services communicate with each user with jsons.
 
 ```mermaid
 graph LR
@@ -35,3 +37,19 @@ D -- orders status --> B
 C -- total statistics --> A
 ```
 
+Basically, you set up what you want the robot to do in the web-interface. Then you send the bot a telegram command, he reads data from the base server and starts executing it.
+
+Bot and Base can be placed on different servers, but the Bot checks if the Base is alive and will refuse to function if it's down (and will send you a message about it).
+
+## Supported comands.
+
+Although you might see more Bot commands in the source code, here's the list of thoroughly tested ones and currently supported:
+
+- **/sellbuy** - process all sell/buy orders in the queue immediately - check for current bids and offers and place an order in the right direction at the current best bid or offer. The execution status is cached, when it changes, the bot reports User and updates the database.
+- **/spreads**
+- **/sprices**
+- **/stops**
+- **/shorts**
+- **/stop**
+- **/cancel**
+- **/tasks**
