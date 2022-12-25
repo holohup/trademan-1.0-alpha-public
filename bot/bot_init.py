@@ -26,14 +26,3 @@ dp.filters_factory.bind(MyFilter)
 
 async def send_message(message):
     await bot.send_message(TELEGRAM_CHAT_ID, message)
-
-# def log_error(func):
-#     def wrapper(*args, **kwargs):
-#         try:
-#             return func(*args, **kwargs)
-#         except Exception as error:
-#             message = f'Ошибка: {error}'
-#             print(message)
-#             raise error
-#     return wrapper
-#
