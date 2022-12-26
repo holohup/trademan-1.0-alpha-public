@@ -51,13 +51,13 @@ Bot and Base can be placed on different servers, but the Bot checks if the Base 
 
 ### Prerequisites
 
-Make sure you have a working installation of **Python3.9** on your machine. This version is used to make it compatible with the latest Raspberry Pi OS build, for python 3.10 some _asyncio_ commands (creating a loop) work a bit differently. Also, for a Raspberry Pi you will need working installations of **_docker_** and **_docker-compose_**.
+Make sure you have a working installation of **Python3.9** on your machine. This version is used to make it compatible with the latest Raspberry Pi OS build, for python 3.10 some _asyncio_ commands (creating a loop) work a bit differently. Also, for a Raspberry Pi, you will need working installations of **_docker_** and **_docker-compose_**.
 
 ### 1. Acquiring credentials
 
 You will need to get the following tokens:
 - Tinkoff API **Readonly** and **Full-access** tokens. Instructions: https://tinkoff.github.io/investAPI/token/
-- Telegram Bot token: in your telegram app contact @**BotFather**, issue a _/newbot_ command, and follow the instructions until you get the token. The instruction is here: https://core.telegram.org/bots/features#creating-a-new-bot.
+- Telegram Bot token: in your telegram app contact @**BotFather**, issue a _/newbot_ command and follow the instructions until you get the token. The instruction is here: https://core.telegram.org/bots/features#creating-a-new-bot.
 - You will also need to know your chat id and telegram id. The former can be found upon contacting @**getmy_id** bot and telling him _/start_
 - Finally, you will need the ID of your Tinkoff Investments account. When you already have the tokens, you can get a list of your accounts via API and choose the right one. Instructions: https://tinkoff.github.io/investAPI/users/#getaccounts.
 
@@ -73,7 +73,7 @@ git clone https://github.com/holohup/trademan-1.0-alpha-public.git && cd tradema
 
 ### 3. First steps: setup, first launch
 
-- 3a. Fill in the _.env.sample_ files in _/bot_ and _/trademan_ folders, remove the extensions.
+- 3a. Fill in the _.env.sample_ files in _/bot_ and _/trademan_ folders, and remove the extensions.
 - 3b. Edit the _trademan/trademan/settings.py_ file: if your server IP will be different from _127.0.0.1_, add it's address to ALLOWED_HOSTS
 - 3c. Edit the _bot/settings.py_ file: replace the ENDPOINT_HOST IP with the one you used in the previous step
 - 3d. From the project root directory execute the following instructions (in any order):
@@ -113,7 +113,7 @@ docker-compose down && docker-compose up -d
 ```
 ### How to check if everything's working
 
-- Issue a healthcheck command **/test** to the bot. If everything is working the bot will ping the server health check endpoint and will message you with 'True' if everything's ok (and will also say something stupid - he's just a bot after all!).
+- Issue a health check command **/test** to the bot. If everything is working the bot will ping the server health check endpoint and will message you with 'True' if everything's ok (and will also say something stupid - he's just a bot after all!).
 - Use your browser to check that the API endpoints are available: go to http://127.0.0.1:8000/api/v1/
 - Time to dig deeper. Stop the web server, create a superuser and issue a management command to download and parse the latest FIGI data from Tinkoff API to the database. It's done daily using middleware, but initially, the command can be run once to speed up the process.
 ```
@@ -166,7 +166,7 @@ Although you might see more Bot commands in the source code, here's the list of 
 - **/sellbuy** - process all sell/buy orders in the queue immediately - check for current bids and offers and place an order in the right direction at the current best bid or offer. The execution status is cached, when it changes, the bot reports to the User and updates the database.
 - **/spreads** - starts a monitoring process of active spreads in the desired direction. Whenever the suitable combination of bids/asks on both assets is achieved, it places an order on the far leg of the spread and starts monitoring its execution. Upon the execution, it places market orders on the near leg to even the amount and makes the position market-neutral, and reports to the user how many orders have already been executed. If the prices change and no longer suit the desired price, the order is removed and the monitoring continues. This command automatically counts the _far leg amount/near leg amount_ ratio based on the asset type. When the desired position is acquired, the User gets one final report and the monitoring it stopped. Like */sellbuy*, asynchronously works with multiple orders simultaneously.
 - **/sprices** - gets a list of active calendar spreads from **Base** and returns current prices as if you were to buy/sell them ASAP
-- **/stops** - gets a blacklist and a whitelist of desired tickers from the **Base** and puts stop-orders at levels described in the _settings.py_ file and the sum of money from there. Orders are placed only for stocks present in the whitelist and absent in the blacklist. When the market crashes, some stocks sometimes stay at low levels just for a second or two. This command helps to capture good prices. Active stop orders do not eat margin requirements, making it possible to place hundreds of orders like this in the same time. When the command meets the API RPS limitation, it waits till the end of the minute and continues. The default levels for stop orders are *-15%, -20%, and -25%* from the current price. 
+- **/stops** - gets a blacklist and a whitelist of desired tickers from the **Base** and puts stop orders at levels described in the _settings.py_ file and the sum of money from there. Orders are placed only for stocks present in the whitelist and absent in the blacklist. When the market crashes, some stocks sometimes stay at low levels just for a second or two. This command helps to capture good prices. Active stop orders do not eat margin requirements, making it possible to place hundreds of orders like this at the same time. When the command meets the API RPS limitation, it waits till the end of the minute and continues. The default levels for stop orders are *-15%, -20%, and -25%* from the current price. 
 - **/shorts** - same as **/stops**, except it places stop-orders to sell, not to buy. Usable when there's euphoria on a market, but very dangerous - if you do not have the stocks for which you place orders, the broker will open a margin-consuming short position with potentially unlimited losses!
 - **/stop** - stops all currently running tasks
 - **/cancel** - cancels all active orders, including stop-orders
@@ -196,4 +196,4 @@ Although you might see more Bot commands in the source code, here's the list of 
 - Better (more intuitive) caching for **/spreads** and **/sellbuy**: use NamedTuples instead of dictionaries.
 - Add _None_ for **/tasks** if no tasks are currently running.
 - Remove ONDELETECASCADE in models if the Tinkoff API doesn't return a FIGI, instead, make it inactive, since Tinkoff's API sometimes glitches.
-- Make a separate healthcheck command, reserve _/test_ for testing as it was planned.
+- Make a separate health check command, and reserve _/test_ for testing as it was planned.
