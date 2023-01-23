@@ -24,10 +24,7 @@ def prevalidate_instrument(inst: any([Share, Future]), _type: str) -> bool:
                 quotation_to_decimal(inst.min_price_increment) > 0,
         ))
     if _type == 'Future':
-        return all((
-            inst.real_exchange == RealExchange.REAL_EXCHANGE_RTS,
-            quotation_to_decimal(inst.min_price_increment) > 0,
-        ))
+        return quotation_to_decimal(inst.min_price_increment) > 0
     if _type == 'Bond':
         return all((
             inst.real_exchange == RealExchange.REAL_EXCHANGE_MOEX,
@@ -71,34 +68,39 @@ class Command(BaseCommand):
                 raise CommandError(f'Data update failed! {error}')
             else:
                 clean_up_flag = True
+                stocks_filtered, futures_filtered = 0, 0
 
                 for share in response_stocks.instruments:
                     if prevalidate_instrument(inst=share, _type='Share'):
+                        stocks_filtered += 1
                         new_values = fill_fields(share)
                         new_values.update(type='S')
                         received_figi.add(share.figi)
                         tcs_stock, _ = Figi.objects.update_or_create(figi=share.figi, defaults=new_values)
-
+                result_message += f'Stocks filtered: {stocks_filtered}\n'
                 for future in response_futures.instruments:
                     if prevalidate_instrument(inst=future, _type='Future'):
+                        futures_filtered += 1
                         new_values = fill_fields(future)
                         new_values.update(type='F')
                         new_values.update(basic_asset_size=int(quotation_to_decimal(future.basic_asset_size)))
                         received_figi.add(future.figi)
                         tcs_future, _ = Figi.objects.update_or_create(figi=future.figi, defaults=new_values)
-
+                result_message += f'Futures filtered: {futures_filtered}\n'
                 # for bond in response_bonds.instruments:
                 #     if prevalidate_instrument(inst=bond, _type='Bond'):
                 #         new_values = fill_fields(bond)
                 #         new_values.update(type='B')
                 #         received_figi.add(bond.figi)
                 #         tcs_bond, _ = Figi.objects.update_or_create(figi=bond.figi, defaults=new_values)
-
-                if clean_up_flag:
+                deleted_tickers = 0
+                if clean_up_flag and stocks_filtered > 0 and futures_filtered > 0:
                     for figi in Figi.objects.all():
                         if figi.figi not in received_figi:
                             result_message += f'Deleting figi with ticker {figi}\n'
+                            deleted_tickers += 1
                             figi.delete()
+                    result_message += f'Tickers deleted: {deleted_tickers}\n'
             finally:
                 return result_message
 
