@@ -73,7 +73,7 @@ class Spread(BaseAssetModel):
         related_name='near_leg'
     )
     price = models.IntegerField(verbose_name='Цена спреда')
-    exec_price = models.FloatField(verbose_name='Ср. цена исполн.', default = 0)
+    exec_price = models.FloatField(verbose_name='Ср. цена исполн.', default=0)
 
     def __str__(self):
         action = 'Sell ' if self.sell else 'Buy '

@@ -4,26 +4,15 @@ from base.models import Stops, SellBuy, RestoreStops, Spread
 
 
 class BasicDataSerializer(serializers.ModelSerializer):
-    figi = serializers.SerializerMethodField()
-    increment = serializers.SerializerMethodField()
-    lot = serializers.SerializerMethodField()
-    ticker = serializers.SerializerMethodField()
+    figi = serializers.CharField(source='asset.figi')
+    increment = serializers.DecimalField(source='asset.min_price_increment', decimal_places=10, max_digits=20)
+    ticker = serializers.CharField(source='asset.ticker')
+    lot = serializers.IntegerField(source='asset.lot')
 
     class Meta:
         model = Stops
         fields = ('figi', 'ticker', 'increment', 'lot', )
-
-    def get_figi(self, obj):
-        return obj.asset.figi
-
-    def get_increment(self, obj):
-        return str(obj.asset.min_price_increment)
-
-    def get_ticker(self, obj):
-        return obj.asset.ticker
-
-    def get_lot(self, obj):
-        return obj.asset.lot
+        read_only_fields = fields
 
 
 class StopsSerializer(BasicDataSerializer):
@@ -39,12 +28,12 @@ class SellBuySerializer(BasicDataSerializer):
 
 
 class SpreadsSerializer(BasicDataSerializer):
-    near_leg_figi = serializers.SerializerMethodField()
-    near_leg_increment = serializers.SerializerMethodField()
-    near_leg_lot = serializers.SerializerMethodField()
-    near_leg_ticker = serializers.SerializerMethodField()
-    near_leg_type = serializers.SerializerMethodField()
-    base_asset_amount = serializers.SerializerMethodField()
+    near_leg_figi = serializers.CharField(source='near_leg.figi')
+    near_leg_increment = serializers.DecimalField(source='near_leg.min_price_increment', decimal_places=10, max_digits=20)
+    near_leg_lot = serializers.IntegerField(source='near_leg.lot')
+    near_leg_ticker = serializers.CharField(source='near_leg.ticker')
+    near_leg_type = serializers.CharField(source='near_leg.type')
+    base_asset_amount = serializers.IntegerField(source='asset.basic_asset_size')
 
     class Meta:
         model = Spread
@@ -62,24 +51,6 @@ class SpreadsSerializer(BasicDataSerializer):
             'sell', 'price', 'amount',
             'near_leg_type', 'base_asset_amount'
         )
-
-    def get_near_leg_figi(self, obj):
-        return obj.near_leg.figi
-
-    def get_near_leg_increment(self, obj):
-        return str(obj.near_leg.min_price_increment)
-
-    def get_near_leg_ticker(self, obj):
-        return obj.near_leg.ticker
-
-    def get_near_leg_lot(self, obj):
-        return obj.near_leg.lot
-
-    def get_near_leg_type(self, obj):
-        return obj.near_leg.type
-
-    def get_base_asset_amount(self, obj):
-        return obj.asset.basic_asset_size
 
 
 class RestoreStopsSerializer(BasicDataSerializer):
