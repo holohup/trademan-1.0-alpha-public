@@ -1,7 +1,7 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
-from settings import ZONE, WORK_DAYS, OFFSET_ADJUSTED_WORK_HOURS
+from settings import OFFSET_ADJUSTED_WORK_HOURS, WORK_DAYS, ZONE
 from tinkoff.invest.schemas import Quotation
 from tinkoff.invest.utils import decimal_to_quotation
 
@@ -100,13 +100,3 @@ def get_seconds_till_open() -> int:
     ]
     minimum_delta = min(time_deltas_till_open)
     return minimum_delta.seconds + 1
-
-
-if __name__ == '__main__':
-    current_time = datetime.now(ZONE)
-    print(get_seconds_till_open())
-    print(perform_working_hours_check())
-    # print(datetime.now(ZONE))
-    # print(current_time.weekday(), WORK_DAYS[1])
-    # print(current_time.weekday())
-    # print(current_time.time() >= get_open_and_close_time(max))

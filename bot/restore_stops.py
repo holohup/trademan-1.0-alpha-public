@@ -12,7 +12,3 @@ async def restore_stops():
             await stop.place_long_stop(stop.price, stop.amount)
             stops_placed.append(stop.ticker)
     return f'Stops successfully restored for {stops_placed}'
-
-
-if __name__ == '__main__':
-    pass

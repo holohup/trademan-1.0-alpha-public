@@ -1,10 +1,11 @@
 import asyncio
-# from tools.utils import perform_working_hours_check, get_seconds_till_open
 import logging
 
-from settings import SLEEP_PAUSE
-from tools.get_patch_prepare_data import prepare_asset_data, async_get_api_data, async_patch_executed
 from queue_handler import QUEUE
+from settings import SLEEP_PAUSE
+from tools.get_patch_prepare_data import (async_get_api_data,
+                                          async_patch_executed,
+                                          prepare_asset_data)
 
 
 async def process_asset(asset):
@@ -61,7 +62,3 @@ async def sellbuy():
         )
         executed_tickers = {asset.ticker: asset.executed for asset in assets if asset.executed > 0}
         return f'SellBuy routine cancelled. Lots already executed: {executed_tickers}.'
-
-
-if __name__ == '__main__':
-    pass

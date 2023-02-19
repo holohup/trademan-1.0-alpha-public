@@ -11,9 +11,8 @@ class Figi(models.Model):
     )
     type = models.CharField(
         max_length=1,
-        # choices=(('S', 'Stock'), ('F', 'Future'), ('B', 'Bond')),
         choices=(('S', 'Stock'), ('F', 'Future')),
-        verbose_name='Акция или фьючерс'
+        verbose_name='Акция или фьючерс',
     )
     api_trading_available = models.BooleanField(verbose_name='API')
     short_enabled = models.BooleanField(verbose_name='Short')
@@ -29,7 +28,10 @@ class Figi(models.Model):
         return f'{self.ticker}'
 
     class Meta:
-        unique_together = ('ticker', 'type',)
+        unique_together = (
+            'ticker',
+            'type',
+        )
         verbose_name = 'figi'
 
 
@@ -39,7 +41,7 @@ class BaseAssetModel(models.Model):
         Figi,
         on_delete=models.CASCADE,
         verbose_name='Актив',
-        related_name='%(class)s'
+        related_name='%(class)s',
     )
     sell = models.BooleanField(verbose_name='Продать?')
     amount = models.PositiveIntegerField(verbose_name='Количество')
@@ -47,7 +49,10 @@ class BaseAssetModel(models.Model):
 
     def __str__(self):
         action = 'Sell' if self.sell else 'Buy'
-        return action + f'{self.asset.ticker}, [{self.executed}/{self.amount}] executed'
+        return (
+            action
+            + f'{self.asset.ticker}, [{self.executed}/{self.amount}] executed'
+        )
 
     class Meta:
         abstract = True
@@ -64,13 +69,13 @@ class Spread(BaseAssetModel):
         Figi,
         on_delete=models.CASCADE,
         verbose_name='Дальн. нога',
-        related_name='%(class)s'
+        related_name='%(class)s',
     )
     near_leg = models.ForeignKey(
         Figi,
         on_delete=models.CASCADE,
         verbose_name='Ближн. нога',
-        related_name='near_leg'
+        related_name='near_leg',
     )
     price = models.IntegerField(verbose_name='Цена спреда')
     exec_price = models.FloatField(verbose_name='Ср. цена исполн.', default=0)
@@ -100,26 +105,18 @@ class Stops(models.Model):
         Figi,
         on_delete=models.CASCADE,
         verbose_name='Акция',
-        related_name='stops'
+        related_name='stops',
     )
-    whitelist = models.BooleanField(default=False, verbose_name='Stocks whitelist')
-    stop_blacklist = models.BooleanField(default=False, verbose_name='Blacklist for longs')
-    short_blacklist = models.BooleanField(default=False, verbose_name='Blacklist for shorts')
+    whitelist = models.BooleanField(
+        default=False, verbose_name='Stocks whitelist'
+    )
+    stop_blacklist = models.BooleanField(
+        default=False, verbose_name='Blacklist for longs'
+    )
+    short_blacklist = models.BooleanField(
+        default=False, verbose_name='Blacklist for shorts'
+    )
 
     class Meta:
         verbose_name = 'Стоп'
         verbose_name_plural = 'Стопы'
-
-
-# class Bonds(models.Model):
-#     asset = models.ForeignKey(
-#         Figi,
-#         on_delete=models.CASCADE,
-#         verbose_name='Облигация',
-#         related_name='bonds'
-#     )
-#     whitelist = models.BooleanField(default=True, verbose_name='Bonds whitelist')
-#
-#     class Meta:
-#         verbose_name = 'Облигация'
-#         verbose_name_plural = 'Облигации'

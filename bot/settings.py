@@ -1,6 +1,7 @@
 import os
 import zoneinfo
-from datetime import timedelta, time, datetime
+from datetime import datetime, time, timedelta
+
 from dotenv import load_dotenv
 from tinkoff.invest.retrying.settings import RetryClientSettings
 
@@ -58,7 +59,3 @@ ENDPOINTS = {
     'sellbuy': 'api/v1/sellbuy/',
     'health': 'api/v1/health/'
 }
-
-
-if __name__ == '__main__':
-    print(OFFSET_ADJUSTED_WORK_HOURS)

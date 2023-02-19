@@ -1,5 +1,5 @@
-from django.core.management.base import BaseCommand
 from base.models import Figi, Stops
+from django.core.management.base import BaseCommand
 
 STOP_BLACKLIST = ['RNFT', 'POLY', 'RENI', 'KRKOP', 'RGSS', 'SPBE']
 SHORT_BLACKLIST = ['SBER', 'SBERP', 'VSMO', 'GAZP', 'RTKM', 'RTKMP', 'RNFT']
