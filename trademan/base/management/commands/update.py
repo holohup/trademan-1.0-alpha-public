@@ -1,11 +1,12 @@
-from django.core.management.base import BaseCommand, CommandError
-from tinkoff.invest.retrying.sync.client import RetryingClient
-from tinkoff.invest.retrying.settings import RetryClientSettings
-from tinkoff.invest.utils import quotation_to_decimal
-from django.conf import settings
-from base.models import Figi
-from tinkoff.invest.schemas import RealExchange, Share, Future
 import sys
+
+from base.models import Figi
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
+from tinkoff.invest.retrying.settings import RetryClientSettings
+from tinkoff.invest.retrying.sync.client import RetryingClient
+from tinkoff.invest.schemas import Future, RealExchange, Share
+from tinkoff.invest.utils import quotation_to_decimal
 
 if not all([settings.TCS_RO_TOKEN, settings.TCS_RW_TOKEN, settings.TCS_ACCOUNT_ID]):
     message = (
@@ -60,9 +61,6 @@ class Command(BaseCommand):
                 result_message += 'Stocks update received\n'
                 response_futures = client.instruments.futures()
                 result_message += 'Futures update received\n'
-                # result_currencies = client.instruments.currencies()
-                # response_bonds = client.instruments.bonds()
-                # result_message += 'Bonds update received\n'
             except Exception as error:
                 result_message += 'Error updating stocks!\n'
                 raise CommandError(f'Data update failed! {error}')
@@ -87,12 +85,6 @@ class Command(BaseCommand):
                         received_figi.add(future.figi)
                         tcs_future, _ = Figi.objects.update_or_create(figi=future.figi, defaults=new_values)
                 result_message += f'Futures filtered: {futures_filtered}\n'
-                # for bond in response_bonds.instruments:
-                #     if prevalidate_instrument(inst=bond, _type='Bond'):
-                #         new_values = fill_fields(bond)
-                #         new_values.update(type='B')
-                #         received_figi.add(bond.figi)
-                #         tcs_bond, _ = Figi.objects.update_or_create(figi=bond.figi, defaults=new_values)
                 deleted_tickers = 0
                 if clean_up_flag and stocks_filtered > 0 and futures_filtered > 0:
                     for figi in Figi.objects.all():
@@ -103,4 +95,3 @@ class Command(BaseCommand):
                     result_message += f'Tickers deleted: {deleted_tickers}\n'
             finally:
                 return result_message
-

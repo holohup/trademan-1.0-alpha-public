@@ -1,11 +1,12 @@
 import asyncio
 
 import aiohttp.client_exceptions
-
-from spreads import get_delta_prices
-from tools.get_patch_prepare_data import async_get_api_data, prepare_spreads_data, async_check_health
-from tools.orders import get_current_orders
 from queue_handler import QUEUE
+from spreads import get_delta_prices
+from tools.get_patch_prepare_data import (async_check_health,
+                                          async_get_api_data,
+                                          prepare_spreads_data)
+from tools.orders import get_current_orders
 
 
 async def orders():

@@ -1,17 +1,16 @@
+import asyncio
 import logging
 import sys
-import asyncio
-from aiogram import executor
 
-from bot_init import dp
 import commands
-from settings import TCS_RO_TOKEN, TCS_RW_TOKEN, TCS_ACCOUNT_ID, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+from aiogram import executor
+from bot_init import dp
 from queue_handler import worker
-
+from settings import (TCS_ACCOUNT_ID, TCS_RO_TOKEN, TCS_RW_TOKEN,
+                      TELEGRAM_CHAT_ID, TELEGRAM_TOKEN)
 
 if __name__ == '__main__':
 
-    # logging.basicConfig(level=logging.INFO)
     logging.basicConfig(
         level=logging.WARNING,
         format=(
@@ -19,7 +18,7 @@ if __name__ == '__main__':
             '%(filename)s >> %(lineno)d '
             '[%(message)s]'
         ),
-        # handlers=[logging.StreamHandler(stream=sys.stdout)]
+        handlers=[logging.StreamHandler(stream=sys.stdout)]
     )
 
     if not all(
@@ -42,10 +41,11 @@ if __name__ == '__main__':
         logging.critical(message)
         sys.exit(message)
 
-    # loop = asyncio.new_event_loop() # for python 3.10
-    # asyncio.set_event_loop(loop) # for python 3.10
-
-    loop = asyncio.get_event_loop()  # for python 3.8
+    if sys.version_info.minor >= 10:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    else:
+        loop = asyncio.get_event_loop()
 
     loop.create_task(worker())
     loop.create_task(executor.start_polling(dp, skip_updates=True), name='bot')

@@ -1,12 +1,12 @@
 import asyncio
 
 from aiogram import types
-from grpc.aio._call import AioRpcError
-
 from bot_init import dp
 from cancel_all_orders import cancel_orders
-from instant_commands import get_current_orders, test, get_current_spread_prices, check_health
-from place_stops import place_short_stops, place_long_stops
+from grpc.aio._call import AioRpcError
+from instant_commands import (check_health, get_current_orders,
+                              get_current_spread_prices, test)
+from place_stops import place_long_stops, place_short_stops
 from restore_stops import restore_stops
 from sellbuy import sellbuy
 from spreads import spreads
@@ -126,7 +126,3 @@ async def spreads_handler(message: types.Message):
 @dp.message_handler(commands=['status', 'stats', 'hello'], is_me=True)
 async def status_handler(message: types.Message):
     await message.answer('Working...')
-
-
-if __name__ == '__main__':
-    pass

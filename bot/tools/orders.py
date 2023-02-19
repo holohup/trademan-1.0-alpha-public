@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from settings import ORDER_TTL, RETRY_SETTINGS, TCS_RW_TOKEN, TCS_ACCOUNT_ID, TCS_RO_TOKEN
-from tinkoff.invest import AsyncClient
-from tinkoff.invest import exceptions, OrderDirection, OrderType
+from settings import (ORDER_TTL, RETRY_SETTINGS, TCS_ACCOUNT_ID, TCS_RO_TOKEN,
+                      TCS_RW_TOKEN)
+from tinkoff.invest import AsyncClient, OrderDirection, OrderType, exceptions
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
-from tinkoff.invest.schemas import Quotation, OrderState
-from tinkoff.invest.schemas import StopOrderType, StopOrderDirection, StopOrderExpirationType
+from tinkoff.invest.schemas import (OrderState, Quotation, StopOrderDirection,
+                                    StopOrderExpirationType, StopOrderType)
 from tools.utils import delta_minutes_to_utc
 
 
@@ -49,7 +49,6 @@ async def cancel_all_orders():
 
 async def cancel_order(order_id):
     params = {'account_id': TCS_ACCOUNT_ID, 'order_id': order_id}
-    # async with AsyncRetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
     async with AsyncClient(TCS_RW_TOKEN) as client:
         try:
             await client.orders.cancel_order(**params)
@@ -61,7 +60,6 @@ async def cancel_order(order_id):
 
 
 async def get_execution_report(order_id):
-    # async with AsyncClient(TCS_RO_TOKEN) as client:
     async with AsyncRetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
         try:
             r = await client.orders.get_order_state(
@@ -73,7 +71,6 @@ async def get_execution_report(order_id):
                 f'account_id={TCS_ACCOUNT_ID}, order_id={order_id}\n'
                 f'error: {error}'
             )
-            print(message)
             raise exceptions.AioRequestError(200, message, metadata=message)
         else:
             if r.lots_executed > 0:
@@ -83,17 +80,14 @@ async def get_execution_report(order_id):
 
 async def get_price_to_place_order(figi: str, sell: bool) -> Quotation:
     async with AsyncRetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
-        # r = await client.market_data.get_order_book(figi=figi, depth=2)
         r = await client.market_data.get_order_book(figi=figi, depth=1)
     if not r.asks or not r.bids:
         raise ValueError(
             'Нет ни одного аска в стакане! Возможно, сессия еще не началась.'
         )
     if sell:
-        # return r.asks[1].price
         return r.asks[0].price
     else:
-        # return r.bids[1].price
         return r.bids[0].price
 
 
@@ -124,13 +118,10 @@ async def perform_market_trade(figi: str, sell: bool, lots: int):
         params['direction'] = OrderDirection.ORDER_DIRECTION_BUY
 
     async with AsyncClient(TCS_RW_TOKEN) as client:
-        # async with AsyncRetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
         try:
             r = await client.orders.post_order(**params)
         except Exception as error:
-            print(error)
-            raise error
-        # print(r.order_id, r.executed_order_price, r.lots_requested, r.lots_executed, r.total_order_amount)
+             raise error
         return r
 
 
@@ -149,11 +140,10 @@ async def place_sellbuy_order(figi: str, sell: bool, price: Quotation, lots):
         params['direction'] = OrderDirection.ORDER_DIRECTION_BUY
 
     async with AsyncClient(TCS_RW_TOKEN) as client:
-        # async with AsyncRetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
+
         try:
             r = await client.orders.post_order(**params)
         except Exception as error:
-            print(error)
             raise error
         return r
 

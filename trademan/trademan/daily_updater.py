@@ -11,13 +11,11 @@ def daily_updater(get_response):
         current_date = datetime.now().date()
         if request.method == 'GET' and current_date != date:
             try:
-                # result = call_command('update')
-                call_command('update')
+                 call_command('update')
             except Exception as error:
                 print(f'Could not update prices! {error}')
                 raise error
             else:
-                # print(f'\nFigis updated from TCS. Result:\n{result}')
                 date = current_date
         response = get_response(request)
 

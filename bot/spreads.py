@@ -4,10 +4,12 @@ from datetime import datetime
 
 from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
-from tools.classes import Spread
-from tools.get_patch_prepare_data import prepare_spreads_data, async_get_api_data, async_patch_executed
-from tools.utils import perform_working_hours_check, get_seconds_till_open
 from tinkoff.invest.exceptions import RequestError
+from tools.classes import Spread
+from tools.get_patch_prepare_data import (async_get_api_data,
+                                          async_patch_executed,
+                                          prepare_spreads_data)
+from tools.utils import get_seconds_till_open, perform_working_hours_check
 
 REPORT_ORDERS = False
 

@@ -1,8 +1,7 @@
 from aiogram import Bot, Dispatcher
 from aiogram.dispatcher.filters import BoundFilter
 from aiogram.types import Message
-
-from settings import TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+from settings import TELEGRAM_CHAT_ID, TELEGRAM_TOKEN
 
 bot = Bot(token=TELEGRAM_TOKEN)
 dp = Dispatcher(bot)

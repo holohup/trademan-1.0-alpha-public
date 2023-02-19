@@ -1,10 +1,11 @@
 from http import HTTPStatus
 
-from base.models import Stops, Spread, SellBuy, RestoreStops
+from base.models import RestoreStops, SellBuy, Spread, Stops
 from django.http import HttpResponse
 from rest_framework import viewsets
 
-from .serializers import StopsSerializer, SellBuySerializer, SpreadsSerializer, RestoreStopsSerializer
+from .serializers import (RestoreStopsSerializer, SellBuySerializer,
+                          SpreadsSerializer, StopsSerializer)
 
 
 class StopsViewSet(viewsets.ReadOnlyModelViewSet):

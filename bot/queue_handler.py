@@ -1,5 +1,6 @@
 import asyncio
-from bot_init import bot, TELEGRAM_CHAT_ID
+
+from bot_init import TELEGRAM_CHAT_ID, bot
 
 QUEUE = asyncio.Queue()
 

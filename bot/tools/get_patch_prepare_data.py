@@ -2,8 +2,7 @@ import asyncio
 from http import HTTPStatus
 
 import aiohttp
-from settings import ENDPOINTS, ENDPOINT_HOST
-from settings import RETRY_SETTINGS, TCS_RO_TOKEN
+from settings import ENDPOINT_HOST, ENDPOINTS, RETRY_SETTINGS, TCS_RO_TOKEN
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.utils import quotation_to_decimal
 from tools.classes import Asset, Spread
@@ -103,7 +102,3 @@ def prepare_spreads_data(data):
             )
         )
     return spreads
-
-
-if __name__ == '__main__':
-    print(asyncio.run(async_patch_executed('sellbuy', 1, executed=15)))
