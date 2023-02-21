@@ -1,8 +1,9 @@
 from http import HTTPStatus
 
-from base.models import RestoreStops, SellBuy, Spread, Stops
 from django.http import HttpResponse
 from rest_framework import viewsets
+
+from base.models import RestoreStops, SellBuy, Spread, Stops
 
 from .serializers import (RestoreStopsSerializer, SellBuySerializer,
                           SpreadsSerializer, StopsSerializer)
