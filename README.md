@@ -191,9 +191,10 @@ Although you might see more Bot commands in the source code, here's the list of 
 ### Quick fixes and bugs
 - Add a bot command to restart Django and to reload data from Tinkoff API (at the moment the management commands are ready, just need to link them to the bot)
 - Redirect all logs to files
-- Add a pause before **/sellbuy** reactivation on ratelimit_reset error
+- ~~Add a pause before **/sellbuy** reactivation on ratelimit_reset error~~
 - Django validation for a multiplicity of orders amounts to minimum lots
 - Better (more intuitive) caching for **/spreads** and **/sellbuy**: use NamedTuples instead of dictionaries.
 - Add _None_ for **/tasks** if no tasks are currently running.
-- Remove ONDELETECASCADE in models if the Tinkoff API doesn't return a FIGI, instead, make it inactive, since Tinkoff's API sometimes glitches.
+- ~~Remove ONDELETECASCADE in models if the Tinkoff API doesn't return a FIGI, instead, make it inactive, since Tinkoff's API sometimes glitches.~~
 - Make a separate health check command, and reserve _/test_ for testing as it was planned.
+- Create a command for Art Cashin's formula (0, 1, 5, 7% down) in case of a nuclear apocalypse.

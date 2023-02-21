@@ -1,12 +1,13 @@
 import sys
 
-from base.models import Figi
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from tinkoff.invest.retrying.settings import RetryClientSettings
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.schemas import Future, RealExchange, Share
 from tinkoff.invest.utils import quotation_to_decimal
+
+from base.models import Figi
 
 if not all([settings.TCS_RO_TOKEN, settings.TCS_RW_TOKEN, settings.TCS_ACCOUNT_ID]):
     message = (

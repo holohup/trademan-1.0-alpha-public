@@ -1,5 +1,6 @@
-from base.models import RestoreStops, SellBuy, Spread, Stops
 from rest_framework import serializers
+
+from base.models import RestoreStops, SellBuy, Spread, Stops
 
 
 class BasicDataSerializer(serializers.ModelSerializer):

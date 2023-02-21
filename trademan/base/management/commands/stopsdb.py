@@ -1,5 +1,6 @@
-from base.models import Figi, Stops
 from django.core.management.base import BaseCommand
+
+from base.models import Figi, Stops
 
 STOP_BLACKLIST = [
     'RNFT',
