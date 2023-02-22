@@ -6,9 +6,11 @@ from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
 from tinkoff.invest.exceptions import RequestError
 from tools.classes import Spread
-from tools.get_patch_prepare_data import (async_get_api_data,
-                                          async_patch_executed,
-                                          prepare_spreads_data)
+from tools.get_patch_prepare_data import (
+    async_get_api_data,
+    async_patch_executed,
+    prepare_spreads_data,
+)
 from tools.utils import get_seconds_till_open, perform_working_hours_check
 
 REPORT_ORDERS = False
@@ -88,7 +90,8 @@ async def process_spread(spread):
         if not perform_working_hours_check():
             sleep_time = get_seconds_till_open()
             logging.warning(
-                f'{spread}: Not a trading time. Waiting for {sleep_time // 60} minutes.'
+                f'''{spread}: Not a trading time.
+                 Waiting for {sleep_time // 60} minutes.'''
             )
             await asyncio.gather(
                 asyncio.create_task(asyncio.sleep(sleep_time)),
@@ -114,7 +117,8 @@ async def process_spread(spread):
                     await spread.far_leg.cancel_order()
                 else:
                     logging.info(
-                        f'Prices unchanged, not cancelling the order for {spread.far_leg.ticker}.'
+                        f'''Prices unchanged, not cancelling
+                         the order for {spread.far_leg.ticker}.'''
                     )
                 await spread.far_leg.update_executed()
                 await spread.even_execution()
@@ -127,9 +131,12 @@ async def process_spread(spread):
                 await spread.far_leg.place_sellbuy_order()
                 if REPORT_ORDERS:
                     await QUEUE.put(
-                        f'{datetime.now().time()}: Spread far leg placed {spread.far_leg.ticker}, \n'
-                        f'delta: {get_delta_prices(spread)}, desired spread price: {spread.price}, \n'
-                        f'placed {spread.far_leg.next_order_amount} at price {spread.far_leg.new_price}'
+                        f'''{datetime.now().time()}: Spread far leg placed
+                         {spread.far_leg.ticker}, \ndelta:
+                          {get_delta_prices(spread)}, desired spread price:
+                           {spread.price}, \n
+                        placed {spread.far_leg.next_order_amount} at
+                         price {spread.far_leg.new_price}'''
                     )
 
             spread.far_leg.last_price = spread.far_leg.new_price
@@ -141,8 +148,9 @@ async def process_spread(spread):
                     spread.avg_execution_price,
                 )
                 await QUEUE.put(
-                    f'{spread}: executed [{spread.executed} / {spread.amount}] '
-                    f'for {spread.avg_execution_price}'
+                    f'''{spread}: executed [{spread.executed} /
+                     {spread.amount}] for
+                      {spread.avg_execution_price}'''
                 )
                 last_executed = spread.executed
             await asyncio.sleep(SLEEP_PAUSE)

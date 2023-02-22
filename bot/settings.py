@@ -20,10 +20,10 @@ ZONE = zoneinfo.ZoneInfo('Europe/Moscow')
 OFFSET_ADJUSTED_WORK_HOURS = {
     key: (
         (
-                datetime.combine(datetime.now(ZONE).date(), value[0]) + TIME_OFFSET
+            datetime.combine(datetime.now(ZONE).date(), value[0]) + TIME_OFFSET
         ).time(),
         (
-                datetime.combine(datetime.now(ZONE).date(), value[1]) - TIME_OFFSET
+            datetime.combine(datetime.now(ZONE).date(), value[1]) - TIME_OFFSET
         ).time(),
     )
     for key, value in WORK_HOURS.items()
@@ -57,5 +57,5 @@ ENDPOINTS = {
     'restore_stops': 'api/v1/restorestops/',
     'spreads': 'api/v1/spreads/',
     'sellbuy': 'api/v1/sellbuy/',
-    'health': 'api/v1/health/'
+    'health': 'api/v1/health/',
 }

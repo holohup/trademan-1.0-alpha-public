@@ -221,9 +221,10 @@ class Spread:
     def __repr__(self):
         direction = 'Sell' if self.sell else 'Buy'
         return (
-            f'\n {direction} [{self.executed}/{self.amount}] '
-            f'{self.near_leg_type} {self.near_leg.ticker} - '
-            f'F {self.far_leg.ticker} for {self.price} avg={self.avg_execution_price}'
+            f'''\n {direction} [{self.executed}/{self.amount}]
+             {self.near_leg_type} {self.near_leg.ticker} -
+             F {self.far_leg.ticker} for {self.price}
+             avg={self.avg_execution_price}'''
         )
 
     async def even_execution(self):

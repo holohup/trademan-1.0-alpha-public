@@ -4,17 +4,25 @@ from base.models import RestoreStops, SellBuy, Spread, Stops
 from django.http import HttpResponse
 from rest_framework import viewsets
 
-from .serializers import (RestoreStopsSerializer, SellBuySerializer,
-                          SpreadsSerializer, StopsSerializer)
+from .serializers import (
+    RestoreStopsSerializer,
+    SellBuySerializer,
+    SpreadsSerializer,
+    StopsSerializer,
+)
 
 
 class StopsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Stops.objects.filter(whitelist=True, stop_blacklist=False).select_related('asset')
+    queryset = Stops.objects.filter(
+        whitelist=True, stop_blacklist=False
+    ).select_related('asset')
     serializer_class = StopsSerializer
 
 
 class ShortsViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Stops.objects.filter(whitelist=True, short_blacklist=False).select_related('asset')
+    queryset = Stops.objects.filter(
+        whitelist=True, short_blacklist=False
+    ).select_related('asset')
     serializer_class = StopsSerializer
 
 
@@ -24,10 +32,11 @@ class SellBuyViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(
-            active=(self.get_object().amount
-                    - serializer.validated_data.get('executed')
-                    >= self.get_object().asset.lot
-                    )
+            active=(
+                self.get_object().amount
+                - serializer.validated_data.get('executed')
+                >= self.get_object().asset.lot
+            )
         )
 
 
@@ -37,7 +46,8 @@ class SpreadsViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(
-            active=not serializer.validated_data.get('executed') >= self.get_object().amount
+            active=not serializer.validated_data.get('executed')
+            >= self.get_object().amount
         )
 
 

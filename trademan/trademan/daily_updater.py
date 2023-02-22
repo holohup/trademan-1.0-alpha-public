@@ -11,14 +11,12 @@ def daily_updater(get_response):
         current_date = datetime.now().date()
         if request.method == 'GET' and current_date != date:
             try:
-                 call_command('update')
+                call_command('update')
             except Exception as error:
                 print(f'Could not update prices! {error}')
                 raise error
             else:
                 date = current_date
-        response = get_response(request)
-
-        return response
+        return get_response(request)
 
     return middleware
