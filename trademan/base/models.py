@@ -49,10 +49,8 @@ class BaseAssetModel(models.Model):
 
     def __str__(self):
         action = 'Sell' if self.sell else 'Buy'
-        return (
-            action
-            + f'{self.asset.ticker}, [{self.executed}/{self.amount}] executed'
-        )
+        return f'''{action} {self.asset.ticker},
+         [{self.executed}/{self.amount}] executed'''
 
     class Meta:
         abstract = True

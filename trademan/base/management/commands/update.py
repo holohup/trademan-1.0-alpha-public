@@ -37,6 +37,7 @@ def prevalidate_instrument(inst: any([Share, Future]), _type: str) -> bool:
                 quotation_to_decimal(inst.min_price_increment) > 0,
             )
         )
+    return None
 
 
 def fill_fields(inst: any([Share, Future])) -> dict:
