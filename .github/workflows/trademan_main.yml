@@ -1,1 +1,107 @@
+name: Foodgram CI/CD
 
+on: [push]
+
+env: 
+  BOT_TAG: holohup/trademan_bot:latest
+  BASE_TAG: holohup/trademan_base:latest
+
+jobs:
+  code_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Python Setup
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+          cache: 'pip'
+          cache-dependency-path: '**/*requirements*.txt'
+
+      - name: Installing dependencies and testing scripts
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-tests.txt
+          pip install -r bot/requirements.txt
+          pip install -r trademan/requirements.txt
+
+      - name: Flake8 tests
+        run: python -m flake8
+
+      - name: Unit tests
+        run: cd trademan && pytest
+
+
+  # build_image_and_push_to_docker_hub:
+  #   name: Build and Push Docker image to Docker Hub
+  #   if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   needs: code_tests
+  #   steps:
+  #     - name: check out repo
+  #       uses: actions/checkout@v2
+  #     - name: log in to docker
+  #       uses: docker/login-action@v1
+  #       with:
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
+  #     - name: build and push backend to DockerHub
+  #       uses: docker/build-push-action@v4
+  #       with:
+  #         context: backend
+  #         push: true
+  #         tags: ${{ env.REPO_TAG }}
+  #     - name: build and push frontend to DockerHub
+  #       uses: docker/build-push-action@v4
+  #       with:
+  #         context: .
+  #         file: frontend/Dockerfile
+  #         push: true
+  #         tags: ${{ env.FRONT_TAG }}
+
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+  #   needs: build_image_and_push_to_docker_hub
+  #   steps:
+  #     - name: executing remote ssh commands to deploy
+  #       uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ secrets.HOST }}
+  #         username: ${{ secrets.USER }}
+  #         key: ${{ secrets.SSH_KEY }}
+  #         passphrase: ${{ secrets.PASSPHRASE }}
+  #         script: |
+  #           docker-compose --project-directory foodgram/infra stop backend frontend
+  #           docker pull ${{ env.REPO_TAG }} && docker pull ${{ env.FRONT_TAG }}
+  #           echo '${{ secrets.DB_CREDENTIALS }}' > foodgram/infra/.env
+  #           docker-compose --project-directory foodgram/infra/ up -d
+
+  # smoke_tests:
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' 
+  #   needs: deploy
+  #   steps:
+  #     - name: check statuscodes
+  #       run: |
+  #         EXPECTED_401=$(curl --write-out '%{http_code}' -L --silent --output /dev/null http://${{ secrets.HOST }}/api/)
+  #         EXPECTED_200=$(curl --write-out '%{http_code}' -L --silent --output /dev/null http://${{ secrets.HOST }}/admin/)
+  #         if [[ $EXPECTED_401 != "401" || $EXPECTED_200 != "200" ]]; then
+  #           echo 'Something is not working'
+  #           exit 1
+  #         else
+  #           echo 'URLs return expected status codes'
+  #         fi
+
+  # send_message:
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+  #   needs: smoke_tests
+  #   steps:
+  #     - name: send message
+  #       uses: appleboy/telegram-action@master
+  #       with:
+  #         to: ${{ secrets.TELEGRAM_CHAT_ID }}
+  #         token: ${{ secrets.TELEGRAM_TOKEN }}
+  #         message: ${{ github.workflow }} успешно выполнен!

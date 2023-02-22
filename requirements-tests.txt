@@ -1,0 +1,6 @@
+flake8==5.0.4
+pep8-naming==0.13.3
+flake8-broken-line==0.6.0
+flake8-return==1.2.0
+flake8-isort==6.0.0
+pytest-django==4.5.2
