@@ -3,13 +3,14 @@ import logging
 
 from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
-from tools.get_patch_prepare_data import (async_get_api_data,
-                                          async_patch_executed,
-                                          prepare_asset_data)
+from tools.get_patch_prepare_data import (
+    async_get_api_data,
+    async_patch_executed,
+    prepare_asset_data,
+)
 
 
 async def process_asset(asset):
-
     while asset.next_order_amount >= asset.lot:
         try:
             await asset.get_price_to_place_order()
@@ -17,7 +18,8 @@ async def process_asset(asset):
                 await asset.cancel_order()
             else:
                 logging.info(
-                    f'Price unchanged, not cancelling the order for {asset.ticker}.'
+                    f'''Price unchanged, not cancelling
+                     the order for {asset.ticker}.'''
                 )
             if asset.order_id:
                 await asset.update_executed()
@@ -46,19 +48,41 @@ async def sellbuy():
     try:
         print(f'Starting assets: {assets}')
         result = await asyncio.gather(
-            *[asyncio.create_task(process_asset(asset), name=asset.ticker) for asset in assets]
+            *[
+                asyncio.create_task(process_asset(asset), name=asset.ticker)
+                for asset in assets
+            ]
         )
-        return f'Покупка-продажа завершены. Исполнены заявки по инструментам: {result}'
+        return f'''Покупка-продажа завершены.
+         Исполнены заявки по инструментам: {result}'''
     except asyncio.CancelledError:
         await asyncio.gather(
-            *[asyncio.create_task(asset.cancel_order()) for asset in assets if asset.order_placed]
+            *[
+                asyncio.create_task(asset.cancel_order())
+                for asset in assets
+                if asset.order_placed
+            ]
         )
         await asyncio.gather(
-            *[asyncio.create_task(asset.update_executed()) for asset in assets if asset.order_id]
+            *[
+                asyncio.create_task(asset.update_executed())
+                for asset in assets
+                if asset.order_id
+            ]
         )
         await asyncio.gather(
-            *[asyncio.create_task(async_patch_executed('sellbuy', asset.id, asset.executed))
-                for asset in assets if asset.executed > 0]
+            *[
+                asyncio.create_task(
+                    async_patch_executed('sellbuy', asset.id, asset.executed)
+                )
+                for asset in assets
+                if asset.executed > 0
+            ]
         )
-        executed_tickers = {asset.ticker: asset.executed for asset in assets if asset.executed > 0}
-        return f'SellBuy routine cancelled. Lots already executed: {executed_tickers}.'
+        executed_tickers = {
+            asset.ticker: asset.executed
+            for asset in assets
+            if asset.executed > 0
+        }
+        return f'''SellBuy routine cancelled.
+         Lots already executed: {executed_tickers}.'''

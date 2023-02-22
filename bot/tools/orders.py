@@ -1,11 +1,21 @@
 from datetime import datetime
 
-from settings import (ORDER_TTL, RETRY_SETTINGS, TCS_ACCOUNT_ID, TCS_RO_TOKEN,
-                      TCS_RW_TOKEN)
+from settings import (
+    ORDER_TTL,
+    RETRY_SETTINGS,
+    TCS_ACCOUNT_ID,
+    TCS_RO_TOKEN,
+    TCS_RW_TOKEN,
+)
 from tinkoff.invest import AsyncClient, OrderDirection, OrderType, exceptions
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
-from tinkoff.invest.schemas import (OrderState, Quotation, StopOrderDirection,
-                                    StopOrderExpirationType, StopOrderType)
+from tinkoff.invest.schemas import (
+    OrderState,
+    Quotation,
+    StopOrderDirection,
+    StopOrderExpirationType,
+    StopOrderType,
+)
 from tools.utils import delta_minutes_to_utc
 
 
@@ -74,7 +84,9 @@ async def get_execution_report(order_id):
             raise exceptions.AioRequestError(200, message, metadata=message)
         else:
             if r.lots_executed > 0:
-                print(f'Получен ответ о кол-ве исполненных заявок: {r.lots_executed}')
+                print(
+                    f'Получен ответ о кол-ве исполненных заявок: {r.lots_executed}'
+                )
         return r
 
 
@@ -121,7 +133,7 @@ async def perform_market_trade(figi: str, sell: bool, lots: int):
         try:
             r = await client.orders.post_order(**params)
         except Exception as error:
-             raise error
+            raise error
         return r
 
 
@@ -140,7 +152,6 @@ async def place_sellbuy_order(figi: str, sell: bool, price: Quotation, lots):
         params['direction'] = OrderDirection.ORDER_DIRECTION_BUY
 
     async with AsyncClient(TCS_RW_TOKEN) as client:
-
         try:
             r = await client.orders.post_order(**params)
         except Exception as error:

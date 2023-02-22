@@ -1,9 +1,11 @@
 from decimal import Decimal
 
 from settings import LONG_LEVELS, SHORT_LEVELS, STOPS_SUM
-from tools.get_patch_prepare_data import (async_get_api_data,
-                                          get_current_prices,
-                                          prepare_asset_data)
+from tools.get_patch_prepare_data import (
+    async_get_api_data,
+    get_current_prices,
+    prepare_asset_data,
+)
 
 
 def price_is_valid(price):
@@ -18,7 +20,7 @@ async def place_long_stops():
         if price_is_valid(asset.price):
             for discount in LONG_LEVELS:
                 stop_price = (
-                        (Decimal('100') - Decimal(discount)) * asset.price / 100
+                    (Decimal('100') - Decimal(discount)) * asset.price / 100
                 )
                 orders.append([asset, stop_price, int(STOPS_SUM / stop_price)])
         else:
@@ -41,7 +43,7 @@ async def place_short_stops():
         if price_is_valid(asset.price):
             for discount in SHORT_LEVELS:
                 stop_price = (
-                        (Decimal('100') + Decimal(discount)) * asset.price / 100
+                    (Decimal('100') + Decimal(discount)) * asset.price / 100
                 )
                 orders.append([asset, stop_price, int(STOPS_SUM / stop_price)])
         else:

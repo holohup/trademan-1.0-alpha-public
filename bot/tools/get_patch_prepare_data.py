@@ -8,7 +8,9 @@ from tinkoff.invest.utils import quotation_to_decimal
 from tools.classes import Asset, Spread
 
 
-async def async_patch_executed(command: str, id: int, executed: int, price: float = 0):
+async def async_patch_executed(
+    command: str, id: int, executed: int, price: float = 0
+):
     data = {'executed': executed}
     if price:
         data['exec_price'] = price
@@ -98,7 +100,7 @@ def prepare_spreads_data(data):
                 base_asset_amount=spread['base_asset_amount'],
                 sell=spread['sell'],
                 id=spread['id'],
-                exec_price=spread['exec_price']
+                exec_price=spread['exec_price'],
             )
         )
     return spreads

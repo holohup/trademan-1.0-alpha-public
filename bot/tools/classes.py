@@ -3,10 +3,16 @@ from decimal import Decimal, getcontext
 import tinkoff.invest
 from tinkoff.invest.schemas import OrderExecutionReportStatus
 from tinkoff.invest.utils import decimal_to_quotation, quotation_to_decimal
-from tools.orders import (cancel_order, get_closest_execution_price,
-                          get_execution_report, get_price_to_place_order,
-                          perform_market_trade, place_long_stop,
-                          place_sellbuy_order, place_short_stop)
+from tools.orders import (
+    cancel_order,
+    get_closest_execution_price,
+    get_execution_report,
+    get_price_to_place_order,
+    perform_market_trade,
+    place_long_stop,
+    place_sellbuy_order,
+    place_short_stop,
+)
 from tools.utils import get_correct_price, get_lots
 
 getcontext().prec = 10
@@ -14,18 +20,18 @@ getcontext().prec = 10
 
 class Asset:
     def __init__(
-            self,
-            ticker,
-            figi,
-            increment: Decimal,
-            lot,
-            price=0.0,
-            id=0,
-            sell=True,
-            amount=0,
-            executed=0,
-            order_placed=False,
-            order_id=None,
+        self,
+        ticker,
+        figi,
+        increment: Decimal,
+        lot,
+        price=0.0,
+        id=0,
+        sell=True,
+        amount=0,
+        executed=0,
+        order_placed=False,
+        order_id=None,
     ):
         self.ticker = ticker
         self.figi = figi
@@ -77,7 +83,7 @@ class Asset:
 
     async def cancel_order(self):
         await cancel_order(self.order_id)
- 
+
     async def get_assets_executed(self):
         return await get_execution_report(self.order_id)
 
@@ -106,35 +112,59 @@ class Asset:
             return
 
         self.order_cache[self.order_id] = max(
-            response.lots_executed * self.lot, self.order_cache.get(self.order_id, 0)
+            response.lots_executed * self.lot,
+            self.order_cache.get(self.order_id, 0),
         )
         self.executed = sum(self.order_cache.values())
-        executed_without_initial = self.executed - self.order_cache.get('initial', 0)
-        self.orders_prices_cache[self.order_id] = quotation_to_decimal(response.executed_order_price)
+        executed_without_initial = self.executed - self.order_cache.get(
+            'initial', 0
+        )
+        self.orders_prices_cache[self.order_id] = quotation_to_decimal(
+            response.executed_order_price
+        )
         total_executed_price = 0
         for order_id, amount in self.order_cache.items():
-            total_executed_price += amount * self.orders_prices_cache[order_id] if order_id != 'initial' else 0
-        self.orders_average_price = total_executed_price / Decimal(executed_without_initial)
+            total_executed_price += (
+                amount * self.orders_prices_cache[order_id]
+                if order_id != 'initial'
+                else 0
+            )
+        self.orders_average_price = total_executed_price / Decimal(
+            executed_without_initial
+        )
         self.next_order_amount = self.amount - self.executed
 
     def parse_order_status(self, response: tinkoff.invest.OrderState):
-
-        if response.execution_report_status == OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_CANCELLED:
+        if (
+            response.execution_report_status
+            == OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_CANCELLED
+        ):
             self.order_placed = False
 
         if response.lots_executed == 0:
             return
 
         self.order_cache[self.order_id] = max(
-            response.lots_executed * self.lot, self.order_cache.get(self.order_id, 0)
+            response.lots_executed * self.lot,
+            self.order_cache.get(self.order_id, 0),
         )
         self.executed = sum(self.order_cache.values())
-        executed_without_initial = self.executed - self.order_cache.get('initial', 0)
-        self.orders_prices_cache[self.order_id] = quotation_to_decimal(response.average_position_price)
+        executed_without_initial = self.executed - self.order_cache.get(
+            'initial', 0
+        )
+        self.orders_prices_cache[self.order_id] = quotation_to_decimal(
+            response.average_position_price
+        )
         total_executed_price = Decimal(0)
         for order_id, amount in self.order_cache.items():
-            total_executed_price += amount * self.orders_prices_cache[order_id] if order_id != 'initial' else 0
-        self.orders_average_price = total_executed_price / Decimal(executed_without_initial)
+            total_executed_price += (
+                amount * self.orders_prices_cache[order_id]
+                if order_id != 'initial'
+                else 0
+            )
+        self.orders_average_price = total_executed_price / Decimal(
+            executed_without_initial
+        )
         self.next_order_amount = self.amount - self.executed
 
     async def perform_market_trade(self):
@@ -144,7 +174,6 @@ class Asset:
         self.parse_order_response(r)
 
     async def place_sellbuy_order(self):
-
         self.price = decimal_to_quotation(self.new_price)
 
         r = await place_sellbuy_order(
@@ -162,17 +191,17 @@ class Asset:
 
 class Spread:
     def __init__(
-            self,
-            far_leg: Asset,
-            near_leg: Asset,
-            sell: bool,
-            price: int,
-            id: int,
-            amount: int,
-            executed: int,
-            near_leg_type: str,
-            base_asset_amount: int,
-            exec_price: Decimal(0)
+        self,
+        far_leg: Asset,
+        near_leg: Asset,
+        sell: bool,
+        price: int,
+        id: int,
+        amount: int,
+        executed: int,
+        near_leg_type: str,
+        base_asset_amount: int,
+        exec_price: Decimal(0),
     ):
         self.far_leg = far_leg
         self.near_leg = near_leg
@@ -192,7 +221,8 @@ class Spread:
 
     def __str__(self):
         direction = 'Sell' if self.sell else 'Buy'
-        return f'{direction} {self.amount} {self.near_leg.ticker} - {self.far_leg.ticker} for {self.price}'
+        return f'''{direction} {self.amount} {self.near_leg.ticker}
+         - {self.far_leg.ticker} for {self.price}'''
 
     def __repr__(self):
         direction = 'Sell' if self.sell else 'Buy'
@@ -205,15 +235,22 @@ class Spread:
     async def even_execution(self):
         if not self.far_leg.executed * self.ratio > self.near_leg.executed:
             return
-        self.near_leg.next_order_amount = (self.far_leg.executed * self.ratio - self.near_leg.executed)
+        self.near_leg.next_order_amount = (
+            self.far_leg.executed * self.ratio - self.near_leg.executed
+        )
         await self.near_leg.perform_market_trade()
 
         far_leg_avg_price = self.far_leg.orders_average_price
-        near_leg_avg_price = self.near_leg.orders_average_price * Decimal(self.ratio)
-        session_orders_execution_price = float(far_leg_avg_price - near_leg_avg_price)
+        near_leg_avg_price = self.near_leg.orders_average_price * Decimal(
+            self.ratio
+        )
+        session_orders_execution_price = float(
+            far_leg_avg_price - near_leg_avg_price
+        )
 
         self.executed = self.far_leg.executed
         self.avg_execution_price = (
-                self.initial_exec_price * self.initial_executed + (self.executed - self.initial_executed)
-                * session_orders_execution_price
+            self.initial_exec_price * self.initial_executed
+            + (self.executed - self.initial_executed)
+            * session_orders_execution_price
         ) / self.executed

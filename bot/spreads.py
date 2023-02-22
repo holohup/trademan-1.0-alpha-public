@@ -6,24 +6,40 @@ from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
 from tinkoff.invest.exceptions import RequestError
 from tools.classes import Spread
-from tools.get_patch_prepare_data import (async_get_api_data,
-                                          async_patch_executed,
-                                          prepare_spreads_data)
+from tools.get_patch_prepare_data import (
+    async_get_api_data,
+    async_patch_executed,
+    prepare_spreads_data,
+)
 from tools.utils import get_seconds_till_open, perform_working_hours_check
 
 REPORT_ORDERS = False
 
 
 def get_delta_prices(spread: Spread):
-    if spread.near_leg.ticker == 'USDRUBF' and spread.far_leg.ticker == 'SiZ2':  # TODO: ЗАГЛУШКА! Переписать.
-        return spread.far_leg.new_price - spread.near_leg.closest_execution_price * spread.base_asset_amount
+    if (
+        spread.near_leg.ticker == 'USDRUBF' and spread.far_leg.ticker == 'SiZ2'
+    ):  # TODO: ЗАГЛУШКА! Переписать.
+        return (
+            spread.far_leg.new_price
+            - spread.near_leg.closest_execution_price
+            * spread.base_asset_amount
+        )
     if spread.near_leg_type == 'S':
-        return spread.far_leg.new_price - spread.near_leg.closest_execution_price * spread.base_asset_amount
+        return (
+            spread.far_leg.new_price
+            - spread.near_leg.closest_execution_price
+            * spread.base_asset_amount
+        )
     return spread.far_leg.new_price - spread.near_leg.closest_execution_price
 
 
 def ok_to_place_order(spread):
-    return get_delta_prices(spread) > spread.price if spread.sell else get_delta_prices(spread) < spread.price
+    return (
+        get_delta_prices(spread) > spread.price
+        if spread.sell
+        else get_delta_prices(spread) < spread.price
+    )
 
 
 async def cancel_active_orders_and_update_data(spreads):
@@ -54,7 +70,12 @@ async def cancel_active_orders_and_update_data(spreads):
     await asyncio.gather(
         *[
             asyncio.create_task(
-                async_patch_executed('spreads', spread.id, spread.executed, spread.avg_execution_price)
+                async_patch_executed(
+                    'spreads',
+                    spread.id,
+                    spread.executed,
+                    spread.avg_execution_price,
+                )
             )
             for spread in spreads
             if spread.executed > 0
@@ -66,7 +87,6 @@ async def process_spread(spread):
     last_executed = spread.executed
 
     while spread.executed < spread.amount:
-        # if not True:
         if not perform_working_hours_check():
             sleep_time = get_seconds_till_open()
             logging.warning(
@@ -83,22 +103,28 @@ async def process_spread(spread):
         try:
             await asyncio.gather(
                 asyncio.create_task(spread.far_leg.get_price_to_place_order()),
-                asyncio.create_task(spread.near_leg.get_closest_execution_price()),
+                asyncio.create_task(
+                    spread.near_leg.get_closest_execution_price()
+                ),
             )
 
             if spread.far_leg.order_placed:
-                if (spread.far_leg.new_price != spread.far_leg.last_price
-                        or not ok_to_place_order(spread)):
+                if (
+                    spread.far_leg.new_price != spread.far_leg.last_price
+                    or not ok_to_place_order(spread)
+                ):
                     await spread.far_leg.cancel_order()
                 else:
-                    logging.info(f'Prices unchanged, not cancelling the order for {spread.far_leg.ticker}.')
+                    logging.info(
+                        f'Prices unchanged, not cancelling the order for {spread.far_leg.ticker}.'
+                    )
                 await spread.far_leg.update_executed()
                 await spread.even_execution()
 
             if (
-                    not spread.far_leg.order_placed
-                    and spread.far_leg.next_order_amount >= spread.far_leg.lot
-                    and ok_to_place_order(spread)
+                not spread.far_leg.order_placed
+                and spread.far_leg.next_order_amount >= spread.far_leg.lot
+                and ok_to_place_order(spread)
             ):
                 await spread.far_leg.place_sellbuy_order()
                 if REPORT_ORDERS:
@@ -110,28 +136,39 @@ async def process_spread(spread):
 
             spread.far_leg.last_price = spread.far_leg.new_price
             if spread.executed > last_executed:
-                await async_patch_executed('spreads', spread.id, spread.executed,
-                                           spread.avg_execution_price)
+                await async_patch_executed(
+                    'spreads',
+                    spread.id,
+                    spread.executed,
+                    spread.avg_execution_price,
+                )
                 await QUEUE.put(
                     f'{spread}: executed [{spread.executed} / {spread.amount}] '
-                    f'for {spread.avg_execution_price}')
+                    f'for {spread.avg_execution_price}'
+                )
                 last_executed = spread.executed
             await asyncio.sleep(SLEEP_PAUSE)
 
         except AttributeError:
-            await QUEUE.put(f'{spread}: ratelimit_reset error, waiting for 1 minute')
+            await QUEUE.put(
+                f'{spread}: ratelimit_reset error, waiting for 1 minute'
+            )
             await asyncio.sleep(60)
             print(f'continuing with {spread}')
 
         except RequestError as error:
-            await QUEUE.put(f'{spread} RequestError: msg: {error.metadata.message}, '
-                            f'details: {error.details}, code: {error.code}, md: {error.metadata}')
+            await QUEUE.put(
+                f'{spread} RequestError: msg: {error.metadata.message}, '
+                f'details: {error.details}, code: {error.code}, md: {error.metadata}'
+            )
 
         except Exception as error:
             await QUEUE.put(f'[{spread}]: {error}. Waiting for 60 secs.')
             await asyncio.sleep(60)
 
-    await async_patch_executed('spreads', spread.id, spread.executed, spread.avg_execution_price)
+    await async_patch_executed(
+        'spreads', spread.id, spread.executed, spread.avg_execution_price
+    )
     return spread
 
 
