@@ -1,10 +1,9 @@
 from decimal import Decimal
 
 import pytest
+from base.models import Figi, Spread
 from django.urls import reverse
 from rest_framework import status
-
-from base.models import Figi, Spread
 
 
 @pytest.mark.django_db

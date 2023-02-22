@@ -1,11 +1,9 @@
 from decimal import Decimal
 
 from settings import LONG_LEVELS, SHORT_LEVELS, STOPS_SUM
-from tools.get_patch_prepare_data import (
-    async_get_api_data,
-    get_current_prices,
-    prepare_asset_data,
-)
+from tools.get_patch_prepare_data import (async_get_api_data,
+                                          get_current_prices,
+                                          prepare_asset_data)
 
 
 def price_is_valid(price):

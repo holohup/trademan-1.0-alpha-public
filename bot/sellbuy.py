@@ -3,11 +3,9 @@ import logging
 
 from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
-from tools.get_patch_prepare_data import (
-    async_get_api_data,
-    async_patch_executed,
-    prepare_asset_data,
-)
+from tools.get_patch_prepare_data import (async_get_api_data,
+                                          async_patch_executed,
+                                          prepare_asset_data)
 
 
 async def process_asset(asset):
