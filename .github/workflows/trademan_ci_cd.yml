@@ -34,7 +34,7 @@ jobs:
   build_image_and_push_to_docker_hub:
     name: Build and Push Docker image to Docker Hub
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-    runs-on: arm32/ubuntu
+    runs-on: debian-latest
     needs: code_tests
     steps:
       - name: check out repo
