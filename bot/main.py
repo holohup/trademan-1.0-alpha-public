@@ -9,6 +9,8 @@ from queue_handler import worker
 from settings import (TCS_ACCOUNT_ID, TCS_RO_TOKEN, TCS_RW_TOKEN,
                       TELEGRAM_CHAT_ID, TELEGRAM_TOKEN)
 
+__all__ = ('commands',)
+
 if __name__ == '__main__':
 
     logging.basicConfig(

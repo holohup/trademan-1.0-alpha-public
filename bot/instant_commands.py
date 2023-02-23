@@ -14,8 +14,7 @@ async def orders():
 
 
 async def test():
-    result = await check_health()
-    return result
+    return await check_health()
 
 
 async def check_health():

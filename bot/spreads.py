@@ -6,9 +6,11 @@ from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
 from tinkoff.invest.exceptions import RequestError
 from tools.classes import Spread
-from tools.get_patch_prepare_data import (async_get_api_data,
-                                          async_patch_executed,
-                                          prepare_spreads_data)
+from tools.get_patch_prepare_data import (
+    async_get_api_data,
+    async_patch_executed,
+    prepare_spreads_data,
+)
 from tools.utils import get_seconds_till_open, perform_working_hours_check
 
 REPORT_ORDERS = False
@@ -81,76 +83,90 @@ async def cancel_active_orders_and_update_data(spreads):
     )
 
 
-async def process_spread(spread):
-    last_executed = spread.executed
+async def wait_till_market_open(spread):
+    sleep_time = get_seconds_till_open()
+    logging.warning(
+        f'''{spread}: Not a trading time.
+            Waiting for {sleep_time // 60} minutes.'''
+    )
+    await asyncio.gather(
+        asyncio.create_task(asyncio.sleep(sleep_time)),
+        asyncio.create_task(cancel_active_orders_and_update_data([spread])),
+    )
+    logging.warning(f'{spread}: Resuming session.')
 
-    while spread.executed < spread.amount:
-        if not perform_working_hours_check():
-            sleep_time = get_seconds_till_open()
-            logging.warning(
-                f'''{spread}: Not a trading time.
-                 Waiting for {sleep_time // 60} minutes.'''
-            )
-            await asyncio.gather(
-                asyncio.create_task(asyncio.sleep(sleep_time)),
-                asyncio.create_task(
-                    cancel_active_orders_and_update_data([spread])
-                ),
-            )
-            logging.warning(f'{spread}: Resuming session.')
 
-        try:
-            await asyncio.gather(
-                asyncio.create_task(spread.far_leg.get_price_to_place_order()),
-                asyncio.create_task(
-                    spread.near_leg.get_closest_execution_price()
-                ),
-            )
+async def get_spread_prices(spread):
+    return asyncio.gather(
+        asyncio.create_task(spread.far_leg.get_price_to_place_order()),
+        asyncio.create_task(spread.near_leg.get_closest_execution_price()),
+    )
 
-            if spread.far_leg.order_placed:
-                if (
-                    spread.far_leg.new_price != spread.far_leg.last_price
-                    or not ok_to_place_order(spread)
-                ):
-                    await spread.far_leg.cancel_order()
-                else:
-                    logging.info(
-                        f'''Prices unchanged, not cancelling
-                         the order for {spread.far_leg.ticker}.'''
-                    )
-                await spread.far_leg.update_executed()
-                await spread.even_execution()
 
-            if (
-                not spread.far_leg.order_placed
-                and spread.far_leg.next_order_amount >= spread.far_leg.lot
-                and ok_to_place_order(spread)
-            ):
-                await spread.far_leg.place_sellbuy_order()
-                if REPORT_ORDERS:
-                    await QUEUE.put(
-                        f'''{datetime.now().time()}: Spread far leg placed
+async def adjust_placed_order(spread):
+    if not spread.far_leg.order_placed:
+        return
+    if (
+        spread.far_leg.new_price != spread.far_leg.last_price
+        or not ok_to_place_order(spread)
+    ):
+        await spread.far_leg.cancel_order()
+    else:
+        logging.info(
+            f'''Prices unchanged, not cancelling
+            the order for {spread.far_leg.ticker}.'''
+        )
+    await spread.far_leg.update_executed()
+    await spread.even_execution()
+
+
+async def place_new_far_leg_order(spread):
+    if (
+        not spread.far_leg.order_placed
+        and spread.far_leg.next_order_amount >= spread.far_leg.lot
+        and ok_to_place_order(spread)
+    ):
+        await spread.far_leg.place_sellbuy_order()
+        if REPORT_ORDERS:
+            await QUEUE.put(
+                f'''{datetime.now().time()}: Spread far leg placed
                          {spread.far_leg.ticker}, \ndelta:
                           {get_delta_prices(spread)}, desired spread price:
                            {spread.price}, \n
                         placed {spread.far_leg.next_order_amount} at
                          price {spread.far_leg.new_price}'''
-                    )
+            )
 
+
+async def patch_executed(spread, last_executed):
+    if spread.executed > last_executed:
+        await async_patch_executed(
+            'spreads',
+            spread.id,
+            spread.executed,
+            spread.avg_execution_price,
+        )
+        await QUEUE.put(
+            f'''{spread}: executed [{spread.executed} /
+                {spread.amount}] for
+                {spread.avg_execution_price}'''
+        )
+        return spread.executed
+
+
+async def process_spread(spread):
+    last_executed = spread.executed
+
+    while spread.executed < spread.amount:
+        if not perform_working_hours_check():
+            wait_till_market_open(spread)
+
+        try:
+            await get_spread_prices(spread)
+            await adjust_placed_order(spread)
+            await place_new_far_leg_order(spread)
             spread.far_leg.last_price = spread.far_leg.new_price
-            if spread.executed > last_executed:
-                await async_patch_executed(
-                    'spreads',
-                    spread.id,
-                    spread.executed,
-                    spread.avg_execution_price,
-                )
-                await QUEUE.put(
-                    f'''{spread}: executed [{spread.executed} /
-                     {spread.amount}] for
-                      {spread.avg_execution_price}'''
-                )
-                last_executed = spread.executed
+            last_executed = await patch_executed(spread, last_executed)
             await asyncio.sleep(SLEEP_PAUSE)
 
         except AttributeError:
@@ -162,8 +178,10 @@ async def process_spread(spread):
 
         except RequestError as error:
             await QUEUE.put(
-                f'{spread} RequestError: msg: {error.metadata.message}, '
-                f'details: {error.details}, code: {error.code}, md: {error.metadata}'
+                f'''{spread} RequestError: msg:
+                 {error.metadata.message}, details:
+                  {error.details}, code: {error.code},
+                   md: {error.metadata}'''
             )
 
         except Exception as error:
