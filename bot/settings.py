@@ -36,6 +36,10 @@ SHORT_LEVELS = ('20', '25', '30')
 STOPS_SUM = 300000
 ORDER_TTL = 120
 
+# Art Cashin's formula
+
+NUKE_LEVELS = ('0', '1', '5', '7')
+
 # tinkoff settings
 SLEEP_PAUSE = 1
 RETRY_SETTINGS = RetryClientSettings(use_retry=True, max_retry_attempt=100)
@@ -49,7 +53,7 @@ TELEGRAM_CHAT_ID = int(os.getenv('TG_CHAT_ID', '000'))
 
 # endpoints
 
-ENDPOINT_HOST = 'http://192.168.2.180:8000/'
+ENDPOINT_HOST = os.getenv('BASE_HOST', 'http://127.0.0.1:8000/')
 
 ENDPOINTS = {
     'shorts': 'api/v1/shorts/',
@@ -58,4 +62,5 @@ ENDPOINTS = {
     'spreads': 'api/v1/spreads/',
     'sellbuy': 'api/v1/sellbuy/',
     'health': 'api/v1/health/',
+    'ticker': 'api/v1/ticker/'
 }

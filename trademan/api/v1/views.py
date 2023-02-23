@@ -1,11 +1,10 @@
 from http import HTTPStatus
-from rest_framework.response import Response
 
-from django.shortcuts import get_object_or_404
-
-from base.models import RestoreStops, SellBuy, Spread, Stops, Figi
+from base.models import Figi, RestoreStops, SellBuy, Spread, Stops
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.response import Response
 
 from .serializers import (RestoreStopsSerializer, SellBuySerializer,
                           SpreadsSerializer, StopsSerializer, TickerSerializer)

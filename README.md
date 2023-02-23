@@ -171,6 +171,7 @@ Although you might see more Bot commands in the source code, here's the list of 
 - **/stop** - stops all currently running tasks
 - **/cancel** - cancels all active orders, including stop-orders
 - **/tasks** - returns currently running tasks
+- **/nuke [ticker] [sum]** - places stop orders for the ticker, splitting sum into four: current price, 99% of current price, 95% of current price and 93% of current price, like in Art Cashin's formula
 
 ## Plans for the future
 
@@ -197,4 +198,4 @@ Although you might see more Bot commands in the source code, here's the list of 
 - Add _None_ for **/tasks** if no tasks are currently running.
 - ~~Remove ONDELETECASCADE in models if the Tinkoff API doesn't return a FIGI, instead, make it inactive, since Tinkoff's API sometimes glitches.~~
 - Make a separate health check command, and reserve _/test_ for testing as it was planned.
-- Create a command for Art Cashin's formula (0, 1, 5, 7% down) in case of a nuclear apocalypse.
+- ~~~Create a command for Art Cashin's formula (0, 1, 5, 7% down) in case of a nuclear apocalypse.~~~

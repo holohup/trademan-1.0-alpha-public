@@ -1,7 +1,7 @@
 from tools.get_patch_prepare_data import async_get_api_data, prepare_asset_data
 
 
-async def restore_stops():
+async def restore_stops(*args, **kwargs):
     stops = prepare_asset_data(await async_get_api_data('restore_stops'))
     stops_placed = []
     for stop in stops:

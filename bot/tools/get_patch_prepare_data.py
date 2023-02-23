@@ -1,5 +1,7 @@
 from http import HTTPStatus
-
+import json
+from typing import List
+from urllib import request
 import aiohttp
 from settings import ENDPOINT_HOST, ENDPOINTS, RETRY_SETTINGS, TCS_RO_TOKEN
 from tinkoff.invest.retrying.sync.client import RetryingClient
@@ -63,6 +65,11 @@ def prepare_asset_data(data):
             )
         )
     return assets
+
+
+def parse_ticker_info(ticker: str) -> List[Asset]:
+    url = ENDPOINT_HOST + ENDPOINTS['ticker'] + ticker + '/'
+    return json.loads(request.urlopen(url).read())
 
 
 def prepare_spreads_data(data):

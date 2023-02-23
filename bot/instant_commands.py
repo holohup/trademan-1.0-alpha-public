@@ -13,11 +13,11 @@ async def orders():
     return await get_current_orders()
 
 
-async def test():
+async def test(*args, **kwargs):
     return await check_health()
 
 
-async def check_health():
+async def check_health(*args, **kwargs):
     try:
         result = await async_check_health()
     except (TimeoutError, OSError, aiohttp.client_exceptions.ClientError):
@@ -26,7 +26,7 @@ async def check_health():
         return result == 200
 
 
-async def get_current_spread_prices():
+async def get_current_spread_prices(*args, **kwargs):
     spreads = prepare_spreads_data(await async_get_api_data('spreads'))
     if not spreads:
         return 'No active assets to sell or buy'

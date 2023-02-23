@@ -29,3 +29,29 @@ def test_spreads(client, far_leg_data, near_leg_data, sample_spread):
     assert data['exec_price'] == spread.exec_price
     assert data['near_leg_type'] == near_leg_data['type']
     assert data['base_asset_amount'] == spread.amount
+
+
+@pytest.mark.django_db
+def test_ticker_endpoint(client, sample_spread, far_leg_data):
+    response = client.get(
+        reverse('ticker', kwargs={'ticker': sample_spread.asset.ticker})
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert 'id', 'min_price_increment' in response.data
+    assert Decimal(far_leg_data['min_price_increment']) == Decimal(
+        response.data['min_price_increment']
+    )
+    for field in (
+        'figi',
+        'ticker',
+        'name',
+        'lot',
+        'type',
+        'api_trading_available',
+        'short_enabled',
+        'buy_enabled',
+        'sell_enabled',
+        'basic_asset_size',
+    ):
+        assert field in response.data
+        assert far_leg_data[field] == response.data[field]

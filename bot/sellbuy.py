@@ -39,7 +39,7 @@ async def process_asset(asset):
     return {asset.ticker: asset.executed}
 
 
-async def sellbuy():
+async def sellbuy(*args, **kwargs):
     assets = prepare_asset_data(await async_get_api_data('sellbuy'))
     if not assets:
         return 'No active assets to sell or buy'

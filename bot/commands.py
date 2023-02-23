@@ -4,9 +4,17 @@ from aiogram import types
 from bot_init import dp
 from cancel_all_orders import cancel_orders
 from grpc.aio._call import AioRpcError
-from instant_commands import (check_health, get_current_orders,
-                              get_current_spread_prices, test)
-from place_stops import place_long_stops, place_short_stops, process_nuke_command
+from instant_commands import (
+    check_health,
+    get_current_orders,
+    get_current_spread_prices,
+    test,
+)
+from place_stops import (
+    place_long_stops,
+    place_short_stops,
+    process_nuke_command,
+)
 from restore_stops import restore_stops
 from sellbuy import sellbuy
 from spreads import spreads
@@ -103,7 +111,9 @@ async def place_long_stops_handler(message: types.Message):
 
 @dp.message_handler(commands=['nuke'], is_me=True)
 async def nuke_handler(message: types.Message):
-    await trades_handler('Processing nuke command', process_nuke_command, message)
+    await trades_handler(
+        'Processing nuke command', process_nuke_command, message
+    )
 
 
 @dp.message_handler(commands=['shorts'], is_me=True)

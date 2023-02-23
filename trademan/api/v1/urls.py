@@ -1,15 +1,8 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import (
-    RestoreStopsViewSet,
-    SellBuyViewSet,
-    ShortsViewSet,
-    SpreadsViewSet,
-    StopsViewSet,
-    health,
-    TickerViewSet,
-)
+from .views import (RestoreStopsViewSet, SellBuyViewSet, ShortsViewSet,
+                    SpreadsViewSet, StopsViewSet, TickerViewSet, health)
 
 v1_router = DefaultRouter()
 v1_router.register('stops', StopsViewSet, basename='stops')
