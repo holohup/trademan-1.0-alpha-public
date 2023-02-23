@@ -34,7 +34,7 @@ jobs:
   build_image_and_push_to_docker_hub:
     name: Build and Push Docker image to Docker Hub
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-    runs-on: debian-latest
+    runs-on: arm32v7/python:3.9.15-slim-bullseye
     needs: code_tests
     steps:
       - name: check out repo
