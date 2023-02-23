@@ -28,9 +28,7 @@ jobs:
         run: python -m flake8
 
       - name: Unit tests
-        run: |
-          cd trademan && pytest
-          cd .. && cd bot && pytest
+        run: pytest
 
 
 
