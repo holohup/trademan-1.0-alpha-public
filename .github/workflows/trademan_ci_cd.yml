@@ -49,7 +49,7 @@ jobs:
       - name: build and push bot to DockerHub
         uses: docker/build-push-action@v4
         with:
-          context: bot
+          context: '{{defaultContext}}:bot'
           push: true
           tags: ${{ env.BOT_TAG }}
       - name: build and push base to DockerHub
