@@ -4,6 +4,7 @@ flake8-broken-line==0.6.0
 flake8-return==1.2.0
 flake8-isort==6.0.0
 pytest-django==4.5.2
+pytest-asyncio==0.20.3
 
 django==2.2.19
 djangorestframework==3.12.4
