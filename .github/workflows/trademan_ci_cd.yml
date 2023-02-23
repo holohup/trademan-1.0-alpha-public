@@ -9,6 +9,7 @@ env:
 jobs:
   code_tests:
     runs-on: ubuntu-latest
+    environment: ${{ secrets.HOLO_ENV }}
     steps:
       - uses: actions/checkout@v2
 
