@@ -4,3 +4,11 @@ flake8-broken-line==0.6.0
 flake8-return==1.2.0
 flake8-isort==6.0.0
 pytest-django==4.5.2
+
+django==2.2.19
+djangorestframework==3.12.4
+pytest-django==4.5.2
+tinkoff-investments==0.2.0b36
+python-dotenv==0.21.0
+protobuf==3.20.1
+aiogram==2.22.1
