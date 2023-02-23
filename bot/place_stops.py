@@ -1,13 +1,11 @@
 from decimal import Decimal
 
 from nuke import parse_nuke_command
-from settings import LONG_LEVELS, SHORT_LEVELS, STOPS_SUM, NUKE_LEVELS
-from tools.get_patch_prepare_data import (
-    async_get_api_data,
-    get_current_prices,
-    prepare_asset_data,
-    parse_ticker_info,
-)
+from settings import LONG_LEVELS, NUKE_LEVELS, SHORT_LEVELS, STOPS_SUM
+from tools.get_patch_prepare_data import (async_get_api_data,
+                                          get_current_prices,
+                                          parse_ticker_info,
+                                          prepare_asset_data)
 
 
 def sum_is_valid(asset, sum) -> bool:

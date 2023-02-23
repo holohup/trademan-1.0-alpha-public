@@ -1,7 +1,8 @@
-from http import HTTPStatus
 import json
+from http import HTTPStatus
 from typing import List
 from urllib import request
+
 import aiohttp
 from settings import ENDPOINT_HOST, ENDPOINTS, RETRY_SETTINGS, TCS_RO_TOKEN
 from tinkoff.invest.retrying.sync.client import RetryingClient
