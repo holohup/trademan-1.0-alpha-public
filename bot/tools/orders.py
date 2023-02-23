@@ -4,8 +4,10 @@ from settings import (ORDER_TTL, RETRY_SETTINGS, TCS_ACCOUNT_ID, TCS_RO_TOKEN,
                       TCS_RW_TOKEN)
 from tinkoff.invest import AsyncClient, OrderDirection, OrderType, exceptions
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
-from tinkoff.invest.schemas import (OrderState, Quotation, StopOrderDirection,
-                                    StopOrderExpirationType, StopOrderType)
+from tinkoff.invest.schemas import OrderState, Quotation
+from tinkoff.invest.schemas import StopOrderDirection as SOD
+from tinkoff.invest.schemas import StopOrderExpirationType as SOET
+from tinkoff.invest.schemas import StopOrderType as SOT
 from tools.utils import delta_minutes_to_utc
 
 
@@ -17,9 +19,9 @@ async def place_long_stop(figi, price, lots):
             'stop_price': price,
             'quantity': lots,
             'account_id': TCS_ACCOUNT_ID,
-            'direction': StopOrderDirection.STOP_ORDER_DIRECTION_BUY,
-            'stop_order_type': StopOrderType.STOP_ORDER_TYPE_TAKE_PROFIT,
-            'expiration_type': StopOrderExpirationType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
+            'direction': SOD.STOP_ORDER_DIRECTION_BUY,
+            'stop_order_type': SOT.STOP_ORDER_TYPE_TAKE_PROFIT,
+            'expiration_type': SOET.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
             'expire_date': delta_minutes_to_utc(ORDER_TTL),
         }
         return await client.stop_orders.post_stop_order(**params)
@@ -33,9 +35,9 @@ async def place_short_stop(figi, price, lots):
             'stop_price': price,
             'quantity': lots,
             'account_id': TCS_ACCOUNT_ID,
-            'direction': StopOrderDirection.STOP_ORDER_DIRECTION_SELL,
-            'stop_order_type': StopOrderType.STOP_ORDER_TYPE_TAKE_PROFIT,
-            'expiration_type': StopOrderExpirationType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
+            'direction': SOD.STOP_ORDER_DIRECTION_SELL,
+            'stop_order_type': SOT.STOP_ORDER_TYPE_TAKE_PROFIT,
+            'expiration_type': SOET.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
             'expire_date': delta_minutes_to_utc(ORDER_TTL),
         }
         return await client.stop_orders.post_stop_order(**params)
@@ -55,7 +57,8 @@ async def cancel_order(order_id):
         except exceptions.AioRequestError as error:
             if error.code.value[0] == 5:
                 print(
-                    f'Похоже, заявка сработала и ее не получается снять: {error}'
+                    f'''Похоже, заявка сработала и ее не получается снять:
+                     {error}'''
                 )
 
 
@@ -75,7 +78,8 @@ async def get_execution_report(order_id):
         else:
             if r.lots_executed > 0:
                 print(
-                    f'Получен ответ о кол-ве исполненных заявок: {r.lots_executed}'
+                    f'''Получен ответ о кол-ве исполненных заявок:
+                     {r.lots_executed}'''
                 )
         return r
 
@@ -89,8 +93,7 @@ async def get_price_to_place_order(figi: str, sell: bool) -> Quotation:
         )
     if sell:
         return r.asks[0].price
-    else:
-        return r.bids[0].price
+    return r.bids[0].price
 
 
 async def get_closest_execution_price(figi: str, sell: bool) -> Quotation:
@@ -102,8 +105,7 @@ async def get_closest_execution_price(figi: str, sell: bool) -> Quotation:
         )
     if sell:
         return r.bids[0].price
-    else:
-        return r.asks[0].price
+    return r.asks[0].price
 
 
 async def perform_market_trade(figi: str, sell: bool, lots: int):
@@ -155,7 +157,8 @@ async def get_current_orders():
             account_id=TCS_ACCOUNT_ID
         )
     return [
-        f'{i.figi}: [{i.lots_executed}/{i.lots_requested}] for '
-        f'{i.initial_security_price.units}.{int(i.initial_security_price.nano / 10 ** 9)}'
+        f'''{i.figi}: [{i.lots_executed}/{i.lots_requested}] for
+         {i.initial_security_price.units}
+        .{int(i.initial_security_price.nano / 10 ** 9)}'''
         for i in r.orders
     ]

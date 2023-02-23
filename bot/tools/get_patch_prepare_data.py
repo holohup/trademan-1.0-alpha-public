@@ -1,4 +1,3 @@
-import asyncio
 from http import HTTPStatus
 
 import aiohttp
