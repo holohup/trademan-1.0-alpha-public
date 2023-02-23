@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 
 DEBUG_DB = False
 load_dotenv()
-TCS_RW_TOKEN = os.getenv('TCS_RW_TOKEN')
-TCS_ACCOUNT_ID = os.getenv('ACCOUNT_ID')
-TCS_RO_TOKEN = os.getenv('TCS_RO_TOKEN')
+TCS_RW_TOKEN = os.getenv('TCS_RW_TOKEN', '000')
+TCS_ACCOUNT_ID = os.getenv('ACCOUNT_ID', '000')
+TCS_RO_TOKEN = os.getenv('TCS_RO_TOKEN', '000')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
