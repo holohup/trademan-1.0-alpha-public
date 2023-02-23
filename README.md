@@ -197,5 +197,5 @@ Although you might see more Bot commands in the source code, here's the list of 
 - Better (more intuitive) caching for **/spreads** and **/sellbuy**: use NamedTuples instead of dictionaries.
 - Add _None_ for **/tasks** if no tasks are currently running.
 - ~~Remove ONDELETECASCADE in models if the Tinkoff API doesn't return a FIGI, instead, make it inactive, since Tinkoff's API sometimes glitches.~~
-- ~~~Create a command for Art Cashin's formula (0, 1, 5, 7% down) in case of a nuclear apocalypse.~~~
+- ~~Create a command for Art Cashin's formula (0, 1, 5, 7% down) in case of a nuclear apocalypse.~~
 - Make a separate health check command, and reserve _/test_ for testing as it was planned.
