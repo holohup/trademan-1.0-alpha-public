@@ -4,6 +4,7 @@ from settings import LONG_LEVELS, SHORT_LEVELS, STOPS_SUM
 from tools.get_patch_prepare_data import (async_get_api_data,
                                           get_current_prices,
                                           prepare_asset_data)
+from nuke import parse_nuke_command
 
 
 def price_is_valid(price):
@@ -54,3 +55,8 @@ async def place_short_stops():
         f'Short stops placement complete. {orders_placed} stops placed.\n'
         f'Levels in %: {SHORT_LEVELS}, sum: {STOPS_SUM}'
     )
+
+
+async def process_nuke_command(command):
+    ticker, sum = parse_nuke_command(command)
+

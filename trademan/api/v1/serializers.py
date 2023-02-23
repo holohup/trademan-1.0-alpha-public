@@ -1,4 +1,4 @@
-from base.models import RestoreStops, SellBuy, Spread, Stops
+from base.models import RestoreStops, SellBuy, Spread, Stops, Figi
 from rest_framework import serializers
 
 
@@ -112,3 +112,9 @@ class RestoreStopsSerializer(BasicDataSerializer):
             'amount',
             'price',
         )
+
+
+class TickerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Figi
+        fields = '__all__'

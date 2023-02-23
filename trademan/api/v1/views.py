@@ -1,11 +1,14 @@
 from http import HTTPStatus
+from rest_framework.response import Response
 
-from base.models import RestoreStops, SellBuy, Spread, Stops
+from django.shortcuts import get_object_or_404
+
+from base.models import RestoreStops, SellBuy, Spread, Stops, Figi
 from django.http import HttpResponse
 from rest_framework import viewsets
 
 from .serializers import (RestoreStopsSerializer, SellBuySerializer,
-                          SpreadsSerializer, StopsSerializer)
+                          SpreadsSerializer, StopsSerializer, TickerSerializer)
 
 
 class StopsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -50,6 +53,12 @@ class SpreadsViewSet(viewsets.ModelViewSet):
 class RestoreStopsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = RestoreStops.objects.filter(active=True).select_related('asset')
     serializer_class = RestoreStopsSerializer
+
+
+class TickerViewSet(viewsets.ReadOnlyModelViewSet):
+    def retrieve(self, request, *args, **kwargs):
+        instance = get_object_or_404(Figi, ticker__iexact=kwargs['ticker'])
+        return Response(TickerSerializer(instance).data)
 
 
 def health(request):
