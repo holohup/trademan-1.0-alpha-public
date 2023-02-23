@@ -1,5 +1,6 @@
-import bot.spreads as spreads
 import pytest
+
+import bot.spreads as spreads
 
 
 @pytest.mark.asyncio

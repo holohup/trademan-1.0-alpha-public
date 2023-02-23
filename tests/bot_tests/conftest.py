@@ -1,6 +1,7 @@
+from decimal import Decimal
+
 import pytest
 from tools.classes import Asset, Spread
-from decimal import Decimal
 
 
 @pytest.fixture
