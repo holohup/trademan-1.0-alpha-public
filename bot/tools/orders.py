@@ -5,9 +5,9 @@ from settings import (ORDER_TTL, RETRY_SETTINGS, TCS_ACCOUNT_ID, TCS_RO_TOKEN,
 from tinkoff.invest import AsyncClient, OrderDirection, OrderType, exceptions
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest.schemas import OrderState, Quotation
-from tinkoff.invest.schemas import StopOrderDirection as SOD
-from tinkoff.invest.schemas import StopOrderExpirationType as SOET
-from tinkoff.invest.schemas import StopOrderType as SOT
+from tinkoff.invest.schemas import StopOrderDirection as SODir
+from tinkoff.invest.schemas import StopOrderExpirationType as SType
+from tinkoff.invest.schemas import StopOrderType as SOType
 from tools.utils import delta_minutes_to_utc
 
 
@@ -19,9 +19,9 @@ async def place_long_stop(figi, price, lots):
             'stop_price': price,
             'quantity': lots,
             'account_id': TCS_ACCOUNT_ID,
-            'direction': SOD.STOP_ORDER_DIRECTION_BUY,
-            'stop_order_type': SOT.STOP_ORDER_TYPE_TAKE_PROFIT,
-            'expiration_type': SOET.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
+            'direction': SODir.STOP_ORDER_DIRECTION_BUY,
+            'stop_order_type': SOType.STOP_ORDER_TYPE_TAKE_PROFIT,
+            'expiration_type': SType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
             'expire_date': delta_minutes_to_utc(ORDER_TTL),
         }
         return await client.stop_orders.post_stop_order(**params)
@@ -35,9 +35,9 @@ async def place_short_stop(figi, price, lots):
             'stop_price': price,
             'quantity': lots,
             'account_id': TCS_ACCOUNT_ID,
-            'direction': SOD.STOP_ORDER_DIRECTION_SELL,
-            'stop_order_type': SOT.STOP_ORDER_TYPE_TAKE_PROFIT,
-            'expiration_type': SOET.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
+            'direction': SODir.STOP_ORDER_DIRECTION_SELL,
+            'stop_order_type': SOType.STOP_ORDER_TYPE_TAKE_PROFIT,
+            'expiration_type': SType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
             'expire_date': delta_minutes_to_utc(ORDER_TTL),
         }
         return await client.stop_orders.post_stop_order(**params)

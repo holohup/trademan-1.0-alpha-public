@@ -44,10 +44,7 @@ def perform_working_hours_check() -> bool:
 
 def seconds_till_open_from_midnight() -> int:
     open_time = get_open_and_close_time(min)
-    seconds_till_open = (
-        open_time.hour * 60 * 60 + open_time.minute * 60 + open_time.second
-    )
-    return seconds_till_open
+    return open_time.hour * 60 * 60 + open_time.minute * 60 + open_time.second
 
 
 def seconds_till_midnight(current_time: datetime) -> int:
