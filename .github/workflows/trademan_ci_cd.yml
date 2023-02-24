@@ -56,7 +56,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: trademan
-          # file: trademan/Dockerfile
           push: true
           tags: ${{ env.BASE_TAG }}
 
@@ -94,14 +93,14 @@ jobs:
   #           echo 'URLs return expected status codes'
   #         fi
 
-  # send_message:
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-  #   needs: smoke_tests
-  #   steps:
-  #     - name: send message
-  #       uses: appleboy/telegram-action@master
-  #       with:
-  #         to: ${{ secrets.TELEGRAM_CHAT_ID }}
-  #         token: ${{ secrets.TELEGRAM_TOKEN }}
-  #         message: ${{ github.workflow }} успешно выполнен!
+  send_message:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    needs: build_image_and_push_to_docker_hub
+    steps:
+      - name: send message
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: ${{ github.workflow }} успешно выполнен!
