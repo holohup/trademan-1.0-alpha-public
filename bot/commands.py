@@ -4,8 +4,8 @@ from aiogram import types
 from bot_init import dp
 from cancel_all_orders import cancel_orders
 from grpc.aio._call import AioRpcError
-from instant_commands import (check_health, get_current_orders,
-                              get_current_spread_prices, help, test)
+from instant_commands import (check_health, get_current_spread_prices, help,
+                              test)
 from place_stops import (place_long_stops, place_short_stops,
                          process_nuke_command)
 from restore_stops import restore_stops
@@ -40,7 +40,6 @@ async def tasks(*args, **kwargs):
 
 
 ROUTINES = {
-    'orders': ('Current orders', get_current_orders),
     'sprices': ('Current spread prices', get_current_spread_prices),
     'test': ('Testing current tests', test),
     'stops': ('Placing long stops', place_long_stops),

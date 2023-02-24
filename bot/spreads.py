@@ -95,7 +95,7 @@ async def wait_till_market_open(spread):
 
 
 async def get_spread_prices(spread):
-    return asyncio.gather(
+    await asyncio.gather(
         asyncio.create_task(spread.far_leg.get_price_to_place_order()),
         asyncio.create_task(spread.near_leg.get_closest_execution_price()),
     )
@@ -157,7 +157,7 @@ async def process_spread(spread):
 
     while spread.executed < spread.amount:
         if not perform_working_hours_check():
-            wait_till_market_open(spread)
+            await wait_till_market_open(spread)
 
         try:
             await get_spread_prices(spread)

@@ -6,11 +6,6 @@ from spreads import get_delta_prices
 from tools.get_patch_prepare_data import (async_check_health,
                                           async_get_api_data,
                                           prepare_spreads_data)
-from tools.orders import get_current_orders
-
-
-async def orders():
-    return await get_current_orders()
 
 
 async def test(*args, **kwargs):
