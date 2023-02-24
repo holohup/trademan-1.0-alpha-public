@@ -125,7 +125,7 @@ class Asset:
             return
         self.order_placed = True
 
-        if response.lots_executed != 0: 
+        if response.lots_executed != 0:
             self._update_execution(response, response.executed_order_price)
             self._update_averages_and_next_order_amount()
 

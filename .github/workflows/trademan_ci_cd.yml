@@ -1,4 +1,4 @@
-name: Foodgram CI/CD
+name: Trademan CI/CD
 
 on: [push]
 
