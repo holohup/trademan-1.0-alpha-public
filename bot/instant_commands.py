@@ -49,3 +49,13 @@ async def get_current_spread_prices(*args, **kwargs):
     for spread in spreads:
         result += f'{spread}: current: {get_delta_prices(spread)}\n'
     return result
+
+
+async def help(*args, **kwargs):
+    return (
+        'Bot is operational! The commands are:\n'
+        'stops, shorts,\n'
+        'restore, sellbuy,\n'
+        'monitor,\n'
+        'stop, cancel'
+    )

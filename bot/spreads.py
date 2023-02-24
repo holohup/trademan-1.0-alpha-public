@@ -214,4 +214,4 @@ async def spreads(*args, **kwargs):
             if spread.executed > 0
         }
         print('Stopping spreads')
-        return f'Spreads routine cancelled. Status: {result}.'
+        return f'Spreads routine stopped. Status: {result}.'

@@ -82,5 +82,5 @@ async def sellbuy(*args, **kwargs):
             for asset in assets
             if asset.executed > 0
         }
-        return f'''SellBuy routine cancelled.
+        return f'''SellBuy routine stopped.
          Lots already executed: {executed_tickers}.'''
