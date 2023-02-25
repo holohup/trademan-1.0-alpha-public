@@ -4,7 +4,6 @@ from datetime import datetime
 
 from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
-from tinkoff.invest.exceptions import RequestError
 from tools.classes import Spread
 from tools.get_patch_prepare_data import (async_get_api_data,
                                           async_patch_executed,
@@ -152,6 +151,18 @@ async def patch_executed(spread, last_executed):
     return spread.executed
 
 
+async def spread_trading_cycle(spread):
+    await get_spread_prices(spread)
+    await adjust_placed_order(spread)
+    await place_new_far_leg_order(spread)
+    spread.far_leg.last_price = spread.far_leg.new_price
+
+
+async def process_error(error, spread):
+    await QUEUE.put(f'{spread}: {error}, waiting for 1 minute')
+    await asyncio.sleep(60)
+
+
 async def process_spread(spread):
     last_executed = spread.executed
 
@@ -160,31 +171,12 @@ async def process_spread(spread):
             await wait_till_market_open(spread)
 
         try:
-            await get_spread_prices(spread)
-            await adjust_placed_order(spread)
-            await place_new_far_leg_order(spread)
-            spread.far_leg.last_price = spread.far_leg.new_price
+            await spread_trading_cycle(spread)
             last_executed = await patch_executed(spread, last_executed)
             await asyncio.sleep(SLEEP_PAUSE)
 
-        except AttributeError:
-            await QUEUE.put(
-                f'{spread}: ratelimit_reset error, waiting for 1 minute'
-            )
-            await asyncio.sleep(60)
-            print(f'continuing with {spread}')
-
-        except RequestError as error:
-            await QUEUE.put(
-                f'''{spread} RequestError: msg:
-                 {error.metadata.message}, details:
-                  {error.details}, code: {error.code},
-                   md: {error.metadata}'''
-            )
-
         except Exception as error:
-            await QUEUE.put(f'[{spread}]: {error}. Waiting for 60 secs.')
-            await asyncio.sleep(60)
+            await process_error(error, spread)
 
     await async_patch_executed(
         'spreads', spread.id, spread.executed, spread.avg_execution_price

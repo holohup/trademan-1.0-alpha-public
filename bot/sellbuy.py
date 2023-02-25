@@ -1,5 +1,4 @@
 import asyncio
-import logging
 
 from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
@@ -8,29 +7,32 @@ from tools.get_patch_prepare_data import (async_get_api_data,
                                           prepare_asset_data)
 
 
+async def sleep_and_patch(asset):
+    await asyncio.gather(
+        asyncio.create_task(asyncio.sleep(SLEEP_PAUSE)),
+        asyncio.create_task(
+            async_patch_executed('sellbuy', asset.id, asset.executed)
+        ),
+    )
+
+
+async def sellbuy_cycle(asset):
+    await asset.get_price_to_place_order()
+    if asset.new_price != asset.last_price and asset.order_placed:
+        await asset.cancel_order()
+    if asset.order_id:
+        await asset.update_executed()
+    if not asset.order_placed and asset.next_order_amount >= asset.lot:
+        await asset.place_sellbuy_order()
+
+
 async def process_asset(asset):
     while asset.next_order_amount >= asset.lot:
         try:
-            await asset.get_price_to_place_order()
-            if asset.new_price != asset.last_price and asset.order_placed:
-                await asset.cancel_order()
-            else:
-                logging.info(
-                    f'''Price unchanged, not cancelling
-                     the order for {asset.ticker}.'''
-                )
-            if asset.order_id:
-                await asset.update_executed()
-            if not asset.order_placed and asset.next_order_amount >= asset.lot:
-                await asset.place_sellbuy_order()
-
+            await sellbuy_cycle(asset)
             asset.last_price = asset.new_price
-            await asyncio.gather(
-                asyncio.create_task(asyncio.sleep(SLEEP_PAUSE)),
-                asyncio.create_task(
-                    async_patch_executed('sellbuy', asset.id, asset.executed)
-                ),
-            )
+            await sleep_and_patch(asset)
+
         except Exception as error:
             await QUEUE.put(error)
 

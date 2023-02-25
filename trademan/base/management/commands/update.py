@@ -8,6 +8,8 @@ from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.schemas import Future, RealExchange, Share
 from tinkoff.invest.utils import quotation_to_decimal
 
+DB_TYPES = dict(shares='S', futures='F')
+
 if not all(
     [settings.TCS_RO_TOKEN, settings.TCS_RW_TOKEN, settings.TCS_ACCOUNT_ID]
 ):
@@ -21,16 +23,16 @@ if not all(
 
 
 def prevalidate_instrument(inst: any([Share, Future]), _type: str) -> bool:
-    if _type == 'Share':
+    if _type == 'shares':
         return all(
             (
                 inst.real_exchange == RealExchange.REAL_EXCHANGE_MOEX,
                 quotation_to_decimal(inst.min_price_increment) > 0,
             )
         )
-    if _type == 'Future':
+    if _type == 'futures':
         return quotation_to_decimal(inst.min_price_increment) > 0
-    if _type == 'Bond':
+    if _type == 'bonds':
         return all(
             (
                 inst.real_exchange == RealExchange.REAL_EXCHANGE_MOEX,
@@ -40,8 +42,8 @@ def prevalidate_instrument(inst: any([Share, Future]), _type: str) -> bool:
     return None
 
 
-def fill_fields(inst: any([Share, Future])) -> dict:
-    return {
+def fill_fields(inst: any([Share, Future]), type: str) -> dict:
+    result = {
         'ticker': inst.ticker,
         'lot': inst.lot,
         'name': inst.name,
@@ -50,69 +52,62 @@ def fill_fields(inst: any([Share, Future])) -> dict:
         'short_enabled': inst.short_enabled_flag,
         'buy_enabled': inst.buy_available_flag,
         'sell_enabled': inst.sell_available_flag,
+        'type': DB_TYPES[type],
     }
+    if DB_TYPES[type] == 'F':
+        result['basic_asset_size'] = int(
+            quotation_to_decimal(inst.basic_asset_size)
+        )
+    return result
+
+
+def get_api_response(instrument):
+    with RetryingClient(
+        settings.TCS_RO_TOKEN,
+        RetryClientSettings(use_retry=True, max_retry_attempt=10),
+    ) as client:
+        try:
+            return getattr(client.instruments, instrument)()
+        except Exception as error:
+            raise CommandError(f'Data update failed! {error}')
+
+
+def update_db(response, type):
+    updated = 0
+    figis = set()
+    for inst in response.instruments:
+        if not prevalidate_instrument(inst=inst, _type=type):
+            continue
+        updated += 1
+        new_values = fill_fields(inst, type)
+        figis.add(inst.figi)
+        Figi.objects.update_or_create(figi=inst.figi, defaults=new_values)
+    return updated, figis
+
+
+def clean_up(type, figis):
+    result = ''
+    for figi in Figi.objects.filter(type=DB_TYPES[type]):
+        if figi.figi not in figis:
+            result += f'Deleting figi with ticker {figi}\n'
+            figi.delete()
+    return result
 
 
 class Command(BaseCommand):
     help = 'Обновление базы акций и фьючерсов с ТКС'
 
     def handle(self, *args, **options):
-        received_figi = set()
+        new_figi = set()
         result_message = ''
-        with RetryingClient(
-            settings.TCS_RO_TOKEN,
-            RetryClientSettings(use_retry=True, max_retry_attempt=10),
-        ) as client:
-            try:
-                response_stocks = client.instruments.shares()
-                result_message += 'Stocks update received\n'
-                response_futures = client.instruments.futures()
-                result_message += 'Futures update received\n'
-            except Exception as error:
-                result_message += 'Error updating stocks!\n'
-                raise CommandError(f'Data update failed! {error}')
-            else:
-                clean_up_flag = True
-                stocks_filtered, futures_filtered = 0, 0
+        clean_up_flag = True
+        upd_insts = dict(shares=0, futures=0)
+        for inst_type in upd_insts.keys():
+            response = get_api_response(inst_type)
+            result_message += f'{inst_type} update received\n'
+            upd_insts[inst_type], new_figi = update_db(response, inst_type)
+            result_message += f'{inst_type} filtered: {upd_insts[inst_type]}\n'
+            if clean_up_flag and upd_insts[inst_type] > 0:
+                result_message += clean_up(inst_type, new_figi)
 
-                for share in response_stocks.instruments:
-                    if prevalidate_instrument(inst=share, _type='Share'):
-                        stocks_filtered += 1
-                        new_values = fill_fields(share)
-                        new_values.update(type='S')
-                        received_figi.add(share.figi)
-                        tcs_stock, _ = Figi.objects.update_or_create(
-                            figi=share.figi, defaults=new_values
-                        )
-                result_message += f'Stocks filtered: {stocks_filtered}\n'
-                for future in response_futures.instruments:
-                    if prevalidate_instrument(inst=future, _type='Future'):
-                        futures_filtered += 1
-                        new_values = fill_fields(future)
-                        new_values.update(type='F')
-                        new_values.update(
-                            basic_asset_size=int(
-                                quotation_to_decimal(future.basic_asset_size)
-                            )
-                        )
-                        received_figi.add(future.figi)
-                        tcs_future, _ = Figi.objects.update_or_create(
-                            figi=future.figi, defaults=new_values
-                        )
-                result_message += f'Futures filtered: {futures_filtered}\n'
-                deleted_tickers = 0
-                if (
-                    clean_up_flag
-                    and stocks_filtered > 0
-                    and futures_filtered > 0
-                ):
-                    for figi in Figi.objects.all():
-                        if figi.figi not in received_figi:
-                            result_message += (
-                                f'Deleting figi with ticker {figi}\n'
-                            )
-                            deleted_tickers += 1
-                            figi.delete()
-                    result_message += f'Tickers deleted: {deleted_tickers}\n'
-            finally:
-                return result_message
+        return result_message
