@@ -37,14 +37,14 @@ def test_ticker_endpoint(client, sample_spread, far_leg_data):
         reverse('ticker', kwargs={'ticker': sample_spread.asset.ticker})
     )
     assert response.status_code == status.HTTP_200_OK
-    assert 'id', 'min_price_increment' in response.data
+    assert 'id', 'increment' in response.data
     assert Decimal(far_leg_data['min_price_increment']) == Decimal(
-        response.data['min_price_increment']
+        response.data['increment']
     )
+    assert len(response.data) == 12
     for field in (
         'figi',
         'ticker',
-        'name',
         'lot',
         'type',
         'api_trading_available',

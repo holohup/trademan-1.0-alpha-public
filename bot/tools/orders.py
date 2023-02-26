@@ -1,7 +1,12 @@
 from datetime import datetime
 
-from settings import (ORDER_TTL, RETRY_SETTINGS, TCS_ACCOUNT_ID, TCS_RO_TOKEN,
-                      TCS_RW_TOKEN)
+from settings import (
+    ORDER_TTL,
+    RETRY_SETTINGS,
+    TCS_ACCOUNT_ID,
+    TCS_RO_TOKEN,
+    TCS_RW_TOKEN,
+)
 from tinkoff.invest import AsyncClient, OrderDirection, OrderType, exceptions
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest.schemas import Quotation
@@ -91,21 +96,11 @@ async def get_price_to_place_order(figi: str, sell: bool) -> Quotation:
         raise ValueError(
             'Нет ни одного аска в стакане! Возможно, сессия еще не началась.'
         )
-    if sell:
-        return r.asks[0].price
-    return r.bids[0].price
+    return r.asks[0].price if sell else r.bids[0].price
 
 
 async def get_closest_execution_price(figi: str, sell: bool) -> Quotation:
-    async with AsyncRetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
-        r = await client.market_data.get_order_book(figi=figi, depth=1)
-    if not r.asks or not r.bids:
-        raise ValueError(
-            'Нет ни одного аска в стакане! Возможно, сессия еще не началась.'
-        )
-    if sell:
-        return r.bids[0].price
-    return r.asks[0].price
+    return await get_price_to_place_order(figi, sell)
 
 
 async def perform_market_trade(figi: str, sell: bool, lots: int):
@@ -116,17 +111,14 @@ async def perform_market_trade(figi: str, sell: bool, lots: int):
         'figi': figi,
         'quantity': lots,
     }
-    if sell:
-        params['direction'] = OrderDirection.ORDER_DIRECTION_SELL
-    else:
-        params['direction'] = OrderDirection.ORDER_DIRECTION_BUY
+    params['direction'] = (
+        OrderDirection.ORDER_DIRECTION_SELL
+        if sell
+        else OrderDirection.ORDER_DIRECTION_BUY
+    )
 
     async with AsyncClient(TCS_RW_TOKEN) as client:
-        try:
-            r = await client.orders.post_order(**params)
-        except Exception as error:
-            raise error
-        return r
+        return await client.orders.post_order(**params)
 
 
 async def place_sellbuy_order(figi: str, sell: bool, price: Quotation, lots):
@@ -138,14 +130,11 @@ async def place_sellbuy_order(figi: str, sell: bool, price: Quotation, lots):
         'quantity': lots,
         'price': price,
     }
-    if sell:
-        params['direction'] = OrderDirection.ORDER_DIRECTION_SELL
-    else:
-        params['direction'] = OrderDirection.ORDER_DIRECTION_BUY
+    params['direction'] = (
+        OrderDirection.ORDER_DIRECTION_SELL
+        if sell
+        else OrderDirection.ORDER_DIRECTION_BUY
+    )
 
     async with AsyncClient(TCS_RW_TOKEN) as client:
-        try:
-            r = await client.orders.post_order(**params)
-        except Exception as error:
-            raise error
-        return r
+        return await client.orders.post_order(**params)

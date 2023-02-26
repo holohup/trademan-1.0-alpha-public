@@ -1,5 +1,5 @@
 import asyncio
-
+from http import HTTPStatus
 import aiohttp.client_exceptions
 from queue_handler import QUEUE
 from spreads import get_delta_prices
@@ -14,11 +14,10 @@ async def test(*args, **kwargs):
 
 async def check_health(*args, **kwargs):
     try:
-        result = await async_check_health()
+        result = await async_check_health() == HTTPStatus.OK
     except (TimeoutError, OSError, aiohttp.client_exceptions.ClientError):
-        return False
-    else:
-        return result == 200
+        result = False
+    return result
 
 
 async def get_current_spread_prices(*args, **kwargs):

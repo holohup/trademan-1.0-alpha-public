@@ -119,4 +119,17 @@ class TickerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Figi
-        fields = '__all__'
+        fields = (
+            'id',
+            'increment',
+            'figi',
+            'ticker',
+            'name',
+            'lot',
+            'type',
+            'api_trading_available',
+            'short_enabled',
+            'buy_enabled',
+            'sell_enabled',
+            'basic_asset_size',
+        )
