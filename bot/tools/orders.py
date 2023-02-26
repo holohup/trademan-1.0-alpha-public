@@ -89,7 +89,8 @@ async def get_price_to_place_order(figi: str, sell: bool) -> Quotation:
         r = await client.market_data.get_order_book(figi=figi, depth=1)
     if not r.asks or not r.bids:
         raise ValueError(
-            'Нет ни одного аска в стакане! Возможно, сессия еще не началась.'
+            f'Нет ни одного аска в стакане! Возможно, сессия еще не началась.'
+            f'{figi} {sell}'
         )
     return r.asks[0].price if sell else r.bids[0].price
 

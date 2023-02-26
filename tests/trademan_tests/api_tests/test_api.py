@@ -52,6 +52,7 @@ def test_ticker_endpoint(client, sample_spread, far_leg_data):
         'buy_enabled',
         'sell_enabled',
         'basic_asset_size',
+        'name'
     ):
         assert field in response.data
         assert far_leg_data[field] == response.data[field]
