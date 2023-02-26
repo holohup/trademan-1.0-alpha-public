@@ -1,5 +1,6 @@
 import asyncio
 from http import HTTPStatus
+
 import aiohttp.client_exceptions
 from queue_handler import QUEUE
 from spreads import get_delta_prices

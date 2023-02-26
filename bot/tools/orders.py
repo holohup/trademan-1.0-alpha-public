@@ -1,12 +1,7 @@
 from datetime import datetime
 
-from settings import (
-    ORDER_TTL,
-    RETRY_SETTINGS,
-    TCS_ACCOUNT_ID,
-    TCS_RO_TOKEN,
-    TCS_RW_TOKEN,
-)
+from settings import (ORDER_TTL, RETRY_SETTINGS, TCS_ACCOUNT_ID, TCS_RO_TOKEN,
+                      TCS_RW_TOKEN)
 from tinkoff.invest import AsyncClient, OrderDirection, OrderType, exceptions
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest.schemas import Quotation
