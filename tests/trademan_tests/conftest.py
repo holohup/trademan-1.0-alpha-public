@@ -63,7 +63,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 
 @pytest.fixture
-def future_fixtures():
+def api_fixtures():
     future = Future(
         basic_asset_size=Quotation(units=100, nano=0),
         figi='FUFUFU',
@@ -77,11 +77,6 @@ def future_fixtures():
         sell_available_flag=True,
         real_exchange=INSTRUMENTS['Futures'].exchange,
     )
-    return FuturesResponse(instruments=[future])
-
-
-@pytest.fixture
-def stock_fixtures():
     share = Share(
         figi='SHSHSH',
         ticker='shshsh',
@@ -94,4 +89,7 @@ def stock_fixtures():
         sell_available_flag=True,
         real_exchange=INSTRUMENTS['Stocks'].exchange,
     )
-    return SharesResponse(instruments=[share])
+    return {
+        'Futures': FuturesResponse(instruments=[future]),
+        'Stocks': SharesResponse(instruments=[share])
+    }

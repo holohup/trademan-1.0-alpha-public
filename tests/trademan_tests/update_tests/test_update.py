@@ -9,26 +9,25 @@ def test_db_is_not_empty():
 
 
 @pytest.mark.django_db
-def test_fixtures_not_in_db(future_fixtures, stock_fixtures):
-    for fixture in future_fixtures.instruments:
-        assert Figi.objects.filter(figi=fixture.figi).count() == 0
-    for fixture in stock_fixtures.instruments:
-        assert Figi.objects.filter(figi=fixture.figi).count() == 0
+def test_fixtures_not_in_db(api_fixtures):
+    for inst in api_fixtures.keys():
+        for fixture in api_fixtures[inst].instruments:
+            assert Figi.objects.filter(figi=fixture.figi).count() == 0
 
 
 @pytest.mark.django_db
-def test_fixtures_in_db_after_update(future_fixtures, stock_fixtures, mocker):
-    mocker.patch(
+def test_update_adds_corresponding_objects(monkeypatch, api_fixtures):
+    monkeypatch.setattr(
         'base.management.commands.update.get_api_response',
-        return_value=future_fixtures,
+        lambda x: api_fixtures[x],
     )
     call_command('update')
-    for fixture in future_fixtures.instruments:
-        assert Figi.objects.filter(figi=fixture.figi).count() == 1
-    # mocker.patch(
-    #     'base.management.commands.update.get_api_response',
-    #     return_value=stock_fixtures,
-    # )
-    # call_command('update')
-    # for fixture in stock_fixtures.instruments:
-    #     assert Figi.objects.filter(figi=fixture.figi).count() == 1
+    for inst in api_fixtures.keys():
+        for fixture in api_fixtures[inst].instruments:
+            assert (Figi.objects.filter(
+                figi=fixture.figi,
+                ticker=fixture.ticker,
+                lot=fixture.lot,
+                name=fixture.name,
+            ).count() == 1
+            )
