@@ -11,6 +11,4 @@ COPY --from=base /usr/local/bin/ /usr/local/bin/
 WORKDIR /bot
 RUN apt-get update && apt-get install libatomic1 -y
 COPY . .
-RUN addgroup --system bot && adduser --system --group bot
-USER bot
 CMD ["python3", "main.py"]

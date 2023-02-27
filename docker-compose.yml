@@ -1,14 +1,24 @@
 version: "3.3"
 services:
   bot:
-    build: ./bot
-    volumes:
-      - ./bot:/bot
+    image: holohup/trademan_bot:latest
+    env_file:
+      - ./bot/.env
     depends_on:
-      - web
+      web:
+        condition: service_healthy
   web:
-    build: ./trademan
+    image: holohup/trademan_base:latest
     ports:
       - 8000:8000
+    env_file:
+      - ./trademan/.env
     volumes:
-      - ./trademan:/base
+      - ./trademan/db.sqlite3:/base/db.sqlite3
+    healthcheck:
+      test: ['CMD', 'python', 'manage.py', 'check']
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+  
