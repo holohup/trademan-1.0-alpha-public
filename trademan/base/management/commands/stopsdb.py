@@ -43,7 +43,6 @@ WHITELIST = [
     'OKEY',
     'RTKMP',
     'PMSB',
-    'HHRU',
     'AKRN',
     'QIWI',
     'SELG',

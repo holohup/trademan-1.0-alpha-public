@@ -36,7 +36,7 @@ async def get_current_spread_prices(*args, **kwargs):
                     spread.near_leg.get_closest_execution_price()
                 )
                 for spread in spreads
-            ], return_exceptions=True
+            ],
         )
     except ValueError as error:
         await QUEUE.put(error)

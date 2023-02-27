@@ -1,12 +1,16 @@
 import pytest
+from base.management.commands.update import INSTRUMENTS
 from base.models import Figi, Spread
+from django.core.management import call_command
+from tinkoff.invest.schemas import (Future, FuturesResponse, Quotation, Share,
+                                    SharesResponse)
 
 
 @pytest.fixture
 def far_leg_data():
     return dict(
-        figi='GZZ.1',
-        ticker='GAZP',
+        figi='TGZZ.1',
+        ticker='TGAZP',
         name='Gazprom',
         lot=10,
         min_price_increment=1,
@@ -22,8 +26,8 @@ def far_leg_data():
 @pytest.fixture
 def near_leg_data():
     return dict(
-        figi='GZZ.2',
-        ticker='GAZP2',
+        figi='TGZZ.2',
+        ticker='TGAZP2',
         name='Gazprom',
         lot=10,
         min_price_increment=1,
@@ -50,3 +54,44 @@ def sample_spread(near_leg_data, far_leg_data):
         sell=True,
         amount=10,
     )
+
+
+@pytest.fixture(scope='session')
+def django_db_setup(django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
+        call_command('loaddata', 'trademan/fixtures/figi.json')
+
+
+@pytest.fixture
+def future_fixtures():
+    future = Future(
+        basic_asset_size=Quotation(units=100, nano=0),
+        figi='FUFUFU',
+        ticker='fufufu',
+        lot=1,
+        name='FUTURE',
+        min_price_increment=Quotation(units=1, nano=0),
+        api_trade_available_flag=True,
+        short_enabled_flag=True,
+        buy_available_flag=True,
+        sell_available_flag=True,
+        real_exchange=INSTRUMENTS['Futures'].exchange,
+    )
+    return FuturesResponse(instruments=[future])
+
+
+@pytest.fixture
+def stock_fixtures():
+    share = Share(
+        figi='SHSHSH',
+        ticker='shshsh',
+        lot=10,
+        name='SHARE',
+        min_price_increment=Quotation(units=0, nano=1000),
+        api_trade_available_flag=True,
+        short_enabled_flag=True,
+        buy_available_flag=True,
+        sell_available_flag=True,
+        real_exchange=INSTRUMENTS['Stocks'].exchange,
+    )
+    return SharesResponse(instruments=[share])
