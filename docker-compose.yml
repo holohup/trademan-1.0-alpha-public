@@ -4,6 +4,7 @@ services:
     image: holohup/trademan_bot:latest
     env_file:
       - ./bot/.env
+    restart: unless-stopped
     depends_on:
       web:
         condition: service_healthy
@@ -15,10 +16,10 @@ services:
       - ./trademan/.env
     volumes:
       - ./trademan/db.sqlite3:/base/db.sqlite3
+    restart: unless-stopped
     healthcheck:
       test: ['CMD', 'python', 'manage.py', 'check']
       interval: 10s
       timeout: 10s
       retries: 3
       start_period: 60s
-  

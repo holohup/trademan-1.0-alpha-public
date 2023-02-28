@@ -59,7 +59,7 @@ def sample_spread(near_leg_data, far_leg_data):
 @pytest.fixture(scope='session')
 def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
-        call_command('loaddata', 'trademan/fixtures/figi.json')
+        call_command('loaddata', 'tests/trademan_tests/fixtures/figi.json')
 
 
 @pytest.fixture
