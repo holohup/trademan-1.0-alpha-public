@@ -31,7 +31,6 @@ async def async_get_api_data(command: str):
 
 async def async_check_health():
     url = ENDPOINT_HOST + ENDPOINTS['health']
-    print(url)
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             return response.status

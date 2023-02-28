@@ -1,7 +1,16 @@
 from decimal import Decimal
 
+import aiohttp
 import pytest
 from tools.classes import Asset, Spread
+
+
+@pytest.fixture
+async def mock_client_session(mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.__aenter__.return_value.status = 200
+    mocker.patch('aiohttp.ClientSession.get', return_value=mock_response)
+    return aiohttp.ClientSession()
 
 
 @pytest.fixture
@@ -50,5 +59,5 @@ def sample_spread(sample_far_leg, sample_near_leg):
         executed=15,
         near_leg_type='S',
         base_asset_amount=10,
-        exec_price=150
+        exec_price=150,
     )
