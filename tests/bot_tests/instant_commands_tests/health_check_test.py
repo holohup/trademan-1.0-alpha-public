@@ -1,7 +1,7 @@
 import pytest
 
-from bot.instant_commands import check_health
 from bot.commands import ROUTINES
+from bot.instant_commands import check_health
 
 
 @pytest.mark.asyncio
