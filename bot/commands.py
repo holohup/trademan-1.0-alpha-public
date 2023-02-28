@@ -52,6 +52,7 @@ ROUTINES = {
     'stop': ('Stopping tasks', stop_running_tasks),
     'cancel': ('Cancel', cancel_all_orders),
     'tasks': ('Tasks', tasks),
+    'health': ('Health check', check_health)
 }
 
 
