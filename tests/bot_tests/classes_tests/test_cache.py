@@ -81,3 +81,23 @@ def test_executed_by_id(cache_preset: OrdersCache):
 
 def test_non_existing_order_id_amount(cache_preset: OrdersCache):
     assert cache_preset.executed_by_id('non_existing') == 0
+
+
+def test_session_data_with_only_initial(cache_preset: OrdersCache):
+    assert cache_preset.session_avg_and_amount == (Decimal(0), 0)
+
+
+def test_session_data_with_initial_and_others(filled_cache: OrdersCache):
+    assert filled_cache.session_avg_and_amount == (Decimal(260), 500)
+
+
+def test_session_data_without_initial_with_others():
+    cache = OrdersCache()
+    cache.update('1', 100, Decimal('100'))
+    cache.update('2', 200, Decimal('50'))
+    assert cache.session_avg_and_amount == (Decimal('66.66666667'), 300)
+
+
+def test_session_data_with_empty_cache(cache_preset: OrdersCache):
+    cache = OrdersCache()
+    assert cache.session_avg_and_amount == (Decimal(0), 0)

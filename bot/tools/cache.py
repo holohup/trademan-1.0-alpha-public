@@ -56,3 +56,22 @@ class OrdersCache:
         if order_id in self._orders:
             return self._orders[order_id].amount
         return 0
+
+    @property
+    def session_avg_and_amount(self):
+        if 'initial' not in self._orders:
+            return self._average_price, self._amount
+        if len(self._orders) == 1:
+            return Decimal('0'), 0
+        session_amount = sum(
+            [
+                item.amount
+                for key, item in self._orders.items()
+                if key != 'initial'
+            ]
+        )
+        initial = self._orders['initial']
+        session_avg = (
+            self._average_price * self._amount - initial.price * initial.amount
+        ) / session_amount
+        return session_avg, session_amount
