@@ -6,19 +6,22 @@ from tinkoff.invest.schemas import Quotation
 from bot.tools.utils import get_correct_price
 
 
-def test_negatice_price():
+@pytest.mark.parametrize(
+    'incorrect_values',
+    (
+        (-100, 10),
+        (Decimal(-100), Decimal(10)),
+        (Decimal(100), Decimal(-10)),
+        (Decimal(-100), Decimal(-10)),
+        (100, 10),
+        (100.1, 0.1),
+        (100, 10.0),
+        (100.0, 10),
+    )
+)
+def test_incorrect_price_and_increment_values(incorrect_values):
     with pytest.raises(ValueError):
-        get_correct_price(-100, 10)
-        get_correct_price(100, -10)
-        get_correct_price(-100, -10)
-
-
-def test_not_decimal_prices():
-    with pytest.raises(ValueError):
-        get_correct_price(100, 10)
-        get_correct_price(100.0, 10.0)
-        get_correct_price(100, 10.0)
-        get_correct_price(100.0, 10)
+        get_correct_price(*incorrect_values)
 
 
 def test_zero_increment():

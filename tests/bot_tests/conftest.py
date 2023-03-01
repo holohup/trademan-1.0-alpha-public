@@ -2,7 +2,8 @@ from decimal import Decimal
 
 import aiohttp
 import pytest
-from tools.classes import Asset, Spread
+
+from bot.tools.classes import Asset, Spread
 
 
 @pytest.fixture

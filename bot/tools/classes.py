@@ -3,6 +3,7 @@ from decimal import Decimal, getcontext
 import tinkoff.invest
 from tinkoff.invest.schemas import OrderExecutionReportStatus
 from tinkoff.invest.utils import decimal_to_quotation, quotation_to_decimal
+from tools.cache import OrdersCache
 from tools.orders import (cancel_order, get_closest_execution_price,
                           get_execution_report, get_price_to_place_order,
                           perform_market_trade, place_long_stop,
