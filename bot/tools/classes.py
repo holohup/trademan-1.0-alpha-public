@@ -91,19 +91,21 @@ class Asset:
             await get_closest_execution_price(self.figi, self.sell)
         )
 
-    def _update_execution(self, response, price):
-        if response.lots_executed == 0:
+    def _update_upon_execution(self, response, price):
+        if (
+            response.lots_executed == 0
+            or self.order_cache.executed_by_id(self.order_id)
+            >= response.lots_executed * self.lot
+        ):
             return
-        cached_executed = self.order_cache.executed_by_id(self.order_id)
+
         self.order_cache.update(
             self.order_id,
-            max(cached_executed, response.lots_executed * self.lot),
-            quotation_to_decimal(price)
+            response.lots_executed * self.lot,
+            quotation_to_decimal(price),
         )
         self.executed = self.order_cache.amount
-
-    def _update_averages_and_next_order_amount(self):
-        self.orders_average_price = self.order_cache.session_avg_and_amount[0]
+        self.orders_average_price, _ = self.order_cache.session_avg_and_amount
         self.next_order_amount = self.amount - self.executed
 
     def parse_order_response(self, response: tinkoff.invest.PostOrderResponse):
@@ -116,8 +118,7 @@ class Asset:
             return
         self.order_placed = True
 
-        self._update_execution(response, response.executed_order_price)
-        self._update_averages_and_next_order_amount()
+        self._update_upon_execution(response, response.executed_order_price)
 
     def parse_order_status(self, response: tinkoff.invest.OrderState):
         if (
@@ -126,8 +127,7 @@ class Asset:
         ):
             self.order_placed = False
 
-        self._update_execution(response, response.average_position_price)
-        self._update_averages_and_next_order_amount()
+        self._update_upon_execution(response, response.average_position_price)
 
     async def perform_market_trade(self):
         r = await perform_market_trade(
