@@ -6,9 +6,8 @@ from tinkoff.invest.schemas import Quotation
 from tinkoff.invest.schemas import StopOrderDirection as SODir
 from tinkoff.invest.schemas import StopOrderExpirationType as SType
 from tinkoff.invest.schemas import StopOrderType as SOType
-from tools.utils import delta_minutes_to_utc
-
 from tools.adapters import OrderAdapter
+from tools.utils import delta_minutes_to_utc
 
 # from bot.tools.classes import Asset
 
