@@ -1,7 +1,13 @@
+from decimal import Decimal
+
 import pytest
 from tinkoff.invest import OrderDirection, OrderType
+from tinkoff.invest.schemas import StopOrderDirection as SODir
+from tinkoff.invest.schemas import StopOrderExpirationType as SType
+from tinkoff.invest.schemas import StopOrderType as SOType
+from tinkoff.invest.utils import decimal_to_quotation
 
-from bot.tools.adapters import OrderAdapter
+from bot.tools.adapters import OrderAdapter, StopOrderAdapter
 
 
 @pytest.mark.parametrize(
@@ -11,7 +17,7 @@ from bot.tools.adapters import OrderAdapter
         ('sample_near_leg', OrderDirection.ORDER_DIRECTION_BUY)
     )
 )
-def test_correct_limit_params(asset, direction, request):
+def test_limit_order_params(asset, direction, request):
     asset = request.getfixturevalue(asset)
     expected = {
         'order_type': OrderType.ORDER_TYPE_LIMIT,
@@ -22,8 +28,8 @@ def test_correct_limit_params(asset, direction, request):
     }
     adapter = OrderAdapter(asset, 'limit')
     for field in expected.keys():
-        assert expected[field] == adapter.order_params()[field]
-    assert 'account_id' in adapter.order_params()
+        assert expected[field] == adapter.order_params[field]
+    assert 'account_id' in adapter.order_params
 
 
 @pytest.mark.parametrize(
@@ -33,7 +39,7 @@ def test_correct_limit_params(asset, direction, request):
         ('sample_near_leg', OrderDirection.ORDER_DIRECTION_BUY)
     )
 )
-def test_correct_market_params(asset, direction, request):
+def test_market_order_params(asset, direction, request):
     asset = request.getfixturevalue(asset)
     expected = {
         'order_type': OrderType.ORDER_TYPE_MARKET,
@@ -45,6 +51,44 @@ def test_correct_market_params(asset, direction, request):
     }
     adapter = OrderAdapter(asset, 'market')
     for field in expected.keys():
-        assert expected[field] == adapter.order_params()[field]
-    assert 'price' not in adapter.order_params()
-    assert 'account_id' in adapter.order_params()
+        assert expected[field] == adapter.order_params[field]
+    assert 'price' not in adapter.order_params
+    assert 'account_id' in adapter.order_params
+
+
+def test_long_stop_order_params(long_stop_sample):
+    price = decimal_to_quotation(Decimal('105.0'))
+    expected = {
+        'figi': long_stop_sample.asset.figi,
+        'quantity': 285,
+        'direction': SODir.STOP_ORDER_DIRECTION_BUY,
+        'stop_order_type': SOType.STOP_ORDER_TYPE_TAKE_PROFIT,
+        'expiration_type': SType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
+    }
+    adapter = StopOrderAdapter(long_stop_sample)
+    assert 'account_id' in adapter.order_params
+    assert 'expire_date' in adapter.order_params
+    for p in 'price', 'stop_price':
+        assert price.units == adapter.order_params[p].units
+        assert price.nano == adapter.order_params[p].nano
+    for field in expected.keys():
+        assert expected[field] == adapter.order_params[field]
+
+
+def test_short_stop_order_params(short_stop_sample):
+    price = decimal_to_quotation(Decimal('99.99'))
+    expected = {
+        'figi': short_stop_sample.asset.figi,
+        'quantity': 3000,
+        'direction': SODir.STOP_ORDER_DIRECTION_SELL,
+        'stop_order_type': SOType.STOP_ORDER_TYPE_TAKE_PROFIT,
+        'expiration_type': SType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
+    }
+    adapter = StopOrderAdapter(short_stop_sample)
+    for p in 'price', 'stop_price':
+        assert price.units == adapter.order_params[p].units
+        assert price.nano == adapter.order_params[p].nano
+    assert 'account_id' in adapter.order_params
+    assert 'expire_date' in adapter.order_params
+    for field in expected.keys():
+        assert expected[field] == adapter.order_params[field]

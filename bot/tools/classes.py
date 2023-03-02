@@ -1,4 +1,5 @@
 from decimal import Decimal, getcontext
+from typing import NamedTuple
 
 import tinkoff.invest
 from tinkoff.invest.schemas import OrderExecutionReportStatus
@@ -6,7 +7,7 @@ from tinkoff.invest.utils import decimal_to_quotation, quotation_to_decimal
 from tools.cache import OrdersCache
 from tools.orders import (cancel_order, get_closest_execution_price,
                           get_execution_report, get_price_to_place_order,
-                          place_long_stop, place_order, place_short_stop)
+                          place_order)
 from tools.utils import get_correct_price, get_lots
 
 getcontext().prec = 10
@@ -59,20 +60,6 @@ class Asset:
 
     def get_lots(self, number_of_stocks):
         return get_lots(number_of_stocks, self.lot)
-
-    def place_long_stop(self, price, number_of_stocks):
-        return place_long_stop(
-            self.figi,
-            self.get_correct_price(price),
-            self.get_lots(number_of_stocks),
-        )
-
-    def place_short_stop(self, price, number_of_stocks):
-        return place_short_stop(
-            self.figi,
-            self.get_correct_price(price),
-            self.get_lots(number_of_stocks),
-        )
 
     async def cancel_order(self):
         await cancel_order(self.order_id)
@@ -206,3 +193,16 @@ class Spread:
             + (self.executed - self.initial_executed)
             * session_orders_execution_price
         ) / self.executed
+
+
+class StopOrderParams(NamedTuple):
+    direction: str
+    stop_type: str
+    expiration: str
+
+
+class StopOrder(NamedTuple):
+    asset: Asset
+    price: Decimal
+    sum: int
+    params: StopOrderParams

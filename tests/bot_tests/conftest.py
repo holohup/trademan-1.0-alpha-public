@@ -3,7 +3,8 @@ from decimal import Decimal
 import aiohttp
 import pytest
 
-from bot.tools.classes import Asset, Spread
+from bot.place_stops import LONG_STOP_PARAMS, SHORT_STOP_PARAMS
+from bot.tools.classes import Asset, Spread, StopOrder
 
 
 @pytest.fixture
@@ -61,4 +62,24 @@ def sample_spread(sample_far_leg, sample_near_leg):
         near_leg_type='S',
         base_asset_amount=10,
         exec_price=150,
+    )
+
+
+@pytest.fixture
+def long_stop_sample(sample_far_leg):
+    return StopOrder(
+        asset=sample_far_leg,
+        price=Decimal('105.001'),
+        sum=300000,
+        params=LONG_STOP_PARAMS
+    )
+
+
+@pytest.fixture
+def short_stop_sample(sample_near_leg):
+    return StopOrder(
+        asset=sample_near_leg,
+        price=Decimal('99.999'),
+        sum=300000,
+        params=SHORT_STOP_PARAMS
     )

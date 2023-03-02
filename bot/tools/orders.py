@@ -1,46 +1,13 @@
-from settings import (ORDER_TTL, RETRY_SETTINGS, TCS_ACCOUNT_ID, TCS_RO_TOKEN,
-                      TCS_RW_TOKEN)
+from settings import RETRY_SETTINGS, TCS_ACCOUNT_ID, TCS_RO_TOKEN, TCS_RW_TOKEN
 from tinkoff.invest import AsyncClient, exceptions
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest.schemas import Quotation
-from tinkoff.invest.schemas import StopOrderDirection as SODir
-from tinkoff.invest.schemas import StopOrderExpirationType as SType
-from tinkoff.invest.schemas import StopOrderType as SOType
-from tools.adapters import OrderAdapter
-from tools.utils import delta_minutes_to_utc
-
-# from bot.tools.classes import Asset
+from tools.adapters import OrderAdapter, StopOrderAdapter
 
 
-async def place_long_stop(figi, price, lots):
+async def place_stop_order(order):
+    params = StopOrderAdapter(order).order_params
     async with AsyncRetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
-        params = {
-            'figi': figi,
-            'price': price,
-            'stop_price': price,
-            'quantity': lots,
-            'account_id': TCS_ACCOUNT_ID,
-            'direction': SODir.STOP_ORDER_DIRECTION_BUY,
-            'stop_order_type': SOType.STOP_ORDER_TYPE_TAKE_PROFIT,
-            'expiration_type': SType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
-            'expire_date': delta_minutes_to_utc(ORDER_TTL),
-        }
-        return await client.stop_orders.post_stop_order(**params)
-
-
-async def place_short_stop(figi, price, lots):
-    async with AsyncRetryingClient(TCS_RW_TOKEN, RETRY_SETTINGS) as client:
-        params = {
-            'figi': figi,
-            'price': price,
-            'stop_price': price,
-            'quantity': lots,
-            'account_id': TCS_ACCOUNT_ID,
-            'direction': SODir.STOP_ORDER_DIRECTION_SELL,
-            'stop_order_type': SOType.STOP_ORDER_TYPE_TAKE_PROFIT,
-            'expiration_type': SType.STOP_ORDER_EXPIRATION_TYPE_GOOD_TILL_DATE,
-            'expire_date': delta_minutes_to_utc(ORDER_TTL),
-        }
         return await client.stop_orders.post_stop_order(**params)
 
 
@@ -101,6 +68,6 @@ async def get_closest_execution_price(figi: str, sell: bool) -> Quotation:
 
 
 async def place_order(asset, type: str):
-    params = OrderAdapter(asset, type).order_params()
+    params = OrderAdapter(asset, type).order_params
     async with AsyncClient(TCS_RW_TOKEN) as client:
         return await client.orders.post_order(**params)

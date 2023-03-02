@@ -6,8 +6,7 @@ from cancel_all_orders import cancel_orders
 from grpc.aio._call import AioRpcError
 from instant_commands import (check_health, get_current_spread_prices, help,
                               test)
-from place_stops import (place_long_stops, place_short_stops,
-                         process_nuke_command)
+from place_stops import place_stops, process_nuke_command
 from restore_stops import restore_stops
 from sellbuy import sellbuy
 from spreads import spreads
@@ -33,18 +32,20 @@ async def cancel_all_orders(*args, **kwargs):
 
 
 async def tasks(*args, **kwargs):
-    tasks = ', '.join(
-        [task for task in RUNNING_TASKS.keys() if task != 'Tasks']
-    ) if RUNNING_TASKS else 'None'
+    tasks = (
+        ', '.join([task for task in RUNNING_TASKS.keys() if task != 'Tasks'])
+        if RUNNING_TASKS
+        else 'None'
+    )
     return f'Running tasks: {tasks}'
 
 
 ROUTINES = {
     'sprices': ('Current spread prices', get_current_spread_prices),
     'test': ('Testing current tests', test),
-    'stops': ('Placing long stops', place_long_stops),
+    'stops': ('Placing long stops', place_stops),
     'nuke': ('Nuke', process_nuke_command),
-    'shorts': ('Placing short stops', place_short_stops),
+    'shorts': ('Placing short stops', place_stops),
     'restore': ('Restoring stop orders', restore_stops),
     'sellbuy': ('SellBuy', sellbuy),
     'spreads': ('Spreads monitoring and trading', spreads),
@@ -52,7 +53,7 @@ ROUTINES = {
     'stop': ('Stopping tasks', stop_running_tasks),
     'cancel': ('Cancel', cancel_all_orders),
     'tasks': ('Tasks', tasks),
-    'health': ('Health check', check_health)
+    'health': ('Health check', check_health),
 }
 
 
