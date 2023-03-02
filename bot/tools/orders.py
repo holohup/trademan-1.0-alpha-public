@@ -1,14 +1,16 @@
-from datetime import datetime
-
 from settings import (ORDER_TTL, RETRY_SETTINGS, TCS_ACCOUNT_ID, TCS_RO_TOKEN,
                       TCS_RW_TOKEN)
-from tinkoff.invest import AsyncClient, OrderDirection, OrderType, exceptions
+from tinkoff.invest import AsyncClient, exceptions
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest.schemas import Quotation
 from tinkoff.invest.schemas import StopOrderDirection as SODir
 from tinkoff.invest.schemas import StopOrderExpirationType as SType
 from tinkoff.invest.schemas import StopOrderType as SOType
 from tools.utils import delta_minutes_to_utc
+
+from tools.adapters import OrderAdapter
+
+# from bot.tools.classes import Asset
 
 
 async def place_long_stop(figi, price, lots):
@@ -99,38 +101,7 @@ async def get_closest_execution_price(figi: str, sell: bool) -> Quotation:
     return await get_price_to_place_order(figi, sell)
 
 
-async def perform_market_trade(figi: str, sell: bool, lots: int):
-    params = {
-        'account_id': TCS_ACCOUNT_ID,
-        'order_type': OrderType.ORDER_TYPE_MARKET,
-        'order_id': str(datetime.utcnow().timestamp()),
-        'figi': figi,
-        'quantity': lots,
-    }
-    params['direction'] = (
-        OrderDirection.ORDER_DIRECTION_SELL
-        if sell
-        else OrderDirection.ORDER_DIRECTION_BUY
-    )
-
-    async with AsyncClient(TCS_RW_TOKEN) as client:
-        return await client.orders.post_order(**params)
-
-
-async def place_sellbuy_order(figi: str, sell: bool, price: Quotation, lots):
-    params = {
-        'account_id': TCS_ACCOUNT_ID,
-        'order_type': OrderType.ORDER_TYPE_LIMIT,
-        'order_id': str(datetime.utcnow().timestamp()),
-        'figi': figi,
-        'quantity': lots,
-        'price': price,
-    }
-    params['direction'] = (
-        OrderDirection.ORDER_DIRECTION_SELL
-        if sell
-        else OrderDirection.ORDER_DIRECTION_BUY
-    )
-
+async def place_order(asset, type: str):
+    params = OrderAdapter(asset, type).order_params()
     async with AsyncClient(TCS_RW_TOKEN) as client:
         return await client.orders.post_order(**params)

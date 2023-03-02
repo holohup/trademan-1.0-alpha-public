@@ -6,8 +6,7 @@ from tinkoff.invest.utils import decimal_to_quotation, quotation_to_decimal
 from tools.cache import OrdersCache
 from tools.orders import (cancel_order, get_closest_execution_price,
                           get_execution_report, get_price_to_place_order,
-                          perform_market_trade, place_long_stop,
-                          place_sellbuy_order, place_short_stop)
+                          place_long_stop, place_order, place_short_stop)
 from tools.utils import get_correct_price, get_lots
 
 getcontext().prec = 10
@@ -130,20 +129,13 @@ class Asset:
         self._update_upon_execution(response, response.average_position_price)
 
     async def perform_market_trade(self):
-        r = await perform_market_trade(
-            self.figi, self.sell, self.get_lots(self.next_order_amount)
-        )
+        r = await place_order(self, 'market')
         self.parse_order_response(r)
 
     async def place_sellbuy_order(self):
         self.price = decimal_to_quotation(self.new_price)
 
-        r = await place_sellbuy_order(
-            self.figi,
-            self.sell,
-            self.price,
-            self.get_lots(self.next_order_amount),
-        )
+        r = await place_order(self, 'limit')
         self.parse_order_response(r)
 
     async def update_executed(self):

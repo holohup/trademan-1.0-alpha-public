@@ -40,7 +40,7 @@ def sample_near_leg():
         lot=1,
         price=Decimal('200'),
         id=2,
-        sell=True,
+        sell=False,
         amount=100,
         executed=10,
         order_placed=False,
@@ -53,7 +53,7 @@ def sample_spread(sample_far_leg, sample_near_leg):
     return Spread(
         far_leg=sample_far_leg,
         near_leg=sample_near_leg,
-        sell=True,
+        sell=sample_far_leg.sell,
         price=100,
         id=3,
         amount=10,
