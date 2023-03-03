@@ -14,32 +14,7 @@ REPORT_ORDERS = False
 
 
 def get_delta_prices(spread: Spread):
-    if (
-        spread.near_leg.ticker == 'USDRUBF' and spread.far_leg.ticker == 'SiZ2'
-    ):  # TODO: ЗАГЛУШКА! Переписать.
-        return (
-            spread.far_leg.new_price
-            - spread.near_leg.closest_execution_price
-            * spread.base_asset_amount
-        )
-    if spread.near_leg_type == 'S':
-        return (
-            spread.far_leg.new_price
-            - spread.near_leg.closest_execution_price
-            * spread.base_asset_amount
-        )
-    return spread.far_leg.new_price - spread.near_leg.closest_execution_price
-
-
-async def get_spread_price(spread):
-    try:
-        await asyncio.gather(
-            asyncio.create_task(spread.far_leg.get_price_to_place_order()),
-            asyncio.create_task(spread.near_leg.get_closest_execution_price()),
-        )
-    except ValueError as error:
-        return f'{spread}:, {error}'
-    return f'{spread}: current: {get_delta_prices(spread)}'
+    return spread.far_leg.new_price - spread.near_leg.new_price * spread.ratio
 
 
 def ok_to_place_order(spread):
@@ -108,8 +83,8 @@ async def wait_till_market_open(spread):
 
 async def get_spread_prices(spread):
     await asyncio.gather(
-        asyncio.create_task(spread.far_leg.get_price_to_place_order()),
-        asyncio.create_task(spread.near_leg.get_closest_execution_price()),
+        asyncio.create_task(spread.far_leg.get_price_from_order_book()),
+        asyncio.create_task(spread.near_leg.get_price_from_order_book()),
     )
 
 

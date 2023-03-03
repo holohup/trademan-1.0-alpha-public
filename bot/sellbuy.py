@@ -17,7 +17,7 @@ async def sleep_and_patch(asset):
 
 
 async def sellbuy_cycle(asset):
-    await asset.get_price_to_place_order()
+    await asset.get_price_from_order_book()
     if asset.new_price != asset.last_price and asset.order_placed:
         await asset.cancel_order()
     if asset.order_id:

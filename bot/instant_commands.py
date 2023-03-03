@@ -2,7 +2,7 @@ import asyncio
 from http import HTTPStatus
 
 import aiohttp.client_exceptions
-from spreads import get_spread_price
+from spreads import get_delta_prices, get_spread_prices
 from tools.get_patch_prepare_data import (async_check_health,
                                           async_get_api_data,
                                           prepare_spreads_data)
@@ -18,6 +18,14 @@ async def check_health(*args, **kwargs):
     except (TimeoutError, OSError, aiohttp.client_exceptions.ClientError):
         result = False
     return result
+
+
+async def get_spread_price(spread):
+    try:
+        await get_spread_prices(spread)
+    except ValueError as error:
+        return f'{spread}:, {error}'
+    return f'{spread}: current: {get_delta_prices(spread)}'
 
 
 async def get_current_spread_prices(*args, **kwargs):

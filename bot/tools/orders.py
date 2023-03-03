@@ -1,7 +1,6 @@
 from settings import RETRY_SETTINGS, TCS_ACCOUNT_ID, TCS_RO_TOKEN, TCS_RW_TOKEN
 from tinkoff.invest import AsyncClient, exceptions
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
-from tinkoff.invest.schemas import Quotation
 from tools.adapters import OrderAdapter, StopOrderAdapter
 
 
@@ -52,18 +51,14 @@ async def get_execution_report(order_id):
         return r
 
 
-async def get_price_to_place_order(figi: str, sell: bool) -> Quotation:
+async def get_price_from_order_book(asset):
     async with AsyncRetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
-        r = await client.market_data.get_order_book(figi=figi, depth=1)
+        r = await client.market_data.get_order_book(figi=asset.figi, depth=1)
     if not r.asks or not r.bids:
         raise ValueError(
-            'Нет ни одного аска в стакане! Возможно, сессия еще не началась.'
+            'Нет бидов или асков. Возможно, сессия еще не началась.'
         )
-    return r.asks[0].price if sell else r.bids[0].price
-
-
-async def get_closest_execution_price(figi: str, sell: bool) -> Quotation:
-    return await get_price_to_place_order(figi, sell)
+    return r.asks[0].price if asset.sell else r.bids[0].price
 
 
 async def place_order(asset, type: str):

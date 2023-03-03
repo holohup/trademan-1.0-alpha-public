@@ -5,9 +5,8 @@ import tinkoff.invest
 from tinkoff.invest.schemas import OrderExecutionReportStatus
 from tinkoff.invest.utils import decimal_to_quotation, quotation_to_decimal
 from tools.cache import OrdersCache
-from tools.orders import (cancel_order, get_closest_execution_price,
-                          get_execution_report, get_price_to_place_order,
-                          place_order)
+from tools.orders import (cancel_order, get_execution_report,
+                          get_price_from_order_book, place_order)
 from tools.utils import get_correct_price, get_lots
 
 getcontext().prec = 10
@@ -41,7 +40,6 @@ class Asset:
         self.order_id = order_id
         self.new_price = Decimal(0)
         self.last_price = Decimal(0)
-        self.closest_execution_price = Decimal(0)
         if executed and executed > 0:
             self.order_cache = OrdersCache(executed, Decimal(0))
             self.next_order_amount = amount - executed
@@ -67,14 +65,9 @@ class Asset:
     async def get_assets_executed(self):
         return await get_execution_report(self.order_id)
 
-    async def get_price_to_place_order(self):
+    async def get_price_from_order_book(self):
         self.new_price = quotation_to_decimal(
-            await get_price_to_place_order(self.figi, self.sell)
-        )
-
-    async def get_closest_execution_price(self):
-        self.closest_execution_price = quotation_to_decimal(
-            await get_closest_execution_price(self.figi, self.sell)
+            await get_price_from_order_book(self)
         )
 
     def _update_upon_execution(self, response, price):
