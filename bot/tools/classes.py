@@ -143,15 +143,13 @@ class Spread:
         self.price = price
         self.id = id
         self.amount = amount
-        self.avg_execution_price = Decimal('0')
-        self.executed = executed
         self.near_leg_type = near_leg_type
         self.base_asset_amount = base_asset_amount
         self.ratio = (
             base_asset_amount if self.near_leg_type == 'S' else 1
         )  # stocks in far leg / stocks in near leg
         if executed and executed > 0:
-            self.cache = OrdersCache(executed, exec_price)
+            self.cache = OrdersCache(executed, Decimal(exec_price))
         else:
             self.cache = OrdersCache()
 
@@ -164,10 +162,12 @@ class Spread:
 
     def __repr__(self):
         direction = 'Sell' if self.sell else 'Buy'
-        return f'''\n {direction} [{self.executed}/{self.amount}]
-             {self.near_leg_type} {self.near_leg.ticker} -
-             F {self.far_leg.ticker} for {self.price}
-             avg={self.avg_execution_price}'''
+        return (
+            f'\n {direction} [{self.executed}/{self.amount}]'
+            f' {self.near_leg_type} {self.near_leg.ticker} -'
+            f' F {self.far_leg.ticker} for {self.price}'
+            f' avg={self.avg_execution_price}'
+        )
 
     async def perform_near_leg_market_trade(self, amount):
         self.near_leg.next_order_amount = amount
@@ -195,8 +195,13 @@ class Spread:
         )
         self.update_cache()
 
-        self.executed = self.cache.amount
-        self.avg_execution_price = self.cache.avg_price
+    @property
+    def executed(self):
+        return self.cache.amount
+
+    @property
+    def avg_execution_price(self):
+        return self.cache.avg_price
 
 
 class StopOrderParams(NamedTuple):

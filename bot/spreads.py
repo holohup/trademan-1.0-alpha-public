@@ -187,10 +187,12 @@ async def spreads(*args, **kwargs):
 
     except asyncio.CancelledError:
         await cancel_active_orders_and_update_data(spreads)
-        result = {
-            str(spread): (spread.executed, spread.avg_execution_price)
-            for spread in spreads
-            if spread.executed > 0
-        }
+        result = '\n'.join(
+            [
+                f'{spread}: {spread.executed} for {spread.avg_execution_price}'
+                for spread in spreads
+                if spread.executed > 0
+            ]
+        )
         print('Stopping spreads')
-        return f'Spreads routine stopped. Status: {result}.'
+        return f'Spreads routine cancelled. Status: \n{result}.'
