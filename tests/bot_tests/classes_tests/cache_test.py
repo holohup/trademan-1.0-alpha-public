@@ -98,6 +98,6 @@ def test_session_data_without_initial_with_others():
     assert cache.session_avg_and_amount == (Decimal('66.66666667'), 300)
 
 
-def test_session_data_with_empty_cache(cache_preset: OrdersCache):
+def test_session_data_with_empty_cache():
     cache = OrdersCache()
     assert cache.session_avg_and_amount == (Decimal(0), 0)

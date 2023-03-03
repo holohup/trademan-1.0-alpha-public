@@ -162,8 +162,10 @@ class Spread:
 
     def __str__(self):
         direction = 'Sell' if self.sell else 'Buy'
-        return f'''{direction} {self.amount} {self.near_leg.ticker}
-         - {self.far_leg.ticker} for {self.price}'''
+        return (
+            f'{direction} {self.amount} {self.near_leg.ticker}'
+            f' - {self.far_leg.ticker} for {self.price}'
+        )
 
     def __repr__(self):
         direction = 'Sell' if self.sell else 'Buy'

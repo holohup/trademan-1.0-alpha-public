@@ -2,8 +2,7 @@ import asyncio
 from http import HTTPStatus
 
 import aiohttp.client_exceptions
-from queue_handler import QUEUE
-from spreads import get_delta_prices
+from spreads import get_spread_price
 from tools.get_patch_prepare_data import (async_check_health,
                                           async_get_api_data,
                                           prepare_spreads_data)
@@ -25,25 +24,10 @@ async def get_current_spread_prices(*args, **kwargs):
     spreads = prepare_spreads_data(await async_get_api_data('spreads'))
     if not spreads:
         return 'No active assets to sell or buy'
-    try:
-        await asyncio.gather(
-            *[
-                asyncio.create_task(spread.far_leg.get_price_to_place_order())
-                for spread in spreads
-            ],
-            *[
-                asyncio.create_task(
-                    spread.near_leg.get_closest_execution_price()
-                )
-                for spread in spreads
-            ],
-        )
-    except ValueError as error:
-        await QUEUE.put(error)
-    result = ''
-    for spread in spreads:
-        result += f'{spread}: current: {get_delta_prices(spread)}\n'
-    return result
+    result = await asyncio.gather(
+        *[asyncio.create_task(get_spread_price(spread)) for spread in spreads],
+    )
+    return '\n'.join(result)
 
 
 async def help(*args, **kwargs):

@@ -31,6 +31,17 @@ def get_delta_prices(spread: Spread):
     return spread.far_leg.new_price - spread.near_leg.closest_execution_price
 
 
+async def get_spread_price(spread):
+    try:
+        await asyncio.gather(
+            asyncio.create_task(spread.far_leg.get_price_to_place_order()),
+            asyncio.create_task(spread.near_leg.get_closest_execution_price()),
+        )
+    except ValueError as error:
+        return f'{spread}:, {error}'
+    return f'{spread}: current: {get_delta_prices(spread)}'
+
+
 def ok_to_place_order(spread):
     return (
         get_delta_prices(spread) > spread.price
@@ -81,6 +92,8 @@ async def cancel_active_orders_and_update_data(spreads):
 
 
 async def wait_till_market_open(spread):
+    if spread.far_leg.order_placed:
+        await spread.far_leg.cancel_order()
     sleep_time = get_seconds_till_open()
     logging.warning(
         f'''{spread}: Not a trading time.

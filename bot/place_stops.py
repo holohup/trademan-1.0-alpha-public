@@ -48,21 +48,6 @@ async def place_stops(command: str):
     return await process_stops(assets, levels, STOPS_SUM, params)
 
 
-# async def place_long_stops(*args, **kwargs):
-#     stops_assets = await async_get_api_data('stops')
-#     assets = get_current_prices(prepare_asset_data(stops_assets))
-#     return await process_stops(
-#         assets, LONG_LEVELS, STOPS_SUM, LONG_STOP_PARAMS
-#     )
-
-
-# async def place_short_stops(*args, **kwargs):
-#     shorts_assets = await async_get_api_data('shorts')
-#     assets = get_current_prices(prepare_asset_data(shorts_assets))
-#     levels = [str(-int(level)) for level in SHORT_LEVELS]
-#     return await process_stops(assets, levels, STOPS_SUM, SHORT_STOP_PARAMS)
-
-
 async def process_nuke_command(command, *args, **kwargs):
     ticker, sum = parse_nuke_command(command)
     ticker_data = parse_ticker_info(ticker)
