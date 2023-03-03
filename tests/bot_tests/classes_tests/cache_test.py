@@ -72,6 +72,13 @@ def test_correct_sum(filled_cache: OrdersCache):
     assert sum == 550
 
 
+def test_price_by_id(filled_cache: OrdersCache):
+    assert filled_cache.price_by_id('initial') == Decimal('50')
+    assert filled_cache.price_by_id('second') == Decimal('200')
+    assert filled_cache.price_by_id('third') == Decimal('300')
+    assert filled_cache.price_by_id('non_existant') == 0
+
+
 def test_executed_by_id(cache_preset: OrdersCache):
     amount = randint(1, 100)
     id = str(randint(100000, 200000))

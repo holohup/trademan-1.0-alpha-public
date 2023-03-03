@@ -26,7 +26,7 @@ def test_spreads(client, far_leg_data, near_leg_data, sample_spread):
     assert data['near_leg_lot'] == near_leg_data['lot']
     assert data['sell'] == spread.sell
     assert data['executed'] == spread.executed
-    assert data['exec_price'] == spread.exec_price
+    assert Decimal(data['exec_price']) == spread.exec_price
     assert data['near_leg_type'] == near_leg_data['type']
     assert data['base_asset_amount'] == spread.amount
 

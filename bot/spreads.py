@@ -71,8 +71,8 @@ async def wait_till_market_open(spread):
         await spread.far_leg.cancel_order()
     sleep_time = get_seconds_till_open()
     logging.warning(
-        f'''{spread}: Not a trading time.
-            Waiting for {sleep_time // 60} minutes.'''
+        f'{spread}: Not a trading time. Waiting '
+        f'for {sleep_time // 60} minutes.'
     )
     await asyncio.gather(
         asyncio.create_task(asyncio.sleep(sleep_time)),
@@ -98,8 +98,8 @@ async def adjust_placed_order(spread):
         await spread.far_leg.cancel_order()
     else:
         logging.info(
-            f'''Prices unchanged, not cancelling
-            the order for {spread.far_leg.ticker}.'''
+            'Prices unchanged, not cancelling the order '
+            f'for {spread.far_leg.ticker}.'
         )
     await spread.far_leg.update_executed()
     await spread.even_execution()
@@ -132,9 +132,8 @@ async def patch_executed(spread, last_executed):
             spread.avg_execution_price,
         )
         await QUEUE.put(
-            f'''{spread}: executed [{spread.executed} /
-                {spread.amount}] for
-                {spread.avg_execution_price}'''
+            f'{spread}: executed [{spread.executed} '
+            f'/ {spread.amount}] for {spread.avg_execution_price}'
         )
     return spread.executed
 

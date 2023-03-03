@@ -23,7 +23,7 @@ async def check_health(*args, **kwargs):
 async def get_spread_price(spread):
     try:
         await get_spread_prices(spread)
-    except ValueError as error:
+    except (ValueError, AttributeError) as error:
         return f'{spread}:, {error}'
     return f'{spread}: current: {get_delta_prices(spread)}'
 

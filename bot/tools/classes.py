@@ -135,7 +135,7 @@ class Spread:
         executed: int,
         near_leg_type: str,
         base_asset_amount: int,
-        exec_price: Decimal(0),
+        exec_price: Decimal,
     ):
         self.far_leg = far_leg
         self.near_leg = near_leg
@@ -143,15 +143,17 @@ class Spread:
         self.price = price
         self.id = id
         self.amount = amount
-        self.initial_exec_price = exec_price
-        self.initial_executed = executed
-        self.avg_execution_price = 0
+        self.avg_execution_price = Decimal('0')
         self.executed = executed
         self.near_leg_type = near_leg_type
         self.base_asset_amount = base_asset_amount
         self.ratio = (
             base_asset_amount if self.near_leg_type == 'S' else 1
         )  # stocks in far leg / stocks in near leg
+        if executed and executed > 0:
+            self.cache = OrdersCache(executed, exec_price)
+        else:
+            self.cache = OrdersCache()
 
     def __str__(self):
         direction = 'Sell' if self.sell else 'Buy'
@@ -167,27 +169,34 @@ class Spread:
              F {self.far_leg.ticker} for {self.price}
              avg={self.avg_execution_price}'''
 
+    async def perform_near_leg_market_trade(self, amount):
+        self.near_leg.next_order_amount = amount
+        await self.near_leg.perform_market_trade()
+
+    def update_cache(self):
+        order_id = self.far_leg.order_id
+        far_leg_price = self.far_leg.order_cache.price_by_id(order_id)
+        near_leg_price = (
+            self.near_leg.order_cache.price_by_id(self.near_leg.order_id)
+            * self.ratio
+        )
+        self.cache.update(
+            order_id,
+            self.far_leg.order_cache.executed_by_id(order_id),
+            far_leg_price - near_leg_price,
+        )
+
     async def even_execution(self):
         near_leg_equivalent = self.far_leg.executed * self.ratio
         if near_leg_equivalent <= self.near_leg.executed:
             return
-        self.near_leg.next_order_amount = (
+        await self.perform_near_leg_market_trade(
             near_leg_equivalent - self.near_leg.executed
         )
-        await self.near_leg.perform_market_trade()
+        self.update_cache()
 
-        far_leg_avg_price = self.far_leg.orders_average_price
-        near_leg_avg_price = self.near_leg.orders_average_price * self.ratio
-        session_orders_execution_price = float(
-            far_leg_avg_price - near_leg_avg_price
-        )
-
-        self.executed = self.far_leg.executed
-        self.avg_execution_price = (
-            self.initial_exec_price * self.initial_executed
-            + (self.executed - self.initial_executed)
-            * session_orders_execution_price
-        ) / self.executed
+        self.executed = self.cache.amount
+        self.avg_execution_price = self.cache.avg_price
 
 
 class StopOrderParams(NamedTuple):

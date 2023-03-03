@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from base.management.commands.update import INSTRUMENTS
 from base.models import Figi, Spread
@@ -49,7 +51,7 @@ def sample_spread(near_leg_data, far_leg_data):
     return Spread.objects.create(
         asset=far_leg_figi,
         near_leg=near_leg_figi,
-        exec_price=0,
+        exec_price=Decimal('0'),
         price=0,
         sell=True,
         amount=10,

@@ -57,6 +57,11 @@ class OrdersCache:
             return self._orders[order_id].amount
         return 0
 
+    def price_by_id(self, order_id):
+        if order_id in self._orders:
+            return self._orders[order_id].price
+        return 0
+
     @property
     def session_avg_and_amount(self):
         if 'initial' not in self._orders:
