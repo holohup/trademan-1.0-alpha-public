@@ -86,24 +86,27 @@ class Asset:
 
     def parse_order_response(self, response: tinkoff.invest.PostOrderResponse):
         self.order_id = response.order_id
-        if response.execution_report_status in [
-            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_UNSPECIFIED,
-            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_REJECTED,
-        ]:
+        if self._new_order_is_rejected(response):
             self.order_placed = False
             return
         self.order_placed = True
-
         self._update_upon_execution(response, response.executed_order_price)
 
     def parse_order_status(self, response: tinkoff.invest.OrderState):
-        if (
-            response.execution_report_status
-            == OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_CANCELLED
-        ):
-            self.order_placed = False
-
+        self._update_order_placed(response)
         self._update_upon_execution(response, response.average_position_price)
+
+    def _update_order_placed(self, response):
+        self.order_placed = response.execution_report_status not in (
+            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_CANCELLED,
+            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_FILL,
+        )
+
+    def _new_order_is_rejected(self, response):
+        return response.execution_report_status in (
+            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_UNSPECIFIED,
+            OrderExecutionReportStatus.EXECUTION_REPORT_STATUS_REJECTED,
+        )
 
     async def perform_market_trade(self):
         r = await place_order(self, 'market')
