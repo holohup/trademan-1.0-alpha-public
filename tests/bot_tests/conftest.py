@@ -26,7 +26,7 @@ def sample_far_leg():
         id=1,
         sell=True,
         amount=100,
-        executed=10,
+        executed=50,
         order_placed=False,
         order_id=None,
     )
@@ -43,7 +43,7 @@ def sample_near_leg():
         id=2,
         sell=False,
         amount=100,
-        executed=10,
+        executed=100,
         order_placed=False,
         order_id=None,
     )

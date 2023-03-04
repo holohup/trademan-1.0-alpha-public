@@ -35,7 +35,6 @@ class Asset:
         self.id = id
         self.sell = sell
         self.amount = amount
-        self.executed = executed
         self.order_placed = order_placed
         self.order_id = order_id
         self.new_price = Decimal(0)
@@ -83,8 +82,6 @@ class Asset:
             response.lots_executed * self.lot,
             quotation_to_decimal(price),
         )
-        self.executed = self.order_cache.amount
-        self.orders_average_price, _ = self.order_cache.session_avg_and_amount
         self.next_order_amount = self.amount - self.executed
 
     def parse_order_response(self, response: tinkoff.invest.PostOrderResponse):
@@ -114,13 +111,24 @@ class Asset:
 
     async def place_sellbuy_order(self):
         self.price = decimal_to_quotation(self.new_price)
-
         r = await place_order(self, 'limit')
         self.parse_order_response(r)
 
     async def update_executed(self):
         r = await self.get_assets_executed()
         self.parse_order_status(r)
+
+    @property
+    def latest_order_price(self):
+        return self.order_cache.price_by_id(self.order_id)
+
+    @property
+    def session_orders_average_price(self):
+        return self.order_cache.session_avg_and_amount[0]
+
+    @property
+    def executed(self):
+        return self.order_cache.amount
 
 
 class Spread:
@@ -153,6 +161,38 @@ class Spread:
         else:
             self.cache = OrdersCache()
 
+    async def even_execution(self):
+        if self._near_leg_next_order_amount <= 0:
+            return
+        await self._perform_near_leg_market_trade()
+        self._update_cache()
+
+    async def _perform_near_leg_market_trade(self):
+        self.near_leg.next_order_amount = self._near_leg_next_order_amount
+        await self.near_leg.perform_market_trade()
+
+    def _update_cache(self):
+        order_id = self.far_leg.order_id
+        far_leg_price = self.far_leg.latest_order_price
+        near_leg_price = self.near_leg.latest_order_price * self.ratio
+        self.cache.update(
+            order_id,
+            self.far_leg.order_cache.executed_by_id(order_id),
+            far_leg_price - near_leg_price,
+        )
+
+    @property
+    def executed(self):
+        return self.cache.amount
+
+    @property
+    def avg_execution_price(self):
+        return self.cache.avg_price
+
+    @property
+    def _near_leg_next_order_amount(self):
+        return self.far_leg.executed * self.ratio - self.near_leg.executed
+
     def __str__(self):
         direction = 'Sell' if self.sell else 'Buy'
         return (
@@ -168,40 +208,6 @@ class Spread:
             f' F {self.far_leg.ticker} for {self.price}'
             f' avg={self.avg_execution_price}'
         )
-
-    async def perform_near_leg_market_trade(self, amount):
-        self.near_leg.next_order_amount = amount
-        await self.near_leg.perform_market_trade()
-
-    def update_cache(self):
-        order_id = self.far_leg.order_id
-        far_leg_price = self.far_leg.order_cache.price_by_id(order_id)
-        near_leg_price = (
-            self.near_leg.order_cache.price_by_id(self.near_leg.order_id)
-            * self.ratio
-        )
-        self.cache.update(
-            order_id,
-            self.far_leg.order_cache.executed_by_id(order_id),
-            far_leg_price - near_leg_price,
-        )
-
-    async def even_execution(self):
-        near_leg_equivalent = self.far_leg.executed * self.ratio
-        if near_leg_equivalent <= self.near_leg.executed:
-            return
-        await self.perform_near_leg_market_trade(
-            near_leg_equivalent - self.near_leg.executed
-        )
-        self.update_cache()
-
-    @property
-    def executed(self):
-        return self.cache.amount
-
-    @property
-    def avg_execution_price(self):
-        return self.cache.avg_price
 
 
 class StopOrderParams(NamedTuple):

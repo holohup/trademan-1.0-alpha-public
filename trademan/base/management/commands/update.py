@@ -44,6 +44,9 @@ def prevalidate_instrument(inst: any([Share, Future]), type: str) -> bool:
         (
             inst.real_exchange == INSTRUMENTS[type].exchange,
             quotation_to_decimal(inst.min_price_increment) > 0,
+            inst.api_trade_available_flag is True,
+            inst.buy_available_flag is True
+            or inst.sell_available_flag is True,
         )
     )
 

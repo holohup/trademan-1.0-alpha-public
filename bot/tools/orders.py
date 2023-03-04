@@ -24,8 +24,8 @@ async def cancel_order(order_id):
         except exceptions.AioRequestError as error:
             if error.code.value[0] == 5:
                 print(
-                    f'''Похоже, заявка сработала и ее не получается снять:
-                     {error}'''
+                    f'Похоже, заявка сработала и ее не получается снять: '
+                    f'{error}'
                 )
 
 
