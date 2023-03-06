@@ -27,6 +27,7 @@ def sample_far_leg():
         sell=True,
         amount=100,
         executed=50,
+        avg_exec_price=Decimal('20'),
         order_placed=False,
         order_id=None,
     )
@@ -43,7 +44,8 @@ def sample_near_leg():
         id=2,
         sell=False,
         amount=100,
-        executed=100,
+        executed=30,
+        avg_exec_price=Decimal('10'),
         order_placed=False,
         order_id=None,
     )
@@ -57,13 +59,9 @@ def sample_spread(sample_far_leg, sample_near_leg):
         sell=sample_far_leg.sell,
         price=100,
         id=3,
-        amount=10,
-        executed=15,
-        near_leg_type='S',
-        base_asset_amount=10,
-        exec_price=Decimal('150'),
+        ratio=10,
+        amount=100
     )
-
 
 @pytest.fixture
 def long_stop_sample(sample_far_leg):

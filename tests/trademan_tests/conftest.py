@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 from base.management.commands.update import INSTRUMENTS
-from base.models import Figi, Spread
+from base.models import Figi, Spread, SpreadStats
 from django.core.management import call_command
 from tinkoff.invest.schemas import (Future, FuturesResponse, Quotation, Share,
                                     SharesResponse)
@@ -15,13 +15,14 @@ def far_leg_data():
         ticker='TGAZP',
         name='Gazprom',
         lot=10,
-        min_price_increment=1,
+        min_price_increment=Decimal('1.0'),
         type='F',
         api_trading_available=True,
         short_enabled=True,
         buy_enabled=True,
         sell_enabled=True,
-        basic_asset_size=10,
+        basic_asset_size=100,
+        basic_asset='TGAZP2',
     )
 
 
@@ -38,23 +39,33 @@ def near_leg_data():
         short_enabled=True,
         buy_enabled=True,
         sell_enabled=True,
-        basic_asset_size=10,
     )
 
 
 @pytest.fixture
-def sample_spread(near_leg_data, far_leg_data):
-    far_leg_figi = Figi(**far_leg_data)
-    far_leg_figi.save()
-    near_leg_figi = Figi(**near_leg_data)
-    near_leg_figi.save()
+def far_leg_sample(far_leg_data):
+    far_leg = Figi(**far_leg_data)
+    far_leg.save()
+    return far_leg
+
+
+@pytest.fixture
+def near_leg_sample(near_leg_data):
+    near_leg = Figi(**near_leg_data)
+    near_leg.save()
+    return near_leg
+
+
+@pytest.fixture
+def sample_spread(near_leg_sample, far_leg_sample):
+    stats = SpreadStats.objects.create()
     return Spread.objects.create(
-        asset=far_leg_figi,
-        near_leg=near_leg_figi,
-        exec_price=Decimal('0'),
+        far_leg=far_leg_sample,
+        near_leg=near_leg_sample,
         price=0,
         sell=True,
         amount=10,
+        stats=stats,
     )
 
 
@@ -93,5 +104,5 @@ def api_fixtures():
     )
     return {
         'Futures': FuturesResponse(instruments=[future]),
-        'Stocks': SharesResponse(instruments=[share])
+        'Stocks': SharesResponse(instruments=[share]),
     }

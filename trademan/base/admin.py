@@ -1,6 +1,8 @@
+from decimal import Decimal
+
 from django.contrib import admin
 
-from .models import Figi, RestoreStops, SellBuy, Spread, Stops
+from .models import Figi, RestoreStops, SellBuy, Spread, SpreadStats, Stops
 
 
 @admin.register(SellBuy)
@@ -23,26 +25,52 @@ class StopsAdmin(admin.ModelAdmin):
 @admin.register(Spread)
 class SpreadAdmin(admin.ModelAdmin):
     list_display = (
-        'asset',
-        'near_leg',
+        '__str__',
         'price',
         'sell',
         'amount',
+        'ratio',
         'executed',
+        'avg_exec_price',
         'active',
-        'exec_price',
     )
-    list_display_links = ('near_leg', 'asset')
-    autocomplete_fields = ('near_leg', 'asset')
+    list_display_links = ('__str__',)
+    autocomplete_fields = ('near_leg', 'far_leg')
     list_editable = (
         'amount',
         'sell',
-        'executed',
         'price',
         'active',
-        'exec_price',
     )
-    list_filter = ('active', 'exec_price')
+    list_filter = ('active',)
+
+    fields = (
+        'far_leg',
+        'near_leg',
+        'active',
+        'sell',
+        'price',
+        'amount',
+        'editable_ratio',
+        'spread_stats',
+    )
+    readonly_fields = ('spread_stats',)
+
+    def spread_stats(self, obj):
+        return (
+            f'Far leg executed: {obj.stats.far_leg_executed} for '
+            f'{float(obj.stats.far_leg_avg_price)}, near leg executed: '
+            f'{obj.stats.near_leg_executed} for '
+            f'{float(obj.stats.near_leg_avg_price)}'
+            f' Avg price = {float(obj.avg_exec_price)}'
+        )
+
+    def save_model(self, request, obj, form, change):
+        created = not obj.id
+        if created:
+            stats = SpreadStats.objects.create()
+            obj.stats = stats
+        obj.save()
 
 
 @admin.register(RestoreStops)
@@ -67,6 +95,7 @@ class FigiAdmin(admin.ModelAdmin):
         'short_enabled',
         'buy_enabled',
         'sell_enabled',
+        'basic_asset',
         'basic_asset_size',
     )
     list_filter = ('type',)

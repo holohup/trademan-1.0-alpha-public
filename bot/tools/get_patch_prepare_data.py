@@ -1,13 +1,16 @@
 import json
+from decimal import Decimal
 from http import HTTPStatus
 from typing import List
 from urllib import request
 
 import aiohttp
+from queue_handler import QUEUE
 from settings import ENDPOINT_HOST, ENDPOINTS, RETRY_SETTINGS, TCS_RO_TOKEN
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.utils import quotation_to_decimal
 from tools.classes import Asset, Spread
+from tools.adapters import SpreadToJsonAdapter
 
 
 async def async_patch_executed(
@@ -20,6 +23,18 @@ async def async_patch_executed(
     async with aiohttp.ClientSession() as session:
         async with session.patch(url, data=data) as response:
             return response.status == HTTPStatus.OK
+
+
+async def async_patch_spread(spread: Spread):
+    data = SpreadToJsonAdapter(spread).output
+    url = ENDPOINT_HOST + ENDPOINTS['spreads'] + str(spread.id) + '/'
+    async with aiohttp.ClientSession() as session:
+        async with session.patch(url, json=data) as response:
+            if response.status == HTTPStatus.OK:
+                return True
+            response_text = await response.text()
+            await QUEUE.put(f'Error patching spreads. {response_text[:4000]}')
+            return False
 
 
 async def async_get_api_data(command: str):
@@ -73,41 +88,43 @@ def parse_ticker_info(ticker: str) -> List[Asset]:
     return json.loads(request.urlopen(url).read())
 
 
+class SpreadDataParser:
+    def __init__(self, data) -> None:
+        self._data = data
+
+
+def prepare_leg(data, sell_direction: bool, amount: int):
+    return Asset(
+        figi=data['figi'],
+        ticker=data['ticker'],
+        increment=Decimal(data['min_price_increment']),
+        lot=data['lot'],
+        executed=data['executed'],
+        avg_exec_price=Decimal(data['avg_exec_price']),
+        sell=sell_direction,
+        amount=amount,
+    )
+
+
+def prepare_spread(spread_data):
+    ratio = spread_data['ratio']
+    sell = spread_data['sell']
+    amount = spread_data['amount']
+    far_leg = prepare_leg(spread_data['far_leg'], sell, amount)
+    near_leg = prepare_leg(spread_data['near_leg'], not sell, amount * ratio)
+    return Spread(
+        id=spread_data['id'],
+        far_leg=far_leg,
+        near_leg=near_leg,
+        price=spread_data['price'],
+        sell=sell,
+        ratio=ratio,
+        amount=spread_data['amount']
+    )
+
+
 def prepare_spreads_data(data):
     spreads = []
     for spread in data:
-        if spread['near_leg_type'] == 'S':
-            ratio = spread['base_asset_amount']
-        else:
-            ratio = 1
-        spreads.append(
-            Spread(
-                far_leg=Asset(
-                    figi=spread['figi'],
-                    increment=spread['increment'],
-                    ticker=spread['ticker'],
-                    lot=spread['lot'],
-                    sell=spread['sell'],
-                    amount=spread['amount'],
-                    executed=spread['executed'],
-                ),
-                near_leg=Asset(
-                    figi=spread['near_leg_figi'],
-                    increment=spread['near_leg_increment'],
-                    ticker=spread['near_leg_ticker'],
-                    lot=spread['near_leg_lot'],
-                    sell=not spread['sell'],
-                    amount=spread['amount'] * ratio,
-                    executed=spread['executed'] * ratio,
-                ),
-                price=spread['price'],
-                amount=spread['amount'],
-                executed=spread['executed'],
-                near_leg_type=spread['near_leg_type'],
-                base_asset_amount=spread['base_asset_amount'],
-                sell=spread['sell'],
-                id=spread['id'],
-                exec_price=spread['exec_price'],
-            )
-        )
+        spreads.append(prepare_spread(spread))
     return spreads

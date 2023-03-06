@@ -1,3 +1,4 @@
+from decimal import Decimal
 from base.models import Figi, RestoreStops, SellBuy, Spread, Stops
 from rest_framework import serializers
 
@@ -49,56 +50,6 @@ class SellBuySerializer(BasicDataSerializer):
         )
 
 
-class SpreadsSerializer(BasicDataSerializer):
-    near_leg_figi = serializers.CharField(source='near_leg.figi')
-    near_leg_increment = serializers.DecimalField(
-        source='near_leg.min_price_increment', decimal_places=10, max_digits=20
-    )
-    near_leg_lot = serializers.IntegerField(source='near_leg.lot')
-    near_leg_ticker = serializers.CharField(source='near_leg.ticker')
-    near_leg_type = serializers.CharField(source='near_leg.type')
-    base_asset_amount = serializers.IntegerField(
-        source='asset.basic_asset_size'
-    )
-
-    class Meta:
-        model = Spread
-        fields = (
-            'id',
-            'figi',
-            'ticker',
-            'increment',
-            'lot',
-            'near_leg_figi',
-            'near_leg_ticker',
-            'near_leg_increment',
-            'near_leg_lot',
-            'sell',
-            'price',
-            'amount',
-            'executed',
-            'exec_price',
-            'near_leg_type',
-            'base_asset_amount',
-        )
-        read_only_fields = (
-            'id',
-            'figi',
-            'ticker',
-            'increment',
-            'lot',
-            'near_leg_figi',
-            'near_leg_ticker',
-            'near_leg_increment',
-            'near_leg_lot',
-            'sell',
-            'price',
-            'amount',
-            'near_leg_type',
-            'base_asset_amount',
-        )
-
-
 class RestoreStopsSerializer(BasicDataSerializer):
     class Meta:
         model = RestoreStops
@@ -133,3 +84,66 @@ class TickerSerializer(serializers.ModelSerializer):
             'sell_enabled',
             'basic_asset_size',
         )
+
+
+class AssetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Figi
+        fields = (
+            'figi',
+            'ticker',
+            'min_price_increment',
+            'lot',
+        )
+        read_only_fields = fields
+
+
+class SpreadsSerializer(serializers.ModelSerializer):
+    far_leg = AssetSerializer()
+    near_leg = AssetSerializer()
+
+    class Meta:
+        model = Spread
+        fields = (
+            'id',
+            'sell',
+            'price',
+            'amount',
+            'ratio',
+            'far_leg',
+            'near_leg',
+        )
+        read_only_fields = (
+            'id',
+            'sell',
+            'price',
+            'amount',
+            'ratio',
+        )
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['far_leg']['executed'] = instance.stats.far_leg_executed
+        data['near_leg']['executed'] = instance.stats.near_leg_executed
+        data['far_leg']['avg_exec_price'] = str(
+            instance.stats.far_leg_avg_price
+        )
+        data['near_leg']['avg_exec_price'] = str(
+            instance.stats.near_leg_avg_price
+        )
+        return data
+
+    def update(self, instance, validated_data):
+        data = self.context.get('request').data
+        instance.stats.far_leg_executed = data['far_leg']['executed']
+        instance.stats.near_leg_executed = data['near_leg']['executed']
+        instance.stats.far_leg_avg_price = Decimal(
+            data['far_leg']['avg_exec_price']
+        )
+        instance.stats.near_leg_avg_price = Decimal(
+            data['near_leg']['avg_exec_price']
+        )
+        instance.active = not data['far_leg']['executed'] >= instance.amount
+        instance.stats.save()
+        instance.save()
+        return instance

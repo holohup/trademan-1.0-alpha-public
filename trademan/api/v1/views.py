@@ -39,14 +39,10 @@ class SellBuyViewSet(viewsets.ModelViewSet):
 
 
 class SpreadsViewSet(viewsets.ModelViewSet):
-    queryset = Spread.objects.filter(active=True).select_related('asset')
+    queryset = Spread.objects.filter(active=True).select_related(
+        'far_leg', 'near_leg', 'stats'
+    )
     serializer_class = SpreadsSerializer
-
-    def perform_update(self, serializer):
-        serializer.save(
-            active=not serializer.validated_data.get('executed')
-            >= self.get_object().amount
-        )
 
 
 class RestoreStopsViewSet(viewsets.ReadOnlyModelViewSet):

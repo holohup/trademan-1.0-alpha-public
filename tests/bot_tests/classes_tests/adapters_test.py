@@ -7,15 +7,17 @@ from tinkoff.invest.schemas import StopOrderExpirationType as SType
 from tinkoff.invest.schemas import StopOrderType as SOType
 from tinkoff.invest.utils import decimal_to_quotation
 
-from bot.tools.adapters import OrderAdapter, StopOrderAdapter
+from bot.tools.adapters import (OrderAdapter, SpreadToJsonAdapter,
+                                StopOrderAdapter)
+from bot.tools.classes import Spread
 
 
 @pytest.mark.parametrize(
     ('asset', 'direction'),
     (
         ('sample_far_leg', OrderDirection.ORDER_DIRECTION_SELL),
-        ('sample_near_leg', OrderDirection.ORDER_DIRECTION_BUY)
-    )
+        ('sample_near_leg', OrderDirection.ORDER_DIRECTION_BUY),
+    ),
 )
 def test_limit_order_params(asset, direction, request):
     asset = request.getfixturevalue(asset)
@@ -36,17 +38,15 @@ def test_limit_order_params(asset, direction, request):
     ('asset', 'direction'),
     (
         ('sample_far_leg', OrderDirection.ORDER_DIRECTION_SELL),
-        ('sample_near_leg', OrderDirection.ORDER_DIRECTION_BUY)
-    )
+        ('sample_near_leg', OrderDirection.ORDER_DIRECTION_BUY),
+    ),
 )
 def test_market_order_params(asset, direction, request):
     asset = request.getfixturevalue(asset)
     expected = {
         'order_type': OrderType.ORDER_TYPE_MARKET,
         'figi': asset.figi,
-        'quantity': asset.get_lots(
-            asset.next_order_amount
-        ),
+        'quantity': asset.get_lots(asset.next_order_amount),
         'direction': direction,
     }
     adapter = OrderAdapter(asset, 'market')
@@ -92,3 +92,14 @@ def test_short_stop_order_params(short_stop_sample):
     assert 'expire_date' in adapter.order_params
     for field in expected.keys():
         assert expected[field] == adapter.order_params[field]
+
+
+def test_spread_to_json_adapter(sample_spread: Spread):
+    dikt = SpreadToJsonAdapter(sample_spread).output
+    from pprint import pprint
+    pprint(dikt)
+    for leg in 'far_leg', 'near_leg':
+        assert getattr(sample_spread, leg).executed == dikt[leg]['executed']
+        assert getattr(sample_spread, leg).avg_exec_price == Decimal(
+            dikt[leg]['avg_exec_price']
+        )

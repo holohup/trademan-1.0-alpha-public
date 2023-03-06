@@ -24,6 +24,7 @@ class Asset:
         sell=True,
         amount=0,
         executed=0,
+        avg_exec_price=Decimal('0'),
         order_placed=False,
         order_id=None,
     ):
@@ -40,7 +41,7 @@ class Asset:
         self.new_price = Decimal(0)
         self.last_price = Decimal(0)
         if executed and executed > 0:
-            self.order_cache = OrdersCache(executed, Decimal(0))
+            self.order_cache = OrdersCache(executed, avg_exec_price)
             self.next_order_amount = amount - executed
         else:
             self.order_cache = OrdersCache()
@@ -126,12 +127,12 @@ class Asset:
         return self.order_cache.price_by_id(self.order_id)
 
     @property
-    def session_orders_average_price(self):
-        return self.order_cache.session_avg_and_amount[0]
-
-    @property
     def executed(self):
         return self.order_cache.amount
+
+    @property
+    def avg_exec_price(self):
+        return self.order_cache.avg_price
 
 
 class Spread:
@@ -142,74 +143,58 @@ class Spread:
         sell: bool,
         price: int,
         id: int,
-        amount: int,
-        executed: int,
-        near_leg_type: str,
-        base_asset_amount: int,
-        exec_price: Decimal,
+        ratio: int,
+        amount: int
     ):
         self.far_leg = far_leg
         self.near_leg = near_leg
         self.sell = sell
         self.price = price
         self.id = id
+        self.ratio = ratio
         self.amount = amount
-        self.near_leg_type = near_leg_type
-        self.base_asset_amount = base_asset_amount
-        self.ratio = (
-            base_asset_amount if self.near_leg_type == 'S' else 1
-        )  # stocks in far leg / stocks in near leg
-        if executed and executed > 0:
-            self.cache = OrdersCache(executed, Decimal(exec_price))
-        else:
-            self.cache = OrdersCache()
 
     async def even_execution(self):
         if self._near_leg_next_order_amount <= 0:
             return
         await self._perform_near_leg_market_trade()
-        self._update_cache()
 
     async def _perform_near_leg_market_trade(self):
         self.near_leg.next_order_amount = self._near_leg_next_order_amount
         await self.near_leg.perform_market_trade()
 
-    def _update_cache(self):
-        order_id = self.far_leg.order_id
-        far_leg_price = self.far_leg.latest_order_price
-        near_leg_price = self.near_leg.latest_order_price * self.ratio
-        self.cache.update(
-            order_id,
-            self.far_leg.order_cache.executed_by_id(order_id),
-            far_leg_price - near_leg_price,
-        )
-
     @property
     def executed(self):
-        return self.cache.amount
+        return self.far_leg.order_cache.amount
 
     @property
     def avg_execution_price(self):
-        return self.cache.avg_price
+        if self.executed == 0:
+            return Decimal('0')
+        return (
+            self.far_leg.avg_exec_price * self.far_leg.executed
+            - self.near_leg.avg_exec_price * self.near_leg.executed
+        ) / (self.executed)
 
     @property
     def _near_leg_next_order_amount(self):
         return self.far_leg.executed * self.ratio - self.near_leg.executed
 
+    @property
+    def _trade_direction(self):
+        return 'Sell' if self.sell else 'Buy'
+
     def __str__(self):
-        direction = 'Sell' if self.sell else 'Buy'
         return (
-            f'{direction} {self.amount} {self.near_leg.ticker}'
+            f'{self._trade_direction} {self.amount} {self.near_leg.ticker}'
             f' - {self.far_leg.ticker} for {self.price}'
         )
 
     def __repr__(self):
-        direction = 'Sell' if self.sell else 'Buy'
         return (
-            f'\n {direction} [{self.executed}/{self.amount}]'
-            f' {self.near_leg_type} {self.near_leg.ticker} -'
-            f' F {self.far_leg.ticker} for {self.price}'
-            f' avg={self.avg_execution_price}'
+            f'\n {self._trade_direction} [{self.executed}/{self.amount}]'
+            f' {self.near_leg.ticker} - {self.far_leg.ticker} '
+            f'for {self.price} avg={self.avg_execution_price}'
         )
 
 

@@ -67,6 +67,7 @@ def fill_fields(inst: any([Share, Future]), type: str) -> dict:
         result['basic_asset_size'] = int(
             quotation_to_decimal(inst.basic_asset_size)
         )
+        result['basic_asset'] = inst.basic_asset
     return result
 
 

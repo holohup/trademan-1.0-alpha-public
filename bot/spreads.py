@@ -5,9 +5,11 @@ from datetime import datetime
 from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
 from tools.classes import Spread
-from tools.get_patch_prepare_data import (async_get_api_data,
-                                          async_patch_executed,
-                                          prepare_spreads_data)
+from tools.get_patch_prepare_data import (
+    async_get_api_data,
+    prepare_spreads_data,
+    async_patch_spread,
+)
 from tools.utils import get_seconds_till_open, perform_working_hours_check
 
 REPORT_ORDERS = False
@@ -52,14 +54,7 @@ async def cancel_active_orders_and_update_data(spreads):
     )
     await asyncio.gather(
         *[
-            asyncio.create_task(
-                async_patch_executed(
-                    'spreads',
-                    spread.id,
-                    spread.executed,
-                    spread.avg_execution_price,
-                )
-            )
+            asyncio.create_task(async_patch_spread(spread))
             for spread in spreads
             if spread.executed > 0
         ]
@@ -125,12 +120,7 @@ async def place_new_far_leg_order(spread):
 
 async def patch_executed(spread, last_executed):
     if spread.executed > last_executed:
-        await async_patch_executed(
-            'spreads',
-            spread.id,
-            spread.executed,
-            spread.avg_execution_price,
-        )
+        await async_patch_spread(spread)
         await QUEUE.put(
             f'{spread}: executed [{spread.executed} '
             f'/ {spread.amount}] for {spread.avg_execution_price}'
@@ -165,9 +155,7 @@ async def process_spread(spread):
         except Exception as error:
             await process_error(error, spread)
 
-    await async_patch_executed(
-        'spreads', spread.id, spread.executed, spread.avg_execution_price
-    )
+    await async_patch_spread(spread)
     return spread
 
 
@@ -195,4 +183,4 @@ async def spreads(*args, **kwargs):
             ]
         )
         print('Stopping spreads')
-        return f'Spreads routine cancelled. Status: \n{result}.'
+        return f'Spreads routine cancelled. Executed: \n{result}'

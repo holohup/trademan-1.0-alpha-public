@@ -79,3 +79,21 @@ class StopOrderAdapter:
     @property
     def order_params(self):
         return self._params
+
+
+class SpreadToJsonAdapter:
+    def __init__(self, spread) -> None:
+        self._spread = spread
+
+    @property
+    def output(self):
+        return {
+            'far_leg': {
+                'executed': self._spread.far_leg.executed,
+                'avg_exec_price': str(self._spread.far_leg.avg_exec_price)
+            },
+            'near_leg': {
+                'executed': self._spread.near_leg.executed,
+                'avg_exec_price': str(self._spread.near_leg.avg_exec_price)
+            }
+        }
