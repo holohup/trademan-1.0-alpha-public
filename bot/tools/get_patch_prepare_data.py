@@ -9,8 +9,8 @@ from queue_handler import QUEUE
 from settings import ENDPOINT_HOST, ENDPOINTS, RETRY_SETTINGS, TCS_RO_TOKEN
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.utils import quotation_to_decimal
-from tools.classes import Asset, Spread
 from tools.adapters import SpreadToJsonAdapter
+from tools.classes import Asset, Spread
 
 
 async def async_patch_executed(

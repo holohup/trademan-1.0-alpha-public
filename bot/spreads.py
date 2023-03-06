@@ -5,11 +5,9 @@ from datetime import datetime
 from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
 from tools.classes import Spread
-from tools.get_patch_prepare_data import (
-    async_get_api_data,
-    prepare_spreads_data,
-    async_patch_spread,
-)
+from tools.get_patch_prepare_data import (async_get_api_data,
+                                          async_patch_spread,
+                                          prepare_spreads_data)
 from tools.utils import get_seconds_till_open, perform_working_hours_check
 
 REPORT_ORDERS = False

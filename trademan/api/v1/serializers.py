@@ -1,4 +1,5 @@
 from decimal import Decimal
+
 from base.models import Figi, RestoreStops, SellBuy, Spread, Stops
 from rest_framework import serializers
 

@@ -63,6 +63,7 @@ def sample_spread(sample_far_leg, sample_near_leg):
         amount=100
     )
 
+
 @pytest.fixture
 def long_stop_sample(sample_far_leg):
     return StopOrder(

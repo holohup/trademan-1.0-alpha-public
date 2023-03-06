@@ -2,8 +2,8 @@ import asyncio
 from http import HTTPStatus
 
 import aiohttp.client_exceptions
-from tools.classes import Asset, Spread
 from spreads import get_delta_prices, get_spread_prices
+from tools.classes import Asset, Spread
 from tools.get_patch_prepare_data import (async_check_health,
                                           async_get_api_data,
                                           prepare_spreads_data)
@@ -11,10 +11,14 @@ from tools.get_patch_prepare_data import (async_check_health,
 
 async def test(*args, **kwargs):
     from decimal import Decimal
+
     from tools.get_patch_prepare_data import async_patch_spread
+
     f = Asset(ticker='', figi='', increment=0, lot=0)
     n = Asset(ticker='', figi='', increment=0, lot=0)
-    sp = Spread(id=3, far_leg=f, near_leg=n, sell=True, price=0, ratio=0, amount=0)
+    sp = Spread(
+        id=3, far_leg=f, near_leg=n, sell=True, price=0, ratio=0, amount=0
+    )
     sp.far_leg.order_cache.update('1', 100, Decimal('100'))
     sp.near_leg.order_cache.update('2', 300, Decimal('300'))
     print(sp.avg_execution_price)
