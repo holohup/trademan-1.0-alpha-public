@@ -95,6 +95,8 @@ class AssetSerializer(serializers.ModelSerializer):
             'ticker',
             'min_price_increment',
             'lot',
+            'morning_trading',
+            'evening_trading'
         )
         read_only_fields = fields
 

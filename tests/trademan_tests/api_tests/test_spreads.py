@@ -51,7 +51,7 @@ def test_spread_fields_format(data, field, kls):
 @pytest.mark.parametrize('leg', (('far_leg'), ('near_leg')))
 @pytest.mark.django_db
 def test_fields_in_legs(data, leg):
-    assert len(data[leg]) == 6
+    assert len(data[leg]) == 8
     for field in (
         'figi',
         'ticker',
@@ -59,6 +59,8 @@ def test_fields_in_legs(data, leg):
         'lot',
         'executed',
         'avg_exec_price',
+        'morning_trading',
+        'evening_trading'
     ):
         assert field in data[leg]
 
@@ -72,6 +74,8 @@ def test_fields_in_legs(data, leg):
         ('lot', int),
         ('executed', int),
         ('avg_exec_price', str),
+        ('morning_trading', bool),
+        ('evening_trading', bool)
     ),
 )
 @pytest.mark.django_db
@@ -108,7 +112,7 @@ def test_spread_stats(data, sample_spread):
 @pytest.mark.parametrize('leg', (('far_leg'), ('near_leg')))
 @pytest.mark.django_db
 def test_spread_nested_values(data, sample_spread, leg):
-    for field in 'figi', 'ticker', 'lot':
+    for field in 'figi', 'ticker', 'lot', 'morning_trading', 'evening_trading':
         assert data[leg][field] == getattr(getattr(sample_spread, leg), field)
     assert (
         Decimal(data[leg]['min_price_increment'])

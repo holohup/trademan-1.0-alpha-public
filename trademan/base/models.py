@@ -26,6 +26,18 @@ class Figi(models.Model):
     basic_asset = models.CharField(
         'Базовый актив', null=True, blank=True, max_length=100
     )
+    morning_trading = models.BooleanField(
+        'Утренние торги', default=False
+    )
+    evening_trading = models.BooleanField(
+        'Вечерние торги', default=False
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.pk and self.type == 'F':
+            self.morning_trading = True
+            self.evening_trading = True
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.ticker}'

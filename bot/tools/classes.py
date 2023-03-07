@@ -27,6 +27,8 @@ class Asset:
         avg_exec_price=Decimal('0'),
         order_placed=False,
         order_id=None,
+        morning_trading=False,
+        evening_trading=False
     ):
         self.ticker = ticker
         self.figi = figi
@@ -40,6 +42,8 @@ class Asset:
         self.order_id = order_id
         self.new_price = Decimal(0)
         self.last_price = Decimal(0)
+        self.morning_trading = morning_trading
+        self.evening_trading = evening_trading
         if executed and executed > 0:
             self.order_cache = OrdersCache(executed, avg_exec_price)
             self.next_order_amount = amount - executed
@@ -186,15 +190,15 @@ class Spread:
 
     def __str__(self):
         return (
-            f'{self._trade_direction} {self.amount} {self.near_leg.ticker}'
-            f' - {self.far_leg.ticker} for {self.price}'
+            f'{self._trade_direction} {self.amount} {self.far_leg.ticker}'
+            f' - {self.near_leg.ticker} for {self.price}'
         )
 
     def __repr__(self):
         return (
             f'\n {self._trade_direction} [{self.executed}/{self.amount}]'
-            f' {self.near_leg.ticker} - {self.far_leg.ticker} '
-            f'for {self.price} avg={self.avg_execution_price}'
+            f' {self.far_leg.ticker} - {self.near_leg.ticker}'
+            f' for {self.price} avg={self.avg_execution_price}'
         )
 
 

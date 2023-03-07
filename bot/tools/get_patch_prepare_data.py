@@ -101,6 +101,8 @@ def prepare_leg(data, sell_direction: bool, amount: int):
         lot=data['lot'],
         executed=data['executed'],
         avg_exec_price=Decimal(data['avg_exec_price']),
+        morning_trading=data['morning_trading'],
+        evening_trading=data['evening_trading'],
         sell=sell_direction,
         amount=amount,
     )

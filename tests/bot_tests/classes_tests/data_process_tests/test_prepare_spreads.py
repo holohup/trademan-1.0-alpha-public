@@ -19,6 +19,8 @@ def json_spreads_response():
                 "ticker": "GZH3",
                 "min_price_increment": "1.0000000000",
                 "lot": 1,
+                "morning_trading": True,
+                "evening_trading": True,
                 "executed": 10,
                 "avg_exec_price": "15.0000000000",
             },
@@ -27,11 +29,34 @@ def json_spreads_response():
                 "ticker": "GAZP",
                 "min_price_increment": "0.0100000000",
                 "lot": 10,
+                "morning_trading": False,
+                "evening_trading": False,
                 "executed": 2,
                 "avg_exec_price": "54.0000000000",
             },
         }
     ]
+
+
+LEG_FIELDS = {
+    'figi': str,
+    'ticker': str,
+    'increment': Decimal,
+    'lot': int,
+    'morning_trading': bool,
+    'evening_trading': bool,
+    'executed': int,
+    'avg_exec_price': Decimal,
+}
+
+SPREAD_FIELDS = {
+    'far_leg': Asset,
+    'near_leg': Asset,
+    'sell': bool,
+    'price': int,
+    'id': int,
+    'ratio': int,
+}
 
 
 @pytest.fixture
@@ -41,14 +66,7 @@ def data(json_spreads_response):
 
 @pytest.mark.parametrize(
     ('attr', 'kls'),
-    (
-        ('far_leg', Asset),
-        ('near_leg', Asset),
-        ('sell', bool),
-        ('price', int),
-        ('id', int),
-        ('ratio', int),
-    ),
+    ((name, kls) for name, kls in SPREAD_FIELDS.items()),
 )
 def test_correct_instances(data, attr, kls):
     for spread in data:
@@ -58,14 +76,7 @@ def test_correct_instances(data, attr, kls):
 
 @pytest.mark.parametrize(
     ('attr', 'kls'),
-    (
-        ('figi', str),
-        ('ticker', str),
-        ('increment', Decimal),
-        ('lot', int),
-        ('executed', int),
-        ('avg_exec_price', Decimal),
-    ),
+    ((name, kls) for name, kls in LEG_FIELDS.items()),
 )
 def test_correct_nested_instances(data, attr, kls):
     for spread in data:
@@ -78,7 +89,14 @@ def test_correct_class_variables_init(data, json_spreads_response):
     spread = data[0]
     for field in 'id', 'amount', 'price', 'ratio', 'sell':
         assert getattr(spread, field) == response_data[field]
-    for field in 'figi', 'ticker', 'lot', 'executed':
+    for field in (
+        'figi',
+        'ticker',
+        'lot',
+        'executed',
+        'morning_trading',
+        'evening_trading',
+    ):
         assert (
             getattr(spread.far_leg, field) == response_data['far_leg'][field]
         )

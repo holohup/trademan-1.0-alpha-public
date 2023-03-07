@@ -39,8 +39,10 @@ class SellBuyViewSet(viewsets.ModelViewSet):
 
 
 class SpreadsViewSet(viewsets.ModelViewSet):
-    queryset = Spread.objects.filter(active=True).select_related(
-        'far_leg', 'near_leg', 'stats'
+    queryset = (
+        Spread.objects.filter(active=True)
+        .select_related('far_leg', 'near_leg', 'stats')
+        .order_by('id')
     )
     serializer_class = SpreadsSerializer
 
