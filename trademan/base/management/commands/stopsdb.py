@@ -119,7 +119,7 @@ class Command(BaseCommand):
     help = 'Восстановление дефолтных black_list и white_list для автостопов'
 
     def handle(self, *args, **options):
-        qs = Figi.objects.filter(type='S')
+        qs = Figi.objects.filter(asset_type='S')
         for stock in qs:
             new_values = {
                 'whitelist': stock.ticker in WHITELIST,

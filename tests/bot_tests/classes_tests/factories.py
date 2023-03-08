@@ -12,7 +12,9 @@ class AssetFactory(factory.Factory):
 
     ticker = factory.Faker('word')
     figi = factory.Faker('word')
-    increment = factory.LazyFunction(lambda: Decimal(random.random()))
+    min_price_increment = factory.LazyFunction(
+        lambda: Decimal(random.random())
+    )
     lot = factory.LazyFunction(lambda: random.randint(5, 15))
     price = factory.LazyFunction(lambda: Decimal(random.randint(100, 200)))
     id = factory.LazyFunction(lambda: random.randint(0, 100))
@@ -24,5 +26,6 @@ class AssetFactory(factory.Factory):
     )
     order_placed = False
     order_id = None
+    asset_type = factory.Faker('random_element', elements=('S', 'F'))
     morning_trading = factory.Faker('boolean')
     evening_trading = factory.Faker('boolean')

@@ -88,7 +88,7 @@ class FigiAdmin(admin.ModelAdmin):
         'min_price_increment',
         'figi',
         'name',
-        'type',
+        'asset_type',
         'api_trading_available',
         'short_enabled',
         'buy_enabled',
@@ -96,7 +96,7 @@ class FigiAdmin(admin.ModelAdmin):
         'basic_asset',
         'basic_asset_size',
     )
-    list_filter = ('type',)
+    list_filter = ('asset_type',)
     search_fields = ('ticker', 'figi', 'name')
     list_max_show_all = 5000
     list_per_page = 200

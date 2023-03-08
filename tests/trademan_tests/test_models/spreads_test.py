@@ -9,7 +9,7 @@ def test_ratio(sample_spread):
     assert sample_spread.ratio == 10
     sample_spread.editable_ratio = 0
     assert sample_spread.ratio == 100
-    sample_spread.near_leg.type = 'F'
+    sample_spread.near_leg.asset_type = 'F'
     sample_spread.far_leg.basic_asset = '33'
     assert sample_spread.ratio == 1
 

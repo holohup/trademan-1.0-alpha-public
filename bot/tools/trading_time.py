@@ -4,7 +4,7 @@ from datetime import datetime, time, timedelta
 from bot.tools.classes import Asset
 
 TRADE_DAYS = (0, 4)
-MORNING_TRADE_HOURS = {'morning': (time(9, 00), time(9, 59, 59))}
+MORNING_TRADE_HOURS = {'morning': (time(9, 00), time(9, 59, 59, 59))}
 EVENING_TRADE_HOURS = {'evening': (time(19, 5), time(23, 50))}
 STOCKS_TRADE_HOURS = {'base': (time(10, 00), time(18, 39, 59))}
 FUTURES_TRADE_HOURS = {
@@ -30,7 +30,10 @@ OFFSET_ADJUSTED_WORK_HOURS = {
 class TradingTime:
     def __init__(self, asset: Asset) -> None:
         self._asset = asset
-        self._trading_hours = dict(STOCKS_TRADE_HOURS)
+        if asset.asset_type == 'F':
+            self._trading_hours = dict(FUTURES_TRADE_HOURS)
+        else:
+            self._trading_hours = dict(STOCKS_TRADE_HOURS)
         if asset.morning_trading:
             self._trading_hours.update(MORNING_TRADE_HOURS)
         if asset.evening_trading:
@@ -45,7 +48,7 @@ class TradingTime:
         return False
 
     @property
-    def _current_time(self) -> datetime.now:
+    def _current_time(self) -> datetime:
         return datetime.now(ZONE)
 
     @property

@@ -70,7 +70,7 @@ def prepare_asset_data(data):
         assets.append(
             Asset(
                 figi=asset['figi'],
-                increment=asset['increment'],
+                min_price_increment=asset['min_price_increment'],
                 ticker=asset['ticker'],
                 lot=asset['lot'],
                 id=asset.get('id'),
@@ -97,12 +97,13 @@ def prepare_leg(data, sell_direction: bool, amount: int):
     return Asset(
         figi=data['figi'],
         ticker=data['ticker'],
-        increment=Decimal(data['min_price_increment']),
+        min_price_increment=Decimal(data['min_price_increment']),
         lot=data['lot'],
         executed=data['executed'],
         avg_exec_price=Decimal(data['avg_exec_price']),
         morning_trading=data['morning_trading'],
         evening_trading=data['evening_trading'],
+        asset_type=data['asset_type'],
         sell=sell_direction,
         amount=amount,
     )

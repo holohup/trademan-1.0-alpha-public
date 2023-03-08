@@ -6,7 +6,7 @@ from rest_framework import serializers
 
 class BasicDataSerializer(serializers.ModelSerializer):
     figi = serializers.CharField(source='asset.figi')
-    increment = serializers.DecimalField(
+    min_price_increment = serializers.DecimalField(
         source='asset.min_price_increment', decimal_places=10, max_digits=20
     )
     ticker = serializers.CharField(source='asset.ticker')
@@ -17,7 +17,7 @@ class BasicDataSerializer(serializers.ModelSerializer):
         fields = (
             'figi',
             'ticker',
-            'increment',
+            'min_price_increment',
             'lot',
         )
         read_only_fields = fields
@@ -34,7 +34,7 @@ class SellBuySerializer(BasicDataSerializer):
             'id',
             'figi',
             'ticker',
-            'increment',
+            'min_price_increment',
             'lot',
             'sell',
             'amount',
@@ -43,7 +43,7 @@ class SellBuySerializer(BasicDataSerializer):
         read_only_fields = (
             'id',
             'figi',
-            'increment',
+            'min_price_increment',
             'ticker',
             'lot',
             'sell',
@@ -57,7 +57,7 @@ class RestoreStopsSerializer(BasicDataSerializer):
         fields = (
             'id',
             'figi',
-            'increment',
+            'min_price_increment',
             'ticker',
             'lot',
             'sell',
@@ -67,18 +67,17 @@ class RestoreStopsSerializer(BasicDataSerializer):
 
 
 class TickerSerializer(serializers.ModelSerializer):
-    increment = serializers.CharField(source='min_price_increment')
 
     class Meta:
         model = Figi
         fields = (
             'id',
-            'increment',
+            'min_price_increment',
             'figi',
             'ticker',
             'name',
             'lot',
-            'type',
+            'asset_type',
             'api_trading_available',
             'short_enabled',
             'buy_enabled',
@@ -96,7 +95,8 @@ class AssetSerializer(serializers.ModelSerializer):
             'min_price_increment',
             'lot',
             'morning_trading',
-            'evening_trading'
+            'evening_trading',
+            'asset_type'
         )
         read_only_fields = fields
 

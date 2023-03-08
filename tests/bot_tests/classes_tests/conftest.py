@@ -14,7 +14,9 @@ class AssetPreset(NamedTuple):
 def asset_sample1():
     return {
         'figi': AssetPreset('figi', str, 's1'),
-        'increment': AssetPreset('increment', Decimal, Decimal('1')),
+        'min_price_increment': AssetPreset(
+            'min_price_increment', Decimal, Decimal('1')
+        ),
         'ticker': AssetPreset('ticker', str, 'SONE'),
         'lot': AssetPreset('lot', int, 10),
         'id': AssetPreset('id', int, 1),

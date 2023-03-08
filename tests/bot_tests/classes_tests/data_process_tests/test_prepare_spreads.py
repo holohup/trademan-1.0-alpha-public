@@ -21,6 +21,7 @@ def json_spreads_response():
                 "lot": 1,
                 "morning_trading": True,
                 "evening_trading": True,
+                "asset_type": "F",
                 "executed": 10,
                 "avg_exec_price": "15.0000000000",
             },
@@ -31,6 +32,7 @@ def json_spreads_response():
                 "lot": 10,
                 "morning_trading": False,
                 "evening_trading": False,
+                "asset_type": "S",
                 "executed": 2,
                 "avg_exec_price": "54.0000000000",
             },
@@ -41,12 +43,13 @@ def json_spreads_response():
 LEG_FIELDS = {
     'figi': str,
     'ticker': str,
-    'increment': Decimal,
+    'min_price_increment': Decimal,
     'lot': int,
     'morning_trading': bool,
     'evening_trading': bool,
     'executed': int,
     'avg_exec_price': Decimal,
+    'asset_type': str,
 }
 
 SPREAD_FIELDS = {
@@ -58,55 +61,68 @@ SPREAD_FIELDS = {
     'ratio': int,
 }
 
+LEG_DECIMAL_FIELDS = {'min_price_increment', 'avg_exec_price'}
+LEGS = ('far_leg', 'near_leg')
+LEGS_PARAMETRIZE = pytest.mark.parametrize('leg', LEGS)
+
 
 @pytest.fixture
 def data(json_spreads_response):
     return prepare_spreads_data(json_spreads_response)
 
 
+@pytest.fixture
+def spread(data):
+    return data[0]
+
+
+@pytest.fixture
+def response_data(json_spreads_response):
+    return json_spreads_response[0]
+
+
+def test_number_of_spreads_created(data, json_spreads_response):
+    assert len(data) == len(json_spreads_response)
+
+
+def test_correct_instances(data, spread):
+    assert isinstance(data, list)
+    assert isinstance(spread, Spread)
+
+
 @pytest.mark.parametrize(
     ('attr', 'kls'),
     ((name, kls) for name, kls in SPREAD_FIELDS.items()),
 )
-def test_correct_instances(data, attr, kls):
-    for spread in data:
-        assert isinstance(spread, Spread)
-        assert isinstance(getattr(spread, attr), kls)
+def test_correct_field_types(spread, attr, kls):
+    assert isinstance(getattr(spread, attr), kls)
 
 
 @pytest.mark.parametrize(
     ('attr', 'kls'),
     ((name, kls) for name, kls in LEG_FIELDS.items()),
 )
-def test_correct_nested_instances(data, attr, kls):
-    for spread in data:
-        assert isinstance(getattr(spread.far_leg, attr), kls)
-        assert isinstance(getattr(spread.near_leg, attr), kls)
+def test_correct_nested_instances(spread, attr, kls):
+    assert isinstance(getattr(spread.far_leg, attr), kls)
+    assert isinstance(getattr(spread.near_leg, attr), kls)
 
 
-def test_correct_class_variables_init(data, json_spreads_response):
-    response_data = json_spreads_response[0]
-    spread = data[0]
-    for field in 'id', 'amount', 'price', 'ratio', 'sell':
+def test_correct_spread_values(spread, response_data):
+    for field in SPREAD_FIELDS.keys() - set(LEGS):
         assert getattr(spread, field) == response_data[field]
-    for field in (
-        'figi',
-        'ticker',
-        'lot',
-        'executed',
-        'morning_trading',
-        'evening_trading',
-    ):
+
+
+@LEGS_PARAMETRIZE
+def test_correct_leg_non_decimal_values(spread, response_data, leg):
+    for field in LEG_FIELDS.keys() - LEG_DECIMAL_FIELDS:
         assert (
-            getattr(spread.far_leg, field) == response_data['far_leg'][field]
+            getattr(getattr(spread, leg), field) == response_data[leg][field]
         )
-        assert (
-            getattr(spread.near_leg, field) == response_data['near_leg'][field]
-        )
-    for leg in 'far_leg', 'near_leg':
-        assert getattr(spread, leg).increment == Decimal(
-            response_data[leg]['min_price_increment']
-        )
-        assert getattr(spread, leg).avg_exec_price == Decimal(
-            response_data[leg]['avg_exec_price']
+
+
+@LEGS_PARAMETRIZE
+def test_correct_leg_decimal_values(spread, response_data, leg):
+    for decimal_field in LEG_DECIMAL_FIELDS:
+        assert getattr(getattr(spread, leg), decimal_field) == Decimal(
+            response_data[leg][decimal_field]
         )

@@ -17,7 +17,7 @@ class Asset:
         self,
         ticker,
         figi,
-        increment: Decimal,
+        min_price_increment: Decimal,
         lot,
         price=0.0,
         id=0,
@@ -28,11 +28,12 @@ class Asset:
         order_placed=False,
         order_id=None,
         morning_trading=False,
-        evening_trading=False
+        evening_trading=False,
+        asset_type='S',
     ):
         self.ticker = ticker
         self.figi = figi
-        self.increment = Decimal(increment)
+        self.min_price_increment = Decimal(min_price_increment)
         self.lot = lot
         self.price = Decimal(price)
         self.id = id
@@ -44,6 +45,7 @@ class Asset:
         self.last_price = Decimal(0)
         self.morning_trading = morning_trading
         self.evening_trading = evening_trading
+        self.asset_type = asset_type
         if executed and executed > 0:
             self.order_cache = OrdersCache(executed, avg_exec_price)
             self.next_order_amount = amount - executed
@@ -58,7 +60,7 @@ class Asset:
         return f'Asset: {self.ticker}'
 
     def get_correct_price(self, price):
-        return get_correct_price(price, self.increment)
+        return get_correct_price(price, self.min_price_increment)
 
     def get_lots(self, number_of_stocks):
         return get_lots(number_of_stocks, self.lot)
@@ -148,7 +150,7 @@ class Spread:
         price: int,
         id: int,
         ratio: int,
-        amount: int
+        amount: int,
     ):
         self.far_leg = far_leg
         self.near_leg = near_leg

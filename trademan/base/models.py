@@ -9,7 +9,7 @@ class Figi(models.Model):
     min_price_increment = models.DecimalField(
         decimal_places=10, max_digits=20, verbose_name='Шаг цены'
     )
-    type = models.CharField(
+    asset_type = models.CharField(
         max_length=1,
         choices=(('S', 'Stock'), ('F', 'Future')),
         verbose_name='Акция или фьючерс',
@@ -34,7 +34,7 @@ class Figi(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if not self.pk and self.type == 'F':
+        if not self.pk and self.asset_type == 'F':
             self.morning_trading = True
             self.evening_trading = True
         super().save(*args, **kwargs)
@@ -45,7 +45,7 @@ class Figi(models.Model):
     class Meta:
         unique_together = (
             'ticker',
-            'type',
+            'asset_type',
         )
         verbose_name = 'figi'
 
@@ -157,11 +157,11 @@ class Spread(models.Model):
         if self.editable_ratio != 0:
             return self.editable_ratio
         if (
-            self.far_leg.type == 'F'
+            self.far_leg.asset_type == 'F'
             and self.far_leg.basic_asset == self.near_leg.ticker
         ):
             return self.far_leg.basic_asset_size
-        if self.far_leg.type == self.near_leg.type:
+        if self.far_leg.asset_type == self.near_leg.asset_type:
             return 1
         return 0
 

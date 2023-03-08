@@ -20,7 +20,7 @@ def sample_far_leg():
     return Asset(
         ticker='GAZP',
         figi='GZZGIGNGR53',
-        increment=Decimal('0.01'),
+        min_price_increment=Decimal('0.01'),
         lot=10,
         price=Decimal('200'),
         id=1,
@@ -30,6 +30,7 @@ def sample_far_leg():
         avg_exec_price=Decimal('20'),
         order_placed=False,
         order_id=None,
+        asset_type='F'
     )
 
 
@@ -38,7 +39,7 @@ def sample_near_leg():
     return Asset(
         ticker='GZZ4',
         figi='GZZGIGNGR54',
-        increment=Decimal('0.01'),
+        min_price_increment=Decimal('0.01'),
         lot=1,
         price=Decimal('200'),
         id=2,
@@ -48,6 +49,7 @@ def sample_near_leg():
         avg_exec_price=Decimal('10'),
         order_placed=False,
         order_id=None,
+        asset_type='S'
     )
 
 

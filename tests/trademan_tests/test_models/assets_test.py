@@ -24,7 +24,9 @@ def generic_asset_preset():
 
 @pytest.fixture
 def stock_preset(generic_asset_preset):
-    stock = Figi(**{**generic_asset_preset, **{'type': 'S', 'figi': 'AAA'}})
+    stock = Figi(
+        **{**generic_asset_preset, **{'asset_type': 'S', 'figi': 'AAA'}}
+    )
     stock.save()
     return stock
 
@@ -34,7 +36,7 @@ def future_preset(generic_asset_preset):
     future = Figi(
         **{
             **generic_asset_preset,
-            **{'type': 'F', 'figi': 'BBB', 'basic_asset_size': 100},
+            **{'asset_type': 'F', 'figi': 'BBB', 'basic_asset_size': 100},
         }
     )
     future.save()

@@ -1,5 +1,5 @@
 import sys
-from typing import NamedTuple
+from typing import NamedTuple, Union
 
 from base.models import Figi
 from django.conf import settings
@@ -39,10 +39,10 @@ if not all(
     sys.exit(message)
 
 
-def prevalidate_instrument(inst: any([Share, Future]), type: str) -> bool:
+def prevalidate_instrument(inst: Union[Share, Future], inst_type: str) -> bool:
     return all(
         (
-            inst.real_exchange == INSTRUMENTS[type].exchange,
+            inst.real_exchange == INSTRUMENTS[inst_type].exchange,
             quotation_to_decimal(inst.min_price_increment) > 0,
             inst.api_trade_available_flag is True,
             inst.buy_available_flag is True
@@ -51,7 +51,7 @@ def prevalidate_instrument(inst: any([Share, Future]), type: str) -> bool:
     )
 
 
-def fill_fields(inst: any([Share, Future]), type: str) -> dict:
+def fill_fields(inst: Union[Share, Future], inst_type: str) -> dict:
     result = {
         'ticker': inst.ticker,
         'lot': inst.lot,
@@ -61,13 +61,13 @@ def fill_fields(inst: any([Share, Future]), type: str) -> dict:
         'short_enabled': inst.short_enabled_flag,
         'buy_enabled': inst.buy_available_flag,
         'sell_enabled': inst.sell_available_flag,
-        'type': INSTRUMENTS[type].db_short,
+        'asset_type': INSTRUMENTS[inst_type].db_short,
     }
-    if type == 'Futures':
+    if inst_type == 'Futures':
         result['basic_asset_size'] = int(
-            quotation_to_decimal(inst.basic_asset_size)
+            quotation_to_decimal(inst.basic_asset_size)  # type: ignore
         )
-        result['basic_asset'] = inst.basic_asset
+        result['basic_asset'] = inst.basic_asset  # type: ignore
     return result
 
 
@@ -84,22 +84,24 @@ def get_api_response(instrument):
             raise CommandError(f'Data update failed! {error}')
 
 
-def update_db(response, type):
+def update_db(response, inst_type):
     updated = 0
     figis = set()
     for inst in response.instruments:
-        if not prevalidate_instrument(inst=inst, type=type):
+        if not prevalidate_instrument(inst=inst, inst_type=inst_type):
             continue
         updated += 1
-        new_values = fill_fields(inst, type)
+        new_values = fill_fields(inst, inst_type)
         figis.add(inst.figi)
         Figi.objects.update_or_create(figi=inst.figi, defaults=new_values)
     return updated, figis
 
 
-def clean_up(type, figis):
+def clean_up(inst_type, figis):
     result = ''
-    for figi in Figi.objects.filter(type=INSTRUMENTS[type].db_short):
+    for figi in Figi.objects.filter(
+        asset_type=INSTRUMENTS[inst_type].db_short
+    ):
         if figi.figi not in figis:
             result += f'Deleting figi with ticker {figi}\n'
             figi.delete()
@@ -113,7 +115,7 @@ class Command(BaseCommand):
         new_figi = set()
         result_message = ''
         clean_up_flag = True
-        upd_insts = {type: 0 for type in INSTRUMENTS.keys()}
+        upd_insts = {asset_type: 0 for asset_type in INSTRUMENTS.keys()}
         for inst_type in INSTRUMENTS.keys():
             response = get_api_response(inst_type)
             result_message += f'{inst_type} update received\n'

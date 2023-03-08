@@ -14,10 +14,10 @@ async def test(*args, **kwargs):
 
     from tools.get_patch_prepare_data import async_patch_spread
 
-    f = Asset(ticker='', figi='', increment=0, lot=0)
-    n = Asset(ticker='', figi='', increment=0, lot=0)
+    f = Asset(ticker='', figi='', min_price_increment=0, lot=0)
+    n = Asset(ticker='', figi='', min_price_increment=0, lot=0)
     sp = Spread(
-        id=3, far_leg=f, near_leg=n, sell=True, price=0, ratio=0, amount=0
+        id=4, far_leg=f, near_leg=n, sell=True, price=0, ratio=0, amount=0
     )
     sp.far_leg.order_cache.update('1', 100, Decimal('100'))
     sp.near_leg.order_cache.update('2', 300, Decimal('300'))

@@ -96,8 +96,6 @@ def test_short_stop_order_params(short_stop_sample):
 
 def test_spread_to_json_adapter(sample_spread: Spread):
     dikt = SpreadToJsonAdapter(sample_spread).output
-    from pprint import pprint
-    pprint(dikt)
     for leg in 'far_leg', 'near_leg':
         assert getattr(sample_spread, leg).executed == dikt[leg]['executed']
         assert getattr(sample_spread, leg).avg_exec_price == Decimal(

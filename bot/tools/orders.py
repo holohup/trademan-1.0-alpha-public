@@ -61,7 +61,7 @@ async def get_price_from_order_book(asset):
     return r.asks[0].price if asset.sell else r.bids[0].price
 
 
-async def place_order(asset, type: str):
-    params = OrderAdapter(asset, type).order_params
+async def place_order(asset, order_type: str):
+    params = OrderAdapter(asset, order_type).order_params
     async with AsyncClient(TCS_RW_TOKEN) as client:
         return await client.orders.post_order(**params)
