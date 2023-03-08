@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 
 
@@ -26,12 +28,8 @@ class Figi(models.Model):
     basic_asset = models.CharField(
         'Базовый актив', null=True, blank=True, max_length=100
     )
-    morning_trading = models.BooleanField(
-        'Утренние торги', default=False
-    )
-    evening_trading = models.BooleanField(
-        'Вечерние торги', default=False
-    )
+    morning_trading = models.BooleanField('Утренние торги', default=False)
+    evening_trading = models.BooleanField('Вечерние торги', default=False)
 
     def save(self, *args, **kwargs):
         if not self.pk and self.asset_type == 'F':
@@ -69,7 +67,7 @@ class BaseAssetModel(models.Model):
         decimal_places=10,
         max_digits=20,
         verbose_name='Ср. цена исполн.',
-        default=0,
+        default=Decimal('0'),
     )
 
     def __str__(self):
@@ -98,13 +96,13 @@ class SpreadStats(models.Model):
         decimal_places=10,
         max_digits=20,
         verbose_name='Avg far leg execution price',
-        default=0,
+        default=Decimal('0'),
     )
     near_leg_avg_price = models.DecimalField(
         decimal_places=10,
         max_digits=20,
         verbose_name='Avg near leg execution price',
-        default=0,
+        default=Decimal('0'),
     )
 
     @property

@@ -5,6 +5,7 @@ from base.models import Figi
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from tinkoff.invest.retrying.settings import RetryClientSettings
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.schemas import Future, RealExchange, Share
@@ -87,13 +88,14 @@ def get_api_response(instrument):
 def update_db(response, inst_type):
     updated = 0
     figis = set()
-    for inst in response.instruments:
-        if not prevalidate_instrument(inst=inst, inst_type=inst_type):
-            continue
-        updated += 1
-        new_values = fill_fields(inst, inst_type)
-        figis.add(inst.figi)
-        Figi.objects.update_or_create(figi=inst.figi, defaults=new_values)
+    with transaction.atomic():
+        for inst in response.instruments:
+            if not prevalidate_instrument(inst=inst, inst_type=inst_type):
+                continue
+            updated += 1
+            new_values = fill_fields(inst, inst_type)
+            figis.add(inst.figi)
+            Figi.objects.update_or_create(figi=inst.figi, defaults=new_values)
     return updated, figis
 
 
