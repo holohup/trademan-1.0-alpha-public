@@ -9,6 +9,8 @@ from tools.orders import (cancel_order, get_execution_report,
                           get_price_from_order_book, place_order)
 from tools.utils import get_correct_price, get_lots
 
+from bot.tools.trading_time import TradingTime
+
 getcontext().prec = 10
 
 
@@ -19,7 +21,7 @@ class Asset:
         figi,
         min_price_increment: Decimal,
         lot,
-        price=0.0,
+        price=Decimal(0.0),
         id=0,
         sell=True,
         amount=0,
@@ -140,6 +142,14 @@ class Asset:
     def avg_exec_price(self):
         return self.order_cache.avg_price
 
+    @property
+    def is_trading_now(self):
+        return TradingTime(self).is_trading_now
+
+    @property
+    def seconds_till_trading_starts(self):
+        return TradingTime(self).seconds_till_trading_starts
+
 
 class Spread:
     def __init__(
@@ -174,12 +184,12 @@ class Spread:
         return self.far_leg.order_cache.amount
 
     @property
-    def avg_execution_price(self):
+    def avg_execution_price(self) -> Decimal:
         if self.executed == 0:
             return Decimal('0')
         return (
-            self.far_leg.avg_exec_price * self.far_leg.executed
-            - self.near_leg.avg_exec_price * self.near_leg.executed
+            Decimal(self.far_leg.avg_exec_price * self.far_leg.executed)
+            - Decimal(self.near_leg.avg_exec_price * self.near_leg.executed)
         ) / (self.executed)
 
     @property
@@ -189,6 +199,17 @@ class Spread:
     @property
     def _trade_direction(self):
         return 'Sell' if self.sell else 'Buy'
+
+    @property
+    def is_trading_now(self):
+        return all((self.far_leg.is_trading_now, self.near_leg.is_trading_now))
+
+    @property
+    def seconds_till_trading_starts(self):
+        return max(
+            self.far_leg.seconds_till_trading_starts,
+            self.near_leg.seconds_till_trading_starts,
+        )
 
     def __str__(self):
         return (

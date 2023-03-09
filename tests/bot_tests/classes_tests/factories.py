@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import factory
 
-from bot.tools.classes import Asset
+from bot.tools.classes import Asset, Spread
 
 
 class AssetFactory(factory.Factory):
@@ -29,3 +29,28 @@ class AssetFactory(factory.Factory):
     asset_type = factory.Faker('random_element', elements=('S', 'F'))
     morning_trading = factory.Faker('boolean')
     evening_trading = factory.Faker('boolean')
+
+
+class SpreadFactory(factory.Factory):
+    class Meta:
+        model = Spread
+
+    far_leg = AssetFactory(
+        sell=True,
+        amount=100,
+        asset_type='F',
+        morning_trading=True,
+        evening_trading=True,
+    )
+    near_leg = AssetFactory(
+        sell=False,
+        amount=10000,
+        asset_type='S',
+        morning_trading=False,
+        evening_trading=False,
+    )
+    sell = True
+    price = factory.LazyFunction(lambda: random.randint(100, 1000))
+    id = factory.LazyFunction(lambda: random.randint(0, 100))
+    ratio = 100
+    amount = 200

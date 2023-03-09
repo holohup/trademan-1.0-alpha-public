@@ -2,8 +2,6 @@ import zoneinfo
 from datetime import datetime, time, timedelta
 from typing import NamedTuple
 
-from bot.tools.classes import Asset
-
 
 class TradingSession(NamedTuple):
     open: time
@@ -23,7 +21,7 @@ MOSCOW_ZONE = zoneinfo.ZoneInfo('Europe/Moscow')
 
 
 class TradingTime:
-    def __init__(self, asset: Asset) -> None:
+    def __init__(self, asset) -> None:
         self._asset = asset
         if asset.asset_type == 'F':
             self._trading_sessions = dict(FUTURES_TRADE_HOURS)
@@ -40,7 +38,7 @@ class TradingTime:
     def is_trading_now(self) -> bool:
         if not self._today_is_a_trading_day:
             return False
-        for open_time, close_time in self._trading_sessions.values():
+        for open_time, close_time in self._sorted_sessions:
             if open_time <= self._current_datetime.time() <= close_time:
                 return True
         return False
@@ -91,7 +89,7 @@ class TradingTime:
         )
 
     def _seconds_till_nearest_session(self, tyme: time) -> int:
-        for session in self.sorted_sessions:
+        for session in self._sorted_sessions:
             if session.open > tyme:
                 return self._time_difference_in_seconds(session.open, tyme)
         return 0
@@ -103,7 +101,7 @@ class TradingTime:
         return delta.seconds
 
     @property
-    def sorted_sessions(self) -> list:
+    def _sorted_sessions(self) -> list:
         if not self._sorted_sess_cache:
             self._sorted_sess_cache = sorted(self._trading_sessions.values())
         return self._sorted_sess_cache
@@ -122,7 +120,7 @@ class TradingTime:
 
     @property
     def _is_later_then_last_session_close(self) -> bool:
-        return self._current_datetime.time() >= self.sorted_sessions[-1].close
+        return self._current_datetime.time() >= self._sorted_sessions[-1].close
 
     @property
     def _will_trade_today(self) -> bool:
