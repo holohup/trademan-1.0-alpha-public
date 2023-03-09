@@ -8,7 +8,6 @@ from tools.classes import Spread
 from tools.get_patch_prepare_data import (async_get_api_data,
                                           async_patch_spread,
                                           prepare_spreads_data)
-from tools.utils import get_seconds_till_open, perform_working_hours_check
 
 REPORT_ORDERS = False
 
@@ -59,10 +58,10 @@ async def cancel_active_orders_and_update_data(spreads):
     )
 
 
-async def wait_till_market_open(spread):
+async def wait_till_market_open(spread: Spread):
     if spread.far_leg.order_placed:
         await spread.far_leg.cancel_order()
-    sleep_time = get_seconds_till_open()
+    sleep_time = spread.seconds_till_trading_starts
     logging.warning(
         f'{spread}: Not a trading time. Waiting '
         f'for {sleep_time // 60} minutes.'
@@ -138,11 +137,11 @@ async def process_error(error, spread):
     await asyncio.sleep(60)
 
 
-async def process_spread(spread):
+async def process_spread(spread: Spread):
     last_executed = spread.executed
 
     while spread.executed < spread.amount:
-        if not perform_working_hours_check():
+        if not spread.is_trading_now:
             await wait_till_market_open(spread)
 
         try:

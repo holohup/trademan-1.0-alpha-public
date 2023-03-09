@@ -9,7 +9,7 @@ from tools.orders import (cancel_order, get_execution_report,
                           get_price_from_order_book, place_order)
 from tools.utils import get_correct_price, get_lots
 
-from bot.tools.trading_time import TradingTime
+from .trading_time import TradingTime
 
 getcontext().prec = 10
 
