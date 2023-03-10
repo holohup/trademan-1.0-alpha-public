@@ -43,7 +43,7 @@ class GenericTradingTimeTester:
     @property
     def midnights_count_till_trading_starts(self) -> int:
         return (
-            self.create_tradingtime_object._midnights_count_till_trading_starts
+            self.create_tradingtime_object._midnights_count_till_trading_day
         )
 
     @property
@@ -231,7 +231,7 @@ def test_assets_seconds_till_trading_between_sessions(
         (6, (23, 50), 10 * 60 + 10 * 60 * 60),
         (4, (0, 0), 2 * 24 * 60 * 60 + 10 * 60 * 60),
         (5, (0, 0), 34 * 60 * 60),
-        (6, (0, 0), 10 * 60 * 60)
+        (6, (0, 0), 10 * 60 * 60),
     ),
 )
 def test_stock_seconds_before_open_through_weekends(day, tyme, result):

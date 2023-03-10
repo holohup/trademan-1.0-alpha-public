@@ -9,6 +9,7 @@ class TradingSession(NamedTuple):
 
 
 TRADE_DAYS = (0, 4)
+DAYS_IN_WEEK = 7
 MORNING_TRADE_HOURS = {'morning': TradingSession(time(9, 00), time(9, 50))}
 EVENING_TRADE_HOURS = {'evening': TradingSession(time(19, 5), time(23, 50))}
 STOCKS_TRADE_HOURS = {'base': TradingSession(time(10, 00), time(18, 39, 59))}
@@ -59,7 +60,7 @@ class TradingTime:
             return 0
         if self._will_trade_today:
             return self._seconds_until_next_session_today
-        return self._seconds_count_till_trading_after_session_close
+        return self._seconds_count_till_trading_after_all_sessions_close
 
     @property
     def _seconds_until_next_session_today(self) -> int:
@@ -68,16 +69,15 @@ class TradingTime:
         )
 
     @property
-    def _seconds_count_till_trading_after_session_close(self) -> int:
-        midnights = self._midnights_count_till_trading_starts
+    def _seconds_count_till_trading_after_all_sessions_close(self) -> int:
+        midnights = self._midnights_count_till_trading_day
         secs_midn_to_session = self._seconds_till_nearest_session(time(0, 0))
-        if midnights > 0:
-            return (
-                self._seconds_till_midnight
-                + 24 * 60 * 60 * (midnights - 1)
-                + secs_midn_to_session
-            )
-        return self._seconds_till_midnight + secs_midn_to_session
+        full_days_pause_secs = 24 * 60 * 60 * (midnights - 1)
+        return (
+            self._seconds_till_midnight
+            + secs_midn_to_session
+            + full_days_pause_secs
+        )
 
     @property
     def _seconds_till_midnight(self) -> int:
@@ -107,20 +107,19 @@ class TradingTime:
         return self._sorted_sess_cache
 
     @property
-    def _midnights_count_till_trading_starts(self) -> int:
+    def _midnights_count_till_trading_day(self) -> int:
         if self._will_trade_today:
             return 0
-        midnights = 1
-        while (
-            self._weekday_ahead_number(midnights) > TRADE_DAYS[1]
-            or self._weekday_ahead_number(midnights) < TRADE_DAYS[0]
-        ):
-            midnights += 1
-        return midnights
+        today = self._current_datetime.weekday()
+        if today > TRADE_DAYS[1] - 1:
+            return DAYS_IN_WEEK - today + TRADE_DAYS[0]
+        if today < TRADE_DAYS[0]:
+            return TRADE_DAYS[0] - today
+        return 1
 
     @property
     def _is_later_then_last_session_close(self) -> bool:
-        return self._current_datetime.time() >= self._sorted_sessions[-1].close
+        return self._current_datetime.time() > self._sorted_sessions[-1].close
 
     @property
     def _will_trade_today(self) -> bool:
@@ -128,9 +127,6 @@ class TradingTime:
             not self._is_later_then_last_session_close
             and self._today_is_a_trading_day
         )
-
-    def _weekday_ahead_number(self, days_amount: int) -> int:
-        return (days_amount + self._current_datetime.weekday()) % 7
 
     def _update_trading_schedule_with_time_offset(self) -> None:
         self._trading_sessions = {
