@@ -129,20 +129,10 @@ class TradingTime:
         )
 
     def _update_trading_schedule_with_time_offset(self) -> None:
+        dt = self._current_datetime.date()
         self._trading_sessions = {
             title: TradingSession(
-                open=(
-                    datetime.combine(
-                        self._current_datetime.date(), period.open
-                    )
-                    + TIME_OFFSET
-                ).time(),
-                close=(
-                    datetime.combine(
-                        self._current_datetime.date(), period.close
-                    )
-                    - TIME_OFFSET
-                ).time(),
-            )
-            for title, period in self._trading_sessions.items()
+                open=(datetime.combine(dt, period.open) + TIME_OFFSET).time(),
+                close=(datetime.combine(dt, period.close) - TIME_OFFSET).time()
+            ) for title, period in self._trading_sessions.items()
         }

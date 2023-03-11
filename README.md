@@ -186,9 +186,9 @@ Although you might see more Bot commands in the source code, here's the list of 
 
 - Refactor using Martin's Clean Code principles
 - Add average execution prices for **/sellbuy**
-- Separate trading schedule for futures on MOEX
+- ~~Separate trading schedule for futures on MOEX~~
 - Implement various stop-type order types for **/restore** command to become fully usable
-- Test coverage for all aspects, including Decimal - Float - MoneyValue conversions and Decimal initializations
+- ~~Test coverage for all aspects, including Decimal - Float - MoneyValue conversions and Decimal initializations~~
 - Implement current margin amounts before starting new trade jobs, with Telegram warnings.
 - Implement a **/status** command which returns a Telegram reply with the current status for each currently active command.
 - Django - validate extra fields like API-trading availability before reporting active tasks to the bot.
@@ -201,7 +201,7 @@ Although you might see more Bot commands in the source code, here's the list of 
 - Redirect all logs to files
 - ~~Add a pause before **/sellbuy** reactivation on ratelimit_reset error~~
 - Django validation for a multiplicity of orders amounts to minimum lots
-- Better (more intuitive) caching for **/spreads** and **/sellbuy**: use NamedTuples instead of dictionaries.
+- ~~Better (more intuitive) caching for **/spreads** and **/sellbuy**: use NamedTuples instead of dictionaries.~~
 - ~~Add _None_ for **/tasks** if no tasks are currently running.~~
 - ~~Remove ONDELETECASCADE in models if the Tinkoff API doesn't return a FIGI, instead, make it inactive, since Tinkoff's API sometimes glitches.~~
 - ~~Create a command for Art Cashin's formula (0, 1, 5, 7% down) in case of a nuclear apocalypse.~~

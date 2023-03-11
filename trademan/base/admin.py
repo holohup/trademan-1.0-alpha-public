@@ -63,8 +63,8 @@ class SpreadAdmin(admin.ModelAdmin):
             f' Avg price = {float(obj.avg_exec_price)}'
         )
 
-    def save_model(self, request, obj, form, change):
-        created = not obj.id
+    def save_model(self, request, obj: Spread, form, change):
+        created = not obj.pk
         if created:
             stats = SpreadStats.objects.create()
             obj.stats = stats
@@ -86,8 +86,6 @@ class FigiAdmin(admin.ModelAdmin):
         'ticker',
         'lot',
         'min_price_increment',
-        'figi',
-        'name',
         'asset_type',
         'api_trading_available',
         'short_enabled',
@@ -95,8 +93,10 @@ class FigiAdmin(admin.ModelAdmin):
         'sell_enabled',
         'basic_asset',
         'basic_asset_size',
+        'morning_trading',
+        'evening_trading'
     )
-    list_filter = ('asset_type',)
+    list_filter = ('asset_type', 'morning_trading', 'evening_trading')
     search_fields = ('ticker', 'figi', 'name')
     list_max_show_all = 5000
     list_per_page = 200
