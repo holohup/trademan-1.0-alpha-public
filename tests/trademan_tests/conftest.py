@@ -2,10 +2,29 @@ from decimal import Decimal
 
 import pytest
 from base.management.commands.update import INSTRUMENTS
-from base.models import Figi, Spread, SpreadStats
+from base.models import Figi, SellBuy, Spread, SpreadStats
 from django.core.management import call_command
 from tinkoff.invest.schemas import (Future, FuturesResponse, Quotation, Share,
                                     SharesResponse)
+
+
+@pytest.fixture
+def sellbuy_data(near_leg_sample):
+    return {
+        'active': True,
+        'asset': near_leg_sample,
+        'sell': False,
+        'amount': 1000,
+        'executed': 100,
+        'avg_exec_price': Decimal('159.99'),
+    }
+
+
+@pytest.fixture
+def sellbuy_sample(sellbuy_data):
+    sellbuy = SellBuy(**sellbuy_data)
+    sellbuy.save()
+    return sellbuy
 
 
 @pytest.fixture
@@ -23,6 +42,8 @@ def far_leg_data():
         sell_enabled=True,
         basic_asset_size=100,
         basic_asset='TGAZP2',
+        morning_trading=True,
+        evening_trading=True,
     )
 
 
@@ -39,6 +60,8 @@ def near_leg_data():
         short_enabled=True,
         buy_enabled=True,
         sell_enabled=True,
+        morning_trading=False,
+        evening_trading=False,
     )
 
 

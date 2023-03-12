@@ -9,7 +9,7 @@ from queue_handler import QUEUE
 from settings import ENDPOINT_HOST, ENDPOINTS, RETRY_SETTINGS, TCS_RO_TOKEN
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.utils import quotation_to_decimal
-from tools.adapters import SpreadToJsonAdapter
+from tools.adapters import SellBuyToJsonAdapter, SpreadToJsonAdapter
 from tools.classes import Asset, Spread
 
 
@@ -34,6 +34,18 @@ async def async_patch_spread(spread: Spread):
                 return True
             response_text = await response.text()
             await QUEUE.put(f'Error patching spreads. {response_text[:4000]}')
+            return False
+
+
+async def async_patch_sellbuy(sellbuy: Asset):
+    data = SellBuyToJsonAdapter(sellbuy).output
+    url = ENDPOINT_HOST + ENDPOINTS['sellbuy'] + str(sellbuy.id) + '/'
+    async with aiohttp.ClientSession() as session:
+        async with session.patch(url, json=data) as response:
+            if response.status == HTTPStatus.OK:
+                return True
+            response_text = await response.text()
+            await QUEUE.put(f'Error patching sellbuy. {response_text[:4000]}')
             return False
 
 
@@ -88,11 +100,6 @@ def parse_ticker_info(ticker: str) -> List[Asset]:
     return json.loads(request.urlopen(url).read())
 
 
-class SpreadDataParser:
-    def __init__(self, data) -> None:
-        self._data = data
-
-
 def prepare_leg(data, sell_direction: bool, amount: int):
     return Asset(
         figi=data['figi'],
@@ -127,7 +134,25 @@ def prepare_spread(spread_data):
 
 
 def prepare_spreads_data(data):
-    spreads = []
-    for spread in data:
-        spreads.append(prepare_spread(spread))
-    return spreads
+    return [prepare_spread(spread) for spread in data]
+
+
+def prepare_sellbuy_asset(data):
+    return Asset(
+        id=data['id'],
+        figi=data['figi'],
+        ticker=data['ticker'],
+        min_price_increment=Decimal(data['min_price_increment']),
+        lot=data['lot'],
+        executed=data['executed'],
+        avg_exec_price=Decimal(data['avg_exec_price']),
+        morning_trading=data['morning_trading'],
+        evening_trading=data['evening_trading'],
+        asset_type=data['asset_type'],
+        sell=data['sell'],
+        amount=data['amount'],
+    )
+
+
+def prepare_assets_data(data):
+    return [prepare_sellbuy_asset(asset) for asset in data]

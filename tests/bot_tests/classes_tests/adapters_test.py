@@ -7,9 +7,9 @@ from tinkoff.invest.schemas import StopOrderExpirationType as SType
 from tinkoff.invest.schemas import StopOrderType as SOType
 from tinkoff.invest.utils import decimal_to_quotation
 
-from bot.tools.adapters import (OrderAdapter, SpreadToJsonAdapter,
-                                StopOrderAdapter)
-from bot.tools.classes import Spread
+from bot.tools.adapters import (OrderAdapter, SellBuyToJsonAdapter,
+                                SpreadToJsonAdapter, StopOrderAdapter)
+from bot.tools.classes import Asset, Spread
 
 
 @pytest.mark.parametrize(
@@ -101,3 +101,9 @@ def test_spread_to_json_adapter(sample_spread: Spread):
         assert getattr(sample_spread, leg).avg_exec_price == Decimal(
             dikt[leg]['avg_exec_price']
         )
+
+
+def test_sellbuy_to_json_adapter(sample_far_leg: Asset):
+    dikt = SellBuyToJsonAdapter(sample_far_leg).output
+    assert sample_far_leg.executed == dikt['executed']
+    assert sample_far_leg.avg_exec_price == Decimal(dikt['avg_exec_price'])

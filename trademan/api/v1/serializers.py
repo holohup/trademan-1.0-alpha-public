@@ -2,6 +2,22 @@ from decimal import Decimal
 
 from base.models import Figi, RestoreStops, SellBuy, Spread, Stops
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
+
+class AssetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Figi
+        fields = (
+            'figi',
+            'ticker',
+            'min_price_increment',
+            'lot',
+            'morning_trading',
+            'evening_trading',
+            'asset_type'
+        )
+        read_only_fields = fields
 
 
 class BasicDataSerializer(serializers.ModelSerializer):
@@ -28,6 +44,10 @@ class StopsSerializer(BasicDataSerializer):
 
 
 class SellBuySerializer(BasicDataSerializer):
+    asset_type = serializers.CharField(source='asset.asset_type')
+    morning_trading = serializers.BooleanField(source='asset.morning_trading')
+    evening_trading = serializers.BooleanField(source='asset.evening_trading')
+
     class Meta:
         model = SellBuy
         fields = (
@@ -39,6 +59,10 @@ class SellBuySerializer(BasicDataSerializer):
             'sell',
             'amount',
             'executed',
+            'avg_exec_price',
+            'asset_type',
+            'morning_trading',
+            'evening_trading',
         )
         read_only_fields = (
             'id',
@@ -48,7 +72,20 @@ class SellBuySerializer(BasicDataSerializer):
             'lot',
             'sell',
             'amount',
+            'asset_type',
+            'morning_trading',
+            'evening_trading'
         )
+
+    def validate_executed(self, data):
+        if data <= Decimal('0'):
+            raise ValidationError('Executed must be > 0.')
+        return super().validate(data)
+
+    def validate_avg_exec_price(self, data):
+        if data <= Decimal('0'):
+            raise ValidationError('Avg_exec_price must be > 0.')
+        return super().validate(data)
 
 
 class RestoreStopsSerializer(BasicDataSerializer):
@@ -84,21 +121,6 @@ class TickerSerializer(serializers.ModelSerializer):
             'sell_enabled',
             'basic_asset_size',
         )
-
-
-class AssetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Figi
-        fields = (
-            'figi',
-            'ticker',
-            'min_price_increment',
-            'lot',
-            'morning_trading',
-            'evening_trading',
-            'asset_type'
-        )
-        read_only_fields = fields
 
 
 class SpreadsSerializer(serializers.ModelSerializer):

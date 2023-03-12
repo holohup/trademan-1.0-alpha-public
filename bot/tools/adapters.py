@@ -90,10 +90,22 @@ class SpreadToJsonAdapter:
         return {
             'far_leg': {
                 'executed': self._spread.far_leg.executed,
-                'avg_exec_price': str(self._spread.far_leg.avg_exec_price)
+                'avg_exec_price': str(self._spread.far_leg.avg_exec_price),
             },
             'near_leg': {
                 'executed': self._spread.near_leg.executed,
-                'avg_exec_price': str(self._spread.near_leg.avg_exec_price)
-            }
+                'avg_exec_price': str(self._spread.near_leg.avg_exec_price),
+            },
         }
+
+
+class SellBuyToJsonAdapter:
+    def __init__(self, sellbuy) -> None:
+        self._sellbuy = sellbuy
+
+    @property
+    def output(self):
+        return ({
+            'executed': self._sellbuy.executed,
+            'avg_exec_price': str(self._sellbuy.avg_exec_price),
+        })

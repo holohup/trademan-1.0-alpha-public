@@ -82,7 +82,7 @@ async def get_spread_prices(spread):
 
 async def adjust_placed_order(spread):
     if not spread.far_leg.order_placed:
-        return
+        return -1
     if (
         spread.far_leg.new_price != spread.far_leg.last_price
         or not ok_to_place_order(spread)
@@ -95,6 +95,7 @@ async def adjust_placed_order(spread):
         )
     await spread.far_leg.update_executed()
     await spread.even_execution()
+    return None
 
 
 async def place_new_far_leg_order(spread):

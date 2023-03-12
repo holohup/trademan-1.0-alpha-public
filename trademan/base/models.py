@@ -63,7 +63,7 @@ class BaseAssetModel(models.Model):
     executed = models.PositiveIntegerField(
         default=0, verbose_name='Исполнено шт.'
     )
-    exec_price = models.DecimalField(
+    avg_exec_price = models.DecimalField(
         decimal_places=10,
         max_digits=20,
         verbose_name='Ср. цена исполн.',
