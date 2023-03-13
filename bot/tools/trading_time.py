@@ -1,4 +1,5 @@
 import zoneinfo
+from abc import ABC, abstractmethod
 from datetime import datetime, time, timedelta
 from typing import NamedTuple
 
@@ -8,30 +9,71 @@ class TradingSession(NamedTuple):
     close: time
 
 
+class TradingHours(ABC):
+    @abstractmethod
+    def base(self):
+        pass
+
+    @abstractmethod
+    def morning_hours(self):
+        pass
+
+    @abstractmethod
+    def evening_hours(self):
+        pass
+
+
+class FutureTradingHours(TradingHours):
+    @property
+    def base(self):
+        return {
+            'before_noon': TradingSession(time(9, 00), time(14, 00)),
+            'after_noon': TradingSession(time(14, 10), time(18, 50)),
+        }
+
+    @property
+    def morning_hours(self):
+        return {}
+
+    @property
+    def evening_hours(self):
+        return {'evening': TradingSession(time(19, 15), time(23, 50))}
+
+
+class StockTradingHours(TradingHours):
+    @property
+    def base(self):
+        return {'base': TradingSession(time(10, 00), time(18, 39, 59))}
+
+    @property
+    def morning_hours(self):
+        return {'morning': TradingSession(time(9, 00), time(9, 50))}
+
+    @property
+    def evening_hours(self):
+        return {'evening': TradingSession(time(19, 5), time(23, 50))}
+
+
+TRADING_SCHEDULES = {
+    'S': StockTradingHours,
+    'F': FutureTradingHours
+}
 TRADE_DAYS = (0, 4)
 DAYS_IN_WEEK = 7
-MORNING_TRADE_HOURS = {'morning': TradingSession(time(9, 00), time(9, 50))}
-EVENING_TRADE_HOURS = {'evening': TradingSession(time(19, 5), time(23, 50))}
-STOCKS_TRADE_HOURS = {'base': TradingSession(time(10, 00), time(18, 39, 59))}
-FUTURES_TRADE_HOURS = {
-    'before_clearing': TradingSession(time(9, 00), time(14, 00)),
-    'after_clearing': TradingSession(time(14, 5), time(18, 45)),
-}
+
 TIME_OFFSET = timedelta(seconds=15)
 MOSCOW_ZONE = zoneinfo.ZoneInfo('Europe/Moscow')
 
 
 class TradingTime:
     def __init__(self, asset) -> None:
-        self._asset = asset
-        if asset.asset_type == 'F':
-            self._trading_sessions = dict(FUTURES_TRADE_HOURS)
-        else:
-            self._trading_sessions = dict(STOCKS_TRADE_HOURS)
-        if asset.morning_trading and asset.asset_type != 'F':
-            self._trading_sessions.update(MORNING_TRADE_HOURS)
+        schedule = TRADING_SCHEDULES[asset.asset_type]()
+        self._trading_sessions = dict(schedule.base)
+
+        if asset.morning_trading:
+            self._trading_sessions.update(schedule.morning_hours)
         if asset.evening_trading:
-            self._trading_sessions.update(EVENING_TRADE_HOURS)
+            self._trading_sessions.update(schedule.evening_hours)
         self._update_trading_schedule_with_time_offset()
         self._sorted_sess_cache = None
 
@@ -133,6 +175,9 @@ class TradingTime:
         self._trading_sessions = {
             title: TradingSession(
                 open=(datetime.combine(dt, period.open) + TIME_OFFSET).time(),
-                close=(datetime.combine(dt, period.close) - TIME_OFFSET).time()
-            ) for title, period in self._trading_sessions.items()
+                close=(
+                    datetime.combine(dt, period.close) - TIME_OFFSET
+                ).time(),
+            )
+            for title, period in self._trading_sessions.items()
         }

@@ -201,11 +201,11 @@ def test_future_seconds_till_trading_is_open_from_monday_midnight():
 @pytest.mark.parametrize(
     ('pause_time', 'asset_type', 'result'),
     (
-        ((19, 0, 0), FUTURE_PARAMS, 5 * 60 + OFFSET),
+        ((19, 0, 0), FUTURE_PARAMS, 15 * 60 + OFFSET),
         ((9, 00), STOCK_PARAMS, 60 * 60 + OFFSET),
         ((8, 00), FUTURE_PARAMS, 60 * 60 + OFFSET),
         (MIDNIGHT, STOCK_PARAMS, 10 * 60 * 60 + OFFSET),
-        ((14, 3, 30), FUTURE_PARAMS, 90 + OFFSET),
+        ((14, 3, 30), FUTURE_PARAMS, 390 + OFFSET),
         ((14, 3, 30), STOCK_PARAMS, 0),
         ((10, 00), STOCK_PARAMS, OFFSET),
         ((10, 00), FUTURE_PARAMS, 0),

@@ -45,7 +45,7 @@ def test_asset_is_trading_now_on_clearing_times(
         (STOCK_PARAMS, NOON, 0),
         (STOCK_PARAMS, MORNING, 55 * 60 + OFFSET),
         (FUTURE_PARAMS, MORNING, 0),
-        (FUTURE_PARAMS, (14, 0, 0), 5 * 60 + OFFSET),
+        (FUTURE_PARAMS, (14, 0, 0), 10 * 60 + OFFSET),
     ),
 )
 def test_seconds_till_trading_starts(preset, hour, result, patch_tradingtime):

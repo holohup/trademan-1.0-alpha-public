@@ -35,7 +35,7 @@ def test_seconds_till_trading_starts_when_both_legs_trade(
     ('hour', 'result'),
     (
         ((10, 0), OFFSET),
-        ((14, 0), 5 * 60 + OFFSET),
+        ((14, 0), 10 * 60 + OFFSET),
         ((20, 50), OFFSET + 10 * 60 + 13 * 60 * 60),
     ),
 )
