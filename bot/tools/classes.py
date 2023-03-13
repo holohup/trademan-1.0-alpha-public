@@ -68,7 +68,9 @@ class Asset:
         return get_lots(number_of_stocks, self.lot)
 
     async def cancel_order(self):
-        await cancel_order(self.order_id)
+        if self.order_placed:
+            await cancel_order(self.order_id)
+            print('order cancelled')
 
     async def get_assets_executed(self):
         return await get_execution_report(self.order_id)
@@ -127,8 +129,9 @@ class Asset:
         self.parse_order_response(r)
 
     async def update_executed(self):
-        r = await self.get_assets_executed()
-        self.parse_order_status(r)
+        if self.order_id:
+            r = await self.get_assets_executed()
+            self.parse_order_status(r)
 
     @property
     def latest_order_price(self):

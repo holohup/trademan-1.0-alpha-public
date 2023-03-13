@@ -14,7 +14,9 @@ async def test(*args, **kwargs):
 
     from tools.get_patch_prepare_data import async_patch_sellbuy
 
-    s = Asset(ticker='', figi='', min_price_increment=0, lot=0, id=1)
+    s = Asset(
+        ticker='', figi='', min_price_increment=Decimal('0'), lot=0, id=1
+    )
     s.order_cache.update('1', 50, Decimal('100'))
     return await async_patch_sellbuy(s)
 

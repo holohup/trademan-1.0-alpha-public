@@ -2,18 +2,10 @@ import asyncio
 
 from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
+from tools.classes import Asset
 from tools.get_patch_prepare_data import (async_get_api_data,
-                                          async_patch_executed,
-                                          prepare_asset_data)
-
-
-async def sleep_and_patch(asset):
-    await asyncio.gather(
-        asyncio.create_task(asyncio.sleep(SLEEP_PAUSE)),
-        asyncio.create_task(
-            async_patch_executed('sellbuy', asset.id, asset.executed)
-        ),
-    )
+                                          async_patch_sellbuy,
+                                          prepare_assets_data)
 
 
 async def sellbuy_cycle(asset):
@@ -27,26 +19,41 @@ async def sellbuy_cycle(asset):
 
 
 async def process_asset(asset):
+    last_executed = asset.executed
+
     while asset.next_order_amount >= asset.lot:
         try:
             await sellbuy_cycle(asset)
             asset.last_price = asset.new_price
-            await sleep_and_patch(asset)
+            if last_executed < asset.executed:
+                await async_patch_sellbuy(asset)
+                last_executed = asset.executed
+            await asyncio.sleep(SLEEP_PAUSE)
 
         except Exception as error:
             await QUEUE.put(error)
 
-    await async_patch_executed('sellbuy', asset.id, asset.executed)
-    await QUEUE.put(f'Sellbuy for {asset.ticker} finished')
-    return {asset.ticker: asset.executed}
+    return (
+        f'Sellbuy for {asset.ticker} finished: {asset.executed}'
+        f' for {asset.avg_exec_price}'
+    )
+
+
+async def safe_order_cancel(asset: Asset):
+    if asset.order_placed:
+        await asset.cancel_order()
+    if asset.order_id:
+        await asset.update_executed()
+    if asset.executed > 0:
+        await async_patch_sellbuy(asset)
 
 
 async def sellbuy(*args, **kwargs):
-    assets = prepare_asset_data(await async_get_api_data('sellbuy'))
+    assets = prepare_assets_data(await async_get_api_data('sellbuy'))
     if not assets:
         return 'No active assets to sell or buy'
     try:
-        print(f'Starting assets: {assets}')
+        print(f'Starting sellbuy: {assets}')
         result = await asyncio.gather(
             *[
                 asyncio.create_task(process_asset(asset), name=asset.ticker)
@@ -55,34 +62,18 @@ async def sellbuy(*args, **kwargs):
         )
         return f'''Покупка-продажа завершены.
          Исполнены заявки по инструментам: {result}'''
+
     except asyncio.CancelledError:
-        await asyncio.gather(
-            *[
-                asyncio.create_task(asset.cancel_order())
-                for asset in assets
-                if asset.order_placed
-            ]
-        )
-        await asyncio.gather(
-            *[
-                asyncio.create_task(asset.update_executed())
-                for asset in assets
-                if asset.order_id
-            ]
-        )
-        await asyncio.gather(
-            *[
-                asyncio.create_task(
-                    async_patch_executed('sellbuy', asset.id, asset.executed)
-                )
-                for asset in assets
-                if asset.executed > 0
-            ]
-        )
-        executed_tickers = {
-            asset.ticker: asset.executed
+        await asyncio.wait([asyncio.create_task(
+            safe_order_cancel(asset)
+        ) for asset in assets
+        ])
+        executed_tickers = [
+            f'{asset.ticker}: {asset.executed} for {asset.avg_exec_price}'
             for asset in assets
             if asset.executed > 0
-        }
+        ]
+        if not executed_tickers:
+            executed_tickers = None
         return f'''SellBuy routine stopped.
-         Lots already executed: {executed_tickers}.'''
+        Already executed: {executed_tickers}.'''

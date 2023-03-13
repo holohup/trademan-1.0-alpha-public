@@ -24,37 +24,37 @@ def ok_to_place_order(spread):
     )
 
 
-async def cancel_active_orders_and_update_data(spreads):
-    await asyncio.gather(
-        *[
-            asyncio.create_task(spread.near_leg.cancel_order())
-            for spread in spreads
-            if spread.near_leg.order_placed
-        ],
-        *[
-            asyncio.create_task(spread.far_leg.cancel_order())
-            for spread in spreads
-            if spread.far_leg.order_placed
-        ],
-    )
-    await asyncio.gather(
-        *[
-            asyncio.create_task(spread.near_leg.update_executed())
-            for spread in spreads
-            if spread.near_leg.order_id
-        ],
-        *[
-            asyncio.create_task(spread.far_leg.update_executed())
-            for spread in spreads
-            if spread.far_leg.order_id
-        ],
-    )
-    await asyncio.gather(
-        *[
-            asyncio.create_task(async_patch_spread(spread))
-            for spread in spreads
-            if spread.executed > 0
+async def safe_orders_cancel(spread):
+    await asyncio.wait(
+        [
+            asyncio.create_task(spread.far_leg.cancel_order()),
+            asyncio.create_task(spread.near_leg.cancel_order()),
         ]
+    )
+    await asyncio.wait(
+        [
+            spread.far_leg.update_executed(),
+            spread.near_leg.update_executed(),
+        ]
+    )
+    # await asyncio.gather(
+    #     asyncio.create_task(spread.far_leg.cancel_order()),
+    #     asyncio.create_task(spread.near_leg.cancel_order())
+    # )
+    # await asyncio.gather(
+    #     asyncio.create_task(spread.far_leg.update_executed()),
+    #     asyncio.create_task(spread.near_leg.update_executed())
+    # )
+    if spread.executed > 0:
+        await async_patch_spread(spread)
+
+
+async def cancel_active_orders_and_update_data(spreads):
+    await asyncio.wait(
+        [
+            asyncio.create_task(safe_orders_cancel(spread))
+            for spread in spreads
+        ],
     )
 
 
@@ -66,36 +66,29 @@ async def wait_till_market_open(spread: Spread):
         f'{spread}: Not a trading time. Waiting '
         f'for {sleep_time // 60} minutes.'
     )
-    await asyncio.gather(
-        asyncio.create_task(asyncio.sleep(sleep_time)),
-        asyncio.create_task(cancel_active_orders_and_update_data([spread])),
-    )
+    await asyncio.sleep(sleep_time)
     logging.warning(f'{spread}: Resuming session.')
 
 
 async def get_spread_prices(spread):
-    await asyncio.gather(
-        asyncio.create_task(spread.far_leg.get_price_from_order_book()),
-        asyncio.create_task(spread.near_leg.get_price_from_order_book()),
+    await asyncio.wait(
+        [
+            asyncio.create_task(spread.far_leg.get_price_from_order_book()),
+            asyncio.create_task(spread.near_leg.get_price_from_order_book()),
+        ]
     )
 
 
-async def adjust_placed_order(spread):
-    if not spread.far_leg.order_placed:
-        return -1
-    if (
+def far_leg_order_should_be_cancelled(spread: Spread):
+    return spread.far_leg.order_placed and (
         spread.far_leg.new_price != spread.far_leg.last_price
         or not ok_to_place_order(spread)
-    ):
-        await spread.far_leg.cancel_order()
-    else:
-        logging.info(
-            'Prices unchanged, not cancelling the order '
-            f'for {spread.far_leg.ticker}.'
-        )
+    )
+
+
+async def even_legs_execution(spread):
     await spread.far_leg.update_executed()
     await spread.even_execution()
-    return None
 
 
 async def place_new_far_leg_order(spread):
@@ -126,9 +119,13 @@ async def patch_executed(spread, last_executed):
     return spread.executed
 
 
-async def spread_trading_cycle(spread):
+async def spread_trading_cycle(spread: Spread):
+    if not spread.is_trading_now:
+        await wait_till_market_open(spread)
     await get_spread_prices(spread)
-    await adjust_placed_order(spread)
+    if far_leg_order_should_be_cancelled(spread):
+        await spread.far_leg.cancel_order()
+    await even_legs_execution(spread)
     await place_new_far_leg_order(spread)
     spread.far_leg.last_price = spread.far_leg.new_price
 
@@ -142,9 +139,6 @@ async def process_spread(spread: Spread):
     last_executed = spread.executed
 
     while spread.executed < spread.amount:
-        if not spread.is_trading_now:
-            await wait_till_market_open(spread)
-
         try:
             await spread_trading_cycle(spread)
             last_executed = await patch_executed(spread, last_executed)
@@ -153,7 +147,6 @@ async def process_spread(spread: Spread):
         except Exception as error:
             await process_error(error, spread)
 
-    await async_patch_spread(spread)
     return spread
 
 

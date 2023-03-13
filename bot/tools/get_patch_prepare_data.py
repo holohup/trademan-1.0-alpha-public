@@ -13,18 +13,6 @@ from tools.adapters import SellBuyToJsonAdapter, SpreadToJsonAdapter
 from tools.classes import Asset, Spread
 
 
-async def async_patch_executed(
-    command: str, id: int, executed: int, price: float = 0
-):
-    data = {'executed': executed}
-    if price:
-        data['exec_price'] = price
-    url = ENDPOINT_HOST + ENDPOINTS[command] + str(id) + '/'
-    async with aiohttp.ClientSession() as session:
-        async with session.patch(url, data=data) as response:
-            return response.status == HTTPStatus.OK
-
-
 async def async_patch_spread(spread: Spread):
     data = SpreadToJsonAdapter(spread).output
     url = ENDPOINT_HOST + ENDPOINTS['spreads'] + str(spread.id) + '/'
@@ -129,7 +117,7 @@ def prepare_spread(spread_data):
         price=spread_data['price'],
         sell=sell,
         ratio=ratio,
-        amount=spread_data['amount']
+        amount=spread_data['amount'],
     )
 
 
@@ -154,5 +142,5 @@ def prepare_sellbuy_asset(data):
     )
 
 
-def prepare_assets_data(data):
+def prepare_assets_data(data) -> List[Asset]:
     return [prepare_sellbuy_asset(asset) for asset in data]

@@ -5,7 +5,9 @@ from .models import Figi, RestoreStops, SellBuy, Spread, SpreadStats, Stops
 
 @admin.register(SellBuy)
 class SellBuyAdmin(admin.ModelAdmin):
-    list_display = ('asset', 'sell', 'amount', 'executed', 'active')
+    list_display = (
+        'asset', 'sell', 'amount', 'executed', 'avg_exec_price', 'active'
+    )
     list_display_links = ('asset',)
     autocomplete_fields = ('asset',)
     list_editable = ('amount', 'sell', 'executed', 'active')
@@ -64,10 +66,8 @@ class SpreadAdmin(admin.ModelAdmin):
         )
 
     def save_model(self, request, obj: Spread, form, change):
-        created = not obj.pk
-        if created:
-            stats = SpreadStats.objects.create()
-            obj.stats = stats
+        if not obj.pk:
+            obj.stats = SpreadStats.objects.create()
         obj.save()
 
 
