@@ -37,14 +37,7 @@ async def safe_orders_cancel(spread):
             spread.near_leg.update_executed(),
         ]
     )
-    # await asyncio.gather(
-    #     asyncio.create_task(spread.far_leg.cancel_order()),
-    #     asyncio.create_task(spread.near_leg.cancel_order())
-    # )
-    # await asyncio.gather(
-    #     asyncio.create_task(spread.far_leg.update_executed()),
-    #     asyncio.create_task(spread.near_leg.update_executed())
-    # )
+
     if spread.executed > 0:
         await async_patch_spread(spread)
 
@@ -80,13 +73,13 @@ async def get_spread_prices(spread):
 
 
 def far_leg_order_should_be_cancelled(spread: Spread):
-    return spread.far_leg.order_placed and (
+    return (
         spread.far_leg.new_price != spread.far_leg.last_price
         or not ok_to_place_order(spread)
     )
 
 
-async def even_legs_execution(spread):
+async def even_legs_execution(spread: Spread):
     await spread.far_leg.update_executed()
     await spread.even_execution()
 

@@ -70,7 +70,7 @@ class Asset:
     async def cancel_order(self):
         if self.order_placed:
             await cancel_order(self.order_id)
-            print('order cancelled')
+            self.order_placed = False
 
     async def get_assets_executed(self):
         return await get_execution_report(self.order_id)

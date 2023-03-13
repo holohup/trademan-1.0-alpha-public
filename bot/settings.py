@@ -41,7 +41,7 @@ ORDER_TTL = 120
 NUKE_LEVELS = ('0', '1', '5', '7')
 
 # tinkoff settings
-SLEEP_PAUSE = 10
+SLEEP_PAUSE = 1
 RETRY_SETTINGS = RetryClientSettings(use_retry=True, max_retry_attempt=100)
 
 load_dotenv()

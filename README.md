@@ -185,7 +185,7 @@ Although you might see more Bot commands in the source code, here's the list of 
 ### Global
 
 - Refactor using Martin's Clean Code principles
-- Add average execution prices for **/sellbuy**
+- ~~Add average execution prices for **/sellbuy**~~
 - ~~Separate trading schedule for futures on MOEX~~
 - Implement various stop-type order types for **/restore** command to become fully usable
 - ~~Test coverage for all aspects, including Decimal - Float - MoneyValue conversions and Decimal initializations~~
