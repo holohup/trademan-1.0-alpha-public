@@ -27,7 +27,7 @@ class FutureTradingHours(TradingHours):
     def base_hours(self):
         return {
             'before_noon': TradingSession(time(9, 00), time(14, 00)),
-            'after_noon': TradingSession(time(14, 10), time(18, 50)),
+            'after_noon': TradingSession(time(14, 5), time(18, 50)),
         }
 
     @property
@@ -36,7 +36,7 @@ class FutureTradingHours(TradingHours):
 
     @property
     def evening_hours(self):
-        return {'evening': TradingSession(time(19, 15), time(23, 50))}
+        return {'evening': TradingSession(time(19, 5), time(23, 50))}
 
 
 class StockTradingHours(TradingHours):
