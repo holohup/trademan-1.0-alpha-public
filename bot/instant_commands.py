@@ -42,7 +42,11 @@ async def get_current_spread_prices(*args, **kwargs):
     if not spreads:
         return 'No active assets to sell or buy'
     result = await asyncio.gather(
-        *[asyncio.create_task(get_spread_price(spread)) for spread in spreads],
+        *[
+            asyncio.create_task(get_spread_price(spread))
+            for spread in spreads
+            if spread.is_trading_now
+        ],
     )
     return '\n'.join(result)
 

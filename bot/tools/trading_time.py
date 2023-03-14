@@ -1,63 +1,10 @@
 import zoneinfo
-from abc import ABC, abstractmethod
 from datetime import datetime, time, timedelta
-from typing import NamedTuple
 
+from tools.trading_hours import (FutureTradingHours, StockTradingHours,
+                                 TradingSession)
 
-class TradingSession(NamedTuple):
-    open: time
-    close: time
-
-
-class TradingHours(ABC):
-    @abstractmethod
-    def base(self):
-        pass
-
-    @abstractmethod
-    def morning_hours(self):
-        pass
-
-    @abstractmethod
-    def evening_hours(self):
-        pass
-
-
-class FutureTradingHours(TradingHours):
-    @property
-    def base(self):
-        return {
-            'before_noon': TradingSession(time(9, 00), time(14, 00)),
-            'after_noon': TradingSession(time(14, 10), time(18, 50)),
-        }
-
-    @property
-    def morning_hours(self):
-        return {}
-
-    @property
-    def evening_hours(self):
-        return {'evening': TradingSession(time(19, 15), time(23, 50))}
-
-
-class StockTradingHours(TradingHours):
-    @property
-    def base(self):
-        return {'base': TradingSession(time(10, 00), time(18, 39, 59))}
-
-    @property
-    def morning_hours(self):
-        return {'morning': TradingSession(time(9, 00), time(9, 50))}
-
-    @property
-    def evening_hours(self):
-        return {'evening': TradingSession(time(19, 5), time(23, 50))}
-
-
-TRADING_SCHEDULES = {
-    'S': StockTradingHours,
-    'F': FutureTradingHours
-}
+TRADING_SCHEDULES = {'S': StockTradingHours, 'F': FutureTradingHours}
 TRADE_DAYS = (0, 4)
 DAYS_IN_WEEK = 7
 
@@ -68,7 +15,7 @@ MOSCOW_ZONE = zoneinfo.ZoneInfo('Europe/Moscow')
 class TradingTime:
     def __init__(self, asset) -> None:
         schedule = TRADING_SCHEDULES[asset.asset_type]()
-        self._trading_sessions = dict(schedule.base)
+        self._trading_sessions = dict(schedule.base_hours)
 
         if asset.morning_trading:
             self._trading_sessions.update(schedule.morning_hours)
@@ -134,7 +81,7 @@ class TradingTime:
         for session in self._sorted_sessions:
             if session.open > tyme:
                 return self._time_difference_in_seconds(session.open, tyme)
-        return 0
+        raise ValueError(f'Unexpected search for session after close. {tyme}')
 
     def _time_difference_in_seconds(self, t1: time, t2: time):
         delta = datetime.combine(
@@ -175,9 +122,7 @@ class TradingTime:
         self._trading_sessions = {
             title: TradingSession(
                 open=(datetime.combine(dt, period.open) + TIME_OFFSET).time(),
-                close=(
-                    datetime.combine(dt, period.close) - TIME_OFFSET
-                ).time(),
+                close=(datetime.combine(dt, period.close) - TIME_OFFSET).time()
             )
             for title, period in self._trading_sessions.items()
         }
