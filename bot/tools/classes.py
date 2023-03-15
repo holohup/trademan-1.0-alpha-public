@@ -70,7 +70,7 @@ class Asset:
     async def cancel_order(self):
         if self.order_placed:
             await cancel_order(self.order_id)
-            self.order_placed = False
+            await self.update_executed()
 
     async def get_assets_executed(self):
         return await get_execution_report(self.order_id)
@@ -132,6 +132,8 @@ class Asset:
         if self.order_id:
             r = await self.get_assets_executed()
             self.parse_order_status(r)
+            if not self.order_placed:
+                self.order_id = None
 
     @property
     def latest_order_price(self):
