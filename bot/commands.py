@@ -34,9 +34,9 @@ async def cancel_all_orders(*args, **kwargs):
 async def tasks(*args, **kwargs):
     tasks = (
         ', '.join([task for task in RUNNING_TASKS.keys() if task != 'Tasks'])
-        if RUNNING_TASKS
-        else 'None'
     )
+    if not tasks:
+        tasks = 'None'
     return f'Running tasks: {tasks}'
 
 
