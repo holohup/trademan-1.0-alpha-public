@@ -48,7 +48,10 @@ async def get_current_spread_prices(*args, **kwargs):
             if spread.is_trading_now
         ],
     )
-    return '\n'.join(result)
+    not_trading = ', '.join(
+        [str(spread) for spread in spreads if not spread.is_trading_now]
+    )
+    return '\n'.join(result) + f'\nCurrently not trading: {not_trading}'
 
 
 async def help(*args, **kwargs):

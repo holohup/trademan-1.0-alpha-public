@@ -47,6 +47,7 @@ async def cancel_active_orders_and_update_data(spreads):
         [
             asyncio.create_task(safe_orders_cancel(spread))
             for spread in spreads
+            if spread.executed < spread.amount
         ],
     )
 
@@ -155,7 +156,12 @@ async def spreads(*args, **kwargs):
                 for spread in spreads
             ]
         )
-        return f'Торговля спредами завершена: {result}'
+
+        return (
+            f'Торговля спредами завершена: {result}'
+            if result
+            else 'Торговля спредами завершена, сделок не было'
+        )
 
     except asyncio.CancelledError:
         await cancel_active_orders_and_update_data(spreads)
@@ -167,4 +173,6 @@ async def spreads(*args, **kwargs):
             ]
         )
         print('Stopping spreads')
+        if not result:
+            result = 'None'
         return f'Spreads routine cancelled. Executed: \n{result}'
