@@ -13,7 +13,7 @@ class Figi(models.Model):
     )
     asset_type = models.CharField(
         max_length=1,
-        choices=(('S', 'Stock'), ('F', 'Future')),
+        choices=(('S', 'Stock'), ('F', 'Future'), ('B', 'Bond')),
         verbose_name='Тип актива',
     )
     api_trading_available = models.BooleanField(verbose_name='API')
@@ -34,6 +34,13 @@ class Figi(models.Model):
     def save(self, *args, **kwargs):
         if not self.pk and self.asset_type == 'F':
             self.morning_trading = True
+            self.evening_trading = True
+        if (
+            not self.pk
+            and self.asset_type == 'B'
+            and self.ticker.startswith('SU')
+            and self.name.startswith('ОФЗ')
+        ):
             self.evening_trading = True
         super().save(*args, **kwargs)
 

@@ -25,6 +25,9 @@ INSTRUMENTS = {
     'Futures': InstrumentSettings(
         'F', RealExchange.REAL_EXCHANGE_MOEX, 'futures'
     ),
+    'Bonds': InstrumentSettings(
+        'B', RealExchange.REAL_EXCHANGE_MOEX, 'bonds'
+    )
 }
 
 

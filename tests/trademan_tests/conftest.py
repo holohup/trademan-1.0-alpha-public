@@ -4,7 +4,8 @@ import pytest
 from base.management.commands.update import INSTRUMENTS
 from base.models import Figi, SellBuy, Spread, SpreadStats
 from django.core.management import call_command
-from tinkoff.invest.schemas import (Future, FuturesResponse, Quotation, Share,
+from tinkoff.invest.schemas import (Bond, BondsResponse, Future,
+                                    FuturesResponse, Quotation, Share,
                                     SharesResponse)
 
 
@@ -125,7 +126,20 @@ def api_fixtures():
         sell_available_flag=True,
         real_exchange=INSTRUMENTS['Stocks'].exchange,
     )
+    bond = Bond(
+        figi='BbBb',
+        ticker='BbBb',
+        lot=1,
+        name='BOND',
+        min_price_increment=Quotation(units=0, nano=1000),
+        api_trade_available_flag=True,
+        short_enabled_flag=True,
+        buy_available_flag=True,
+        sell_available_flag=True,
+        real_exchange=INSTRUMENTS['Bonds'].exchange,
+    )
     return {
         'Futures': FuturesResponse(instruments=[future]),
         'Stocks': SharesResponse(instruments=[share]),
+        'Bonds': BondsResponse(instruments=[bond])
     }
