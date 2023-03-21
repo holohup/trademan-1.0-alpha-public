@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from base.models import Figi, RestoreStops, SellBuy, Spread, Stops
+from base.models import Figi, SellBuy, Spread, Stops
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -86,21 +86,6 @@ class SellBuySerializer(BasicDataSerializer):
         if data <= Decimal('0'):
             raise ValidationError('Avg_exec_price must be > 0.')
         return super().validate(data)
-
-
-class RestoreStopsSerializer(BasicDataSerializer):
-    class Meta:
-        model = RestoreStops
-        fields = (
-            'id',
-            'figi',
-            'min_price_increment',
-            'ticker',
-            'lot',
-            'sell',
-            'amount',
-            'price',
-        )
 
 
 class TickerSerializer(serializers.ModelSerializer):

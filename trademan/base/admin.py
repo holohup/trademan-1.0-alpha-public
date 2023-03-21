@@ -1,12 +1,17 @@
 from django.contrib import admin
 
-from .models import Figi, RestoreStops, SellBuy, Spread, SpreadStats, Stops
+from .models import Figi, SellBuy, Spread, SpreadStats, StopOrder, Stops
 
 
 @admin.register(SellBuy)
 class SellBuyAdmin(admin.ModelAdmin):
     list_display = (
-        'asset', 'sell', 'amount', 'executed', 'avg_exec_price', 'active'
+        'asset',
+        'sell',
+        'amount',
+        'executed',
+        'avg_exec_price',
+        'active',
     )
     list_display_links = ('asset',)
     autocomplete_fields = ('asset',)
@@ -71,13 +76,37 @@ class SpreadAdmin(admin.ModelAdmin):
         obj.save()
 
 
-@admin.register(RestoreStops)
-class RestoreStopsAdmin(admin.ModelAdmin):
-    list_display = ('asset', 'price', 'sell', 'amount', 'active')
+@admin.register(StopOrder)
+class StopOrderAdmin(admin.ModelAdmin):
+    list_display = (
+        'asset',
+        'price',
+        'stop_price',
+        'sell',
+        'lots',
+        'active',
+        'order_type',
+    )
     list_display_links = ('asset',)
     autocomplete_fields = ('asset',)
-    list_editable = ('amount', 'price', 'active')
-    list_filter = ('active',)
+    list_editable = (
+        'price',
+        'stop_price',
+        'lots',
+        'sell',
+        'active',
+        'order_type',
+    )
+    list_filter = ('active', 'order_type', 'sell')
+    fields = (
+        'asset',
+        'price',
+        'stop_price',
+        'sell',
+        'lots',
+        'active',
+        'order_type',
+    )
 
 
 @admin.register(Figi)
@@ -94,7 +123,7 @@ class FigiAdmin(admin.ModelAdmin):
         'basic_asset',
         'basic_asset_size',
         'morning_trading',
-        'evening_trading'
+        'evening_trading',
     )
     list_filter = ('asset_type', 'morning_trading', 'evening_trading')
     search_fields = ('ticker', 'figi', 'name')

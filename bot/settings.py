@@ -58,7 +58,7 @@ ENDPOINT_HOST = os.getenv('BASE_HOST', 'http://127.0.0.1:8000/')
 ENDPOINTS = {
     'shorts': 'api/v1/shorts/',
     'stops': 'api/v1/stops/',
-    'restore_stops': 'api/v1/restorestops/',
+    'stop_orders': 'api/v1/stop_orders/',
     'spreads': 'api/v1/spreads/',
     'sellbuy': 'api/v1/sellbuy/',
     'health': 'api/v1/health/',

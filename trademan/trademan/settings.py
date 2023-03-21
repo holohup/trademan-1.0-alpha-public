@@ -1,6 +1,7 @@
 import os
 
 from dotenv import load_dotenv
+from tinkoff.invest.retrying.settings import RetryClientSettings
 
 DEBUG_DB = False
 load_dotenv()
@@ -153,3 +154,5 @@ if DEBUG_DB:
             },
         },
     }
+
+RETRY_SETTINGS = RetryClientSettings(use_retry=True, max_retry_attempt=100)

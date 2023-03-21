@@ -5,21 +5,30 @@ from django.db import models
 
 class Figi(models.Model):
     figi = models.CharField(max_length=15, verbose_name='figi', unique=True)
-    ticker = models.CharField(max_length=10, verbose_name='Тикер')
-    name = models.CharField(max_length=100, verbose_name='Название компании')
-    lot = models.PositiveIntegerField(verbose_name='Лот')
+    ticker = models.CharField(
+        max_length=10, verbose_name='Тикер', default='NULL'
+    )
+    name = models.CharField(
+        max_length=100, verbose_name='Название компании', blank=True
+    )
+    lot = models.PositiveIntegerField(verbose_name='Лот', default=0)
     min_price_increment = models.DecimalField(
-        decimal_places=10, max_digits=20, verbose_name='Шаг цены'
+        decimal_places=10,
+        max_digits=20,
+        verbose_name='Шаг цены',
+        default=Decimal('0'),
     )
     asset_type = models.CharField(
         max_length=1,
         choices=(('S', 'Stock'), ('F', 'Future'), ('B', 'Bond')),
         verbose_name='Тип актива',
     )
-    api_trading_available = models.BooleanField(verbose_name='API')
-    short_enabled = models.BooleanField(verbose_name='Short')
-    buy_enabled = models.BooleanField(verbose_name='Buy')
-    sell_enabled = models.BooleanField(verbose_name='Sell')
+    api_trading_available = models.BooleanField(
+        verbose_name='API', default=False
+    )
+    short_enabled = models.BooleanField(verbose_name='Short', default=False)
+    buy_enabled = models.BooleanField(verbose_name='Buy', default=False)
+    sell_enabled = models.BooleanField(verbose_name='Sell', default=False)
     basic_asset_size = models.IntegerField(
         'Лотность фьюч.',
         null=True,
@@ -65,7 +74,7 @@ class BaseAssetModel(models.Model):
     )
     sell = models.BooleanField(verbose_name='Продать?')
     amount = models.PositiveIntegerField(
-        verbose_name='Количество к исполнению'
+        verbose_name='Количество к исполнению', default=0
     )
     executed = models.PositiveIntegerField(
         default=0, verbose_name='Исполнено шт.'
@@ -182,8 +191,30 @@ class Spread(models.Model):
         verbose_name_plural = 'Спреды'
 
 
-class RestoreStops(BaseAssetModel):
-    price = models.FloatField(verbose_name='Цена')
+class StopOrder(BaseAssetModel):
+    lots = models.IntegerField('Количество лотов', default=0)
+    order_type = models.SmallIntegerField(
+        choices=(
+            (0, 'Unspecified'),
+            (1, 'Take-profit'),
+            (2, 'Stop-loss'),
+            (3, 'Stop-limit'),
+        ),
+        verbose_name='Тип заяки',
+        default=0,
+    )
+    price = models.DecimalField(
+        decimal_places=10,
+        max_digits=20,
+        verbose_name='Цена заявки за 1 инструмент',
+        default=Decimal('0'),
+    )
+    stop_price = models.DecimalField(
+        decimal_places=10,
+        max_digits=20,
+        verbose_name='Цена активации заявки',
+        default=Decimal('0'),
+    )
 
     class Meta:
         verbose_name = 'Восстановление стопов'
