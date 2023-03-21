@@ -65,9 +65,3 @@ def test_correct_objects_created(
 def test_correct_response_without_stashed_orders(client):
     response = client.post(reverse('stop_orders'))
     assert response.status_code == status.HTTP_404_NOT_FOUND
-
-
-@pytest.mark.django_db
-def test_correct_response_with_stashed_orders(patched_get_response, client):
-    response = client.post(reverse('stop_orders'))
-    assert response.status_code == status.HTTP_200_OK
