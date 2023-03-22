@@ -31,8 +31,7 @@ class TinkoffStopOrderAdapter(StopOrderAdapter):
         for order in orders:
             order_params = self._prepare_order_params(order)
             with RetryingClient(self._token, self._retry_settings) as client:
-                r = client.stop_orders.post_stop_order(**order_params)
-            print(r)
+                client.stop_orders.post_stop_order(**order_params)
 
     def _prepare_order_params(self, order):
         direction = (
@@ -40,9 +39,10 @@ class TinkoffStopOrderAdapter(StopOrderAdapter):
             if order.sell
             else SoD.STOP_ORDER_DIRECTION_BUY
         )
-        ratio = (
-            Decimal('0.1') if order.asset.asset_type == 'B' else Decimal('1')
-        )
+        if order.asset.asset_type == 'B':
+            ratio = Decimal('100') / order.asset.nominal
+        else:
+            ratio = Decimal('1')
         return {
             'figi': order.asset.figi,
             'price': decimal_to_quotation(order.price * ratio),

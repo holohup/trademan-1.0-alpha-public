@@ -37,6 +37,12 @@ class Figi(models.Model):
     basic_asset = models.CharField(
         'Base asset', null=True, blank=True, max_length=100
     )
+    nominal = models.DecimalField(
+        decimal_places=10,
+        max_digits=20,
+        verbose_name='Номинал облигации',
+        default=Decimal('0'),
+    )
     morning_trading = models.BooleanField('Утр. торги', default=False)
     evening_trading = models.BooleanField('Веч. торги', default=False)
 

@@ -72,6 +72,8 @@ def fill_fields(inst: Union[Share, Future], inst_type: str) -> dict:
             quotation_to_decimal(inst.basic_asset_size)  # type: ignore
         )
         result['basic_asset'] = inst.basic_asset  # type: ignore
+    if inst_type == 'Bonds':
+        result['nominal'] = quotation_to_decimal(inst.nominal)  # type: ignore
     return result
 
 

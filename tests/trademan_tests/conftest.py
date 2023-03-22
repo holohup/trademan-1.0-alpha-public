@@ -5,8 +5,8 @@ from base.management.commands.update import INSTRUMENTS
 from base.models import Figi, SellBuy, Spread, SpreadStats
 from django.core.management import call_command
 from tinkoff.invest.schemas import (Bond, BondsResponse, Future,
-                                    FuturesResponse, Quotation, Share,
-                                    SharesResponse)
+                                    FuturesResponse, MoneyValue, Quotation,
+                                    Share, SharesResponse)
 
 
 @pytest.fixture
@@ -137,9 +137,10 @@ def api_fixtures():
         buy_available_flag=True,
         sell_available_flag=True,
         real_exchange=INSTRUMENTS['Bonds'].exchange,
+        nominal=MoneyValue(currency='rub', units=1000, nano=0),
     )
     return {
         'Futures': FuturesResponse(instruments=[future]),
         'Stocks': SharesResponse(instruments=[share]),
-        'Bonds': BondsResponse(instruments=[bond])
+        'Bonds': BondsResponse(instruments=[bond]),
     }

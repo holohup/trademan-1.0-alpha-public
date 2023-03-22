@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from api.v1.stop_orders import TinkoffStopOrderAdapter
 from base.models import StopOrder
@@ -65,3 +67,25 @@ def test_correct_objects_created(
 def test_correct_response_without_stashed_orders(client):
     response = client.post(reverse('stop_orders'))
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_correct_instrument_prices_will_be_passed(
+    patched_get_response, sample_stop_orders_response
+):
+    adapter = TinkoffStopOrderAdapter('000', '000', '000')
+    orders = StopOrder.objects.all()
+    for order in orders:
+        params = adapter._prepare_order_params(order)
+        if order.asset.asset_type == 'B':
+            assert quotation_to_decimal(
+                params['price']
+            ) == order.price / Decimal('10')
+            assert quotation_to_decimal(
+                params['stop_price']
+            ) == order.stop_price / Decimal('10')
+        else:
+            assert quotation_to_decimal(params['price']) == order.price
+            assert (
+                quotation_to_decimal(params['stop_price']) == order.stop_price
+            )
