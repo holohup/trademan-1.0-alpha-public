@@ -44,6 +44,14 @@ async def async_get_api_data(command: str):
             return await response.json()
 
 
+async def async_post_api_data(command: str):
+    url = ENDPOINT_HOST + ENDPOINTS[command]
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url) as response:
+            text = await response.text()
+            return text.strip('"')
+
+
 async def async_check_health():
     url = ENDPOINT_HOST + ENDPOINTS['health']
     async with aiohttp.ClientSession() as session:

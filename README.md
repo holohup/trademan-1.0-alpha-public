@@ -179,6 +179,8 @@ Although you might see more Bot commands in the source code, here's the list of 
 - **/cancel** - cancels all active orders, including stop-orders
 - **/tasks** - returns currently running tasks
 - **/nuke [ticker] [sum]** - places stop orders for the ticker, splitting sum into four: current price, 99% of current price, 95% of current price and 93% of current price, like in Art Cashin's formula
+- **/stash** and **/restore** - stashes active stop orders to the database and restores them. Needed in case you urgently need to cancel everything and don't want to loose your precious stop orders parameters. The commands clean up before saving or restoring stops, only one stash is available.
+- **/tasks** - returns the list of currently running tasks.
 
 ## Plans for the future
 
@@ -187,7 +189,7 @@ Although you might see more Bot commands in the source code, here's the list of 
 - Refactor using Martin's Clean Code principles
 - ~~Add average execution prices for **/sellbuy**~~
 - ~~Separate trading schedule for futures on MOEX~~
-- Implement various stop-type order types for **/restore** command to become fully usable
+- ~~Implement various stop-type order types for **/restore** command to become fully usable~~
 - ~~Test coverage for all aspects, including Decimal - Float - MoneyValue conversions and Decimal initializations~~
 - Implement current margin amounts before starting new trade jobs, with Telegram warnings.
 - Implement a **/status** command which returns a Telegram reply with the current status for each currently active command.

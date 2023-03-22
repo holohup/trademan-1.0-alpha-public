@@ -7,9 +7,9 @@ from grpc.aio._call import AioRpcError
 from instant_commands import (check_health, get_current_spread_prices, help,
                               test)
 from place_stops import place_stops, process_nuke_command
-from restore_stops import restore_stops
 from sellbuy import sellbuy
 from spreads import spreads
+from stop_orders import restore_stops, save_stops
 
 RUNNING_TASKS = {}
 
@@ -46,6 +46,7 @@ ROUTINES = {
     'stops': ('Placing long stops', place_stops),
     'nuke': ('Nuke', process_nuke_command),
     'shorts': ('Placing short stops', place_stops),
+    'stash': ('Saving stop orders to db', save_stops),
     'restore': ('Restoring stop orders', restore_stops),
     'sellbuy': ('SellBuy', sellbuy),
     'spreads': ('Spreads monitoring and trading', spreads),

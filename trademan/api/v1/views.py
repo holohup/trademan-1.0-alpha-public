@@ -87,7 +87,7 @@ class StopOrdersView(APIView):
             settings.RETRY_SETTINGS,
         )
         adapter.place_stop_orders(orders)
-        return Response(status=status.HTTP_200_OK)
+        return Response('Stop orders restored', status=status.HTTP_200_OK)
 
 
 class TickerViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
