@@ -54,7 +54,7 @@ def test_seconds_till_trading_starts_when_one_leg_doesnt_trade(
         ((18, 50), OFFSET + 15 * 60),
         ((19, 00), OFFSET + 5 * 60),
         ((20, 00), 0),
-        ((18, 40), OFFSET + 25 * 60)
+        ((18, 40), OFFSET + 25 * 60),
     ),
 )
 def test_seconds_till_trading_starts_when_one_leg_doesnt_trade_in_the_evening(
@@ -79,3 +79,12 @@ def test_seconds_till_trading_starts_when_both_legs_dont_trade(
     spread = SpreadFactory.build()
     patch_tradingtime(day, hour)
     assert spread.seconds_till_trading_starts == result
+
+
+def test_seconds_till_trading_starts_on_a_friday_afterclose(patch_tradingtime):
+    spread = NearLegEveningTradingSpreadFactory.build()
+    patch_tradingtime(10, (23, 50))
+    assert (
+        spread.seconds_till_trading_starts
+        == 10 * 60 + 2 * 24 * 60 * 60 + 10 * 60 * 60 + OFFSET
+    )

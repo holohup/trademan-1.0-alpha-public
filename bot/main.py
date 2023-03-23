@@ -5,11 +5,16 @@ import sys
 import commands
 from aiogram import executor
 from bot_init import dp
-from queue_handler import worker
+from queue_handler import QUEUE, worker
 from settings import (TCS_ACCOUNT_ID, TCS_RO_TOKEN, TCS_RW_TOKEN,
                       TELEGRAM_CHAT_ID, TELEGRAM_TOKEN)
 
 __all__ = ('commands',)
+
+
+async def send_greetings():
+    await QUEUE.put('Bot is now operational.')
+
 
 if __name__ == '__main__':
 
@@ -49,6 +54,7 @@ if __name__ == '__main__':
     else:
         loop = asyncio.get_event_loop()
 
+    loop.create_task(send_greetings())
     loop.create_task(worker())
     loop.create_task(executor.start_polling(dp, skip_updates=True), name='bot')
     loop.run_forever()
