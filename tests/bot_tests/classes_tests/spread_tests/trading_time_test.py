@@ -1,6 +1,7 @@
 import pytest
 
-from tests.bot_tests.classes_tests.factories import SpreadFactory
+from tests.bot_tests.classes_tests.factories import (
+    NearLegEveningTradingSpreadFactory, SpreadFactory)
 from tests.bot_tests.classes_tests.trading_time_test import OFFSET
 
 
@@ -12,7 +13,7 @@ def test_is_trading_now_when_all_legs_are_trading(hour, patch_tradingtime):
 
 
 @pytest.mark.parametrize(
-    'hour', (((14, 3), (18, 50), (10, 00), (0, 0), (23, 50)))
+    'hour', (((14, 3), (18, 50), (10, 00), (0, 0), (23, 50), (19, 0)))
 )
 def test_is_trading_now_when_one_or_both_the_legs_not_trading(
     hour, patch_tradingtime
@@ -43,6 +44,23 @@ def test_seconds_till_trading_starts_when_one_leg_doesnt_trade(
     hour, result, patch_tradingtime
 ):
     spread = SpreadFactory.build()
+    patch_tradingtime(6, hour)
+    assert spread.seconds_till_trading_starts == result
+
+
+@pytest.mark.parametrize(
+    ('hour', 'result'),
+    (
+        ((18, 50), OFFSET + 15 * 60),
+        ((19, 00), OFFSET + 5 * 60),
+        ((20, 00), 0),
+        ((18, 40), OFFSET + 25 * 60)
+    ),
+)
+def test_seconds_till_trading_starts_when_one_leg_doesnt_trade_in_the_evening(
+    hour, result, patch_tradingtime
+):
+    spread = NearLegEveningTradingSpreadFactory.build()
     patch_tradingtime(6, hour)
     assert spread.seconds_till_trading_starts == result
 

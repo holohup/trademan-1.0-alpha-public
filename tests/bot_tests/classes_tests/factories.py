@@ -54,3 +54,13 @@ class SpreadFactory(factory.Factory):
     id = factory.LazyFunction(lambda: random.randint(0, 100))
     ratio = 100
     amount = 200
+
+
+class NearLegEveningTradingSpreadFactory(SpreadFactory):
+    near_leg = AssetFactory(
+        sell=False,
+        amount=10000,
+        asset_type='S',
+        morning_trading=False,
+        evening_trading=True,
+    )

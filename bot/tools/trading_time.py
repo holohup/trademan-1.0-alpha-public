@@ -122,7 +122,37 @@ class TradingTime:
         self._trading_sessions = {
             title: TradingSession(
                 open=(datetime.combine(dt, period.open) + TIME_OFFSET).time(),
-                close=(datetime.combine(dt, period.close) - TIME_OFFSET).time()
+                close=(
+                    datetime.combine(dt, period.close) - TIME_OFFSET
+                ).time(),
             )
             for title, period in self._trading_sessions.items()
         }
+
+
+class SpreadTradingTime(TradingTime):
+    def __init__(self, spread) -> None:
+        self.schedules = (
+            TradingTime(spread.near_leg)._sorted_sessions
+            + TradingTime(spread.far_leg)._sorted_sessions
+        )
+        self._trading_sessions = self._combine_trading_sessions()
+        self._sorted_sess_cache = None
+
+    def _combine_trading_sessions(self):
+        events = [(period.open, 1) for period in self.schedules]
+        events += [(period.close, -1) for period in self.schedules]
+        sum = 0
+        result = {}
+        period_open = None
+        for time_moment in sorted(events):
+            sum += time_moment[1]
+            if sum > 1:
+                period_open = time_moment[0]
+            if sum < 2 and period_open is not None:
+                period_close = time_moment[0]
+                result[
+                    f'{str(period_open)} - {str(period_close)}'
+                ] = TradingSession(period_open, period_close)
+                period_open = None
+        return result

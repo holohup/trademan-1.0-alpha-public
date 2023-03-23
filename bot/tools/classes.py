@@ -9,7 +9,7 @@ from tools.orders import (cancel_order, get_execution_report,
                           get_price_from_order_book, place_order)
 from tools.utils import get_correct_price, get_lots
 
-from .trading_time import TradingTime
+from .trading_time import SpreadTradingTime, TradingTime
 
 getcontext().prec = 10
 
@@ -207,14 +207,11 @@ class Spread:
 
     @property
     def is_trading_now(self):
-        return all((self.far_leg.is_trading_now, self.near_leg.is_trading_now))
+        return SpreadTradingTime(self).is_trading_now
 
     @property
     def seconds_till_trading_starts(self):
-        return max(
-            self.far_leg.seconds_till_trading_starts,
-            self.near_leg.seconds_till_trading_starts,
-        )
+        return SpreadTradingTime(self).seconds_till_trading_starts
 
     def __str__(self):
         return (
