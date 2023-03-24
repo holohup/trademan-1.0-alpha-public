@@ -59,40 +59,6 @@ jobs:
           push: true
           tags: ${{ env.BASE_TAG }}
 
-  # deploy:
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-  #   needs: build_image_and_push_to_docker_hub
-  #   steps:
-  #     - name: executing remote ssh commands to deploy
-  #       uses: appleboy/ssh-action@master
-  #       with:
-  #         host: ${{ secrets.HOST }}
-  #         username: ${{ secrets.USER }}
-  #         key: ${{ secrets.SSH_KEY }}
-  #         passphrase: ${{ secrets.PASSPHRASE }}
-  #         script: |
-  #           docker-compose --project-directory foodgram/infra stop backend frontend
-  #           docker pull ${{ env.REPO_TAG }} && docker pull ${{ env.FRONT_TAG }}
-  #           echo '${{ secrets.DB_CREDENTIALS }}' > foodgram/infra/.env
-  #           docker-compose --project-directory foodgram/infra/ up -d
-
-  # smoke_tests:
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' 
-  #   needs: deploy
-  #   steps:
-  #     - name: check statuscodes
-  #       run: |
-  #         EXPECTED_401=$(curl --write-out '%{http_code}' -L --silent --output /dev/null http://${{ secrets.HOST }}/api/)
-  #         EXPECTED_200=$(curl --write-out '%{http_code}' -L --silent --output /dev/null http://${{ secrets.HOST }}/admin/)
-  #         if [[ $EXPECTED_401 != "401" || $EXPECTED_200 != "200" ]]; then
-  #           echo 'Something is not working'
-  #           exit 1
-  #         else
-  #           echo 'URLs return expected status codes'
-  #         fi
-
   send_message:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'

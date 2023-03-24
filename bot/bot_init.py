@@ -21,7 +21,3 @@ class MyFilter(BoundFilter):
 
 
 dp.filters_factory.bind(MyFilter)
-
-
-async def send_message(message):
-    await bot.send_message(TELEGRAM_CHAT_ID, message)
