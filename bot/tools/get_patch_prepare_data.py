@@ -91,7 +91,7 @@ def prepare_asset_data(data):
     return assets
 
 
-def parse_ticker_info(ticker: str) -> List[Asset]:
+def parse_ticker_info(ticker: str) -> dict:
     url = ENDPOINT_HOST + ENDPOINTS['ticker'] + ticker + '/'
     return json.loads(request.urlopen(url).read())
 

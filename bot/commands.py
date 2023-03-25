@@ -1,4 +1,5 @@
 import asyncio
+from urllib.error import HTTPError
 
 from aiogram import types
 from bot_init import dp
@@ -60,28 +61,43 @@ ROUTINES = {
 
 @dp.message_handler(commands=ROUTINES.keys(), is_me=True)
 async def generic_handler(message: types.Message):
-    title, executor = ROUTINES[message.get_command().lstrip('/')]
-    await command_handler(title, executor, message)
+    command_handler = CommandHandler(message)
+    await command_handler.handle()
 
 
-async def command_handler(title: str, func, message: types.Message):
-    if title in RUNNING_TASKS:
-        await message.answer(f'{title} already running!')
-        return
+class CommandHandler:
+    def __init__(self, message: types.Message) -> None:
+        self._message = message
+        self._command = message.get_command(pure=True)
+        self._args = message.get_args()
+        self._title, self._routine = ROUTINES[self._command]
+        self._result = ''
 
-    if not await check_health():
-        await message.answer('Server not working!')
-        return
+    async def handle(self):
+        if await self._ok_to_start_executing():
+            await self._process_command()
+        await self._message.answer(self._result)
 
-    await message.answer(title)
-    result = asyncio.create_task(func(message.text))
-    RUNNING_TASKS[title] = result
-    try:
-        await result
-    except (AioRpcError, AttributeError, ValueError) as error:
-        await message.answer(f'Error executing {title}: {error}')
-    else:
-        await message.answer(result.result())
-    finally:
-        if title in RUNNING_TASKS:
-            RUNNING_TASKS.pop(title)
+    async def _ok_to_start_executing(self):
+        if self._title in RUNNING_TASKS:
+            self._result = f'{self._title} already running!'
+            return False
+
+        if not await check_health(self._command, self._args):
+            self._result = 'Server not working!'
+            return False
+        return True
+
+    async def _process_command(self):
+        await self._message.answer(self._title)
+        result = asyncio.create_task(self._routine(self._command, self._args))
+        RUNNING_TASKS[self._title] = result
+        try:
+            await result
+        except (AioRpcError, AttributeError, ValueError, HTTPError) as error:
+            self._result = f'Error executing {self._title}: {error}'
+        else:
+            self._result = result.result()
+        finally:
+            if self._title in RUNNING_TASKS:
+                RUNNING_TASKS.pop(self._title)

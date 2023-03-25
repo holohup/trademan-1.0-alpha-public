@@ -13,7 +13,7 @@ __all__ = ('commands',)
 
 
 async def send_greetings():
-    await QUEUE.put('Bot is now operational.')
+    await QUEUE.put('Battlecruiser operational.')
 
 
 if __name__ == '__main__':

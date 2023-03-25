@@ -144,7 +144,7 @@ async def process_spread(spread: Spread):
     return spread
 
 
-async def spreads(*args, **kwargs):
+async def spreads(command, args):
     spreads = prepare_spreads_data(await async_get_api_data('spreads'))
     if not spreads:
         return 'No active assets to sell or buy'

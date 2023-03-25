@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-from nuke import parse_nuke_command
 from settings import LONG_LEVELS, NUKE_LEVELS, SHORT_LEVELS, STOPS_SUM
 from tools.classes import StopOrder, StopOrderParams
 from tools.get_patch_prepare_data import (async_get_api_data,
@@ -8,6 +7,7 @@ from tools.get_patch_prepare_data import (async_get_api_data,
                                           parse_ticker_info,
                                           prepare_asset_data)
 from tools.orders import place_stop_order
+from tools.utils import parse_ticker_int_args
 
 LONG_STOP_PARAMS = StopOrderParams('buy', 'take_profit', 'gtd')
 SHORT_STOP_PARAMS = StopOrderParams('sell', 'take_profit', 'gtd')
@@ -35,8 +35,7 @@ async def process_stops(assets, levels, sum, params):
     )
 
 
-async def place_stops(command: str):
-    command = command.lstrip('/')
+async def place_stops(command, args):
     data = await async_get_api_data(command)
     assets = get_current_prices(prepare_asset_data(data))
     if command == 'stops':
@@ -48,8 +47,8 @@ async def place_stops(command: str):
     return await process_stops(assets, levels, STOPS_SUM, params)
 
 
-async def process_nuke_command(command, *args, **kwargs):
-    ticker, sum = parse_nuke_command(command)
+async def process_nuke_command(command, args):
+    ticker, sum = parse_ticker_int_args(args)
     ticker_data = parse_ticker_info(ticker)
     assets = get_current_prices(prepare_asset_data([ticker_data]))
     asset = assets[0]

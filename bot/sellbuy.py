@@ -48,7 +48,7 @@ async def safe_order_cancel(asset: Asset):
         await async_patch_sellbuy(asset)
 
 
-async def sellbuy(*args, **kwargs):
+async def sellbuy(command, args):
     assets = prepare_assets_data(await async_get_api_data('sellbuy'))
     if not assets:
         return 'No active assets to sell or buy'
