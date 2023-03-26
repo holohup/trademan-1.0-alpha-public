@@ -61,6 +61,15 @@ class Asset:
     def __repr__(self):
         return f'Asset: {self.ticker}'
 
+    @property
+    def details(self):
+        return [
+            f'{field} = {getattr(self, field)} ' for field in (
+                'id', 'figi', 'ticker', 'lot', 'sell', 'amount', 'price',
+                'asset_type'
+            )
+        ]
+
     def get_correct_price(self, price):
         return get_correct_price(price, self.min_price_increment)
 

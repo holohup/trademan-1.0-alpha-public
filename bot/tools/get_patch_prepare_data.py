@@ -6,7 +6,8 @@ from urllib import request
 
 import aiohttp
 from queue_handler import QUEUE
-from settings import ENDPOINT_HOST, ENDPOINTS, RETRY_SETTINGS, TCS_RO_TOKEN
+from settings import (ENDPOINT_HOST, ENDPOINTS, RETRY_SETTINGS, TCS_ACCOUNT_ID,
+                      TCS_RO_TOKEN)
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.utils import quotation_to_decimal
 from tools.adapters import SellBuyToJsonAdapter, SpreadToJsonAdapter
@@ -35,6 +36,23 @@ async def async_patch_sellbuy(sellbuy: Asset):
             response_text = await response.text()
             await QUEUE.put(f'Error patching sellbuy. {response_text[:4000]}')
             return False
+
+
+async def async_create_sellbuy(sellbuy: Asset):
+    data = {
+        'figi': sellbuy.figi,
+        'sell': sellbuy.sell,
+        'amount': sellbuy.amount,
+    }
+    url = ENDPOINT_HOST + ENDPOINTS['sellbuy']
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=data) as response:
+            response_json = await response.json()
+            if response.status == HTTPStatus.CREATED:
+                return response_json['id']
+            raise ConnectionError(
+                f'Error creating sellbuy. {str(response_json)}'
+            )
 
 
 async def async_get_api_data(command: str):
@@ -70,6 +88,12 @@ def get_current_prices(assets):
     for asset in assets:
         asset.price = prices[asset.figi]
     return assets
+
+
+def get_portfolio_positions():
+    with RetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
+        response = client.operations.get_portfolio(account_id=TCS_ACCOUNT_ID)
+        return response.positions
 
 
 def prepare_asset_data(data):

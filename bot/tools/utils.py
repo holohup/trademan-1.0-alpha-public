@@ -24,5 +24,9 @@ def delta_minutes_to_utc(minutes):
 
 
 def parse_ticker_int_args(args: str) -> Tuple[str, int]:
-    ticker, sum = args.split()
+    sum = 0
+    arguments = args.split()
+    ticker = arguments[0]
+    if len(arguments) > 1:
+        sum = arguments[1]
     return ticker.upper(), int(sum)

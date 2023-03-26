@@ -1,11 +1,20 @@
 import asyncio
+from abc import ABC, abstractmethod
+from decimal import Decimal
 
 from queue_handler import QUEUE
 from settings import SLEEP_PAUSE
+from tinkoff.invest.utils import quotation_to_decimal
 from tools.classes import Asset
-from tools.get_patch_prepare_data import (async_get_api_data,
+from tools.get_patch_prepare_data import (async_create_sellbuy,
+                                          async_get_api_data,
                                           async_patch_sellbuy,
+                                          get_current_prices,
+                                          get_portfolio_positions,
+                                          parse_ticker_info,
+                                          prepare_asset_data,
                                           prepare_assets_data)
+from tools.utils import parse_ticker_int_args
 
 
 async def sellbuy_cycle(asset):
@@ -77,3 +86,82 @@ async def sellbuy(command, args):
             executed_tickers = None
         return f'''SellBuy routine stopped.
         Already executed: {executed_tickers}.'''
+
+
+class PreciseTicker(ABC):
+    def __init__(self, args) -> None:
+        self._ticker, self._sum = parse_ticker_int_args(args)
+        self._asset = self._create_asset()
+
+    def _create_asset(self):
+        return get_current_prices(
+            prepare_asset_data([self._parse_ticker_info()])
+        )[0]
+
+    def _parse_ticker_info(self):
+        return parse_ticker_info(self._ticker)
+
+    def _fill_asset_amount_and_sell(self):
+        self._asset.amount = self._asset.next_order_amount = self._get_amount()
+        self._asset.sell = self._need_to_sell()
+
+    @abstractmethod
+    def _get_amount(self):
+        pass
+
+    @abstractmethod
+    def _need_to_sell(self):
+        pass
+
+    async def process(self):
+        self._fill_asset_amount_and_sell()
+        self._asset.id = await self._create_db_entry()
+        return await process_asset(self._asset)
+
+    async def _create_db_entry(self) -> int:
+        return await async_create_sellbuy(self._asset)
+
+
+class PreciseSellBuyTicker(PreciseTicker):
+    def __init__(self, command, args):
+        super().__init__(args)
+        self._command = command
+
+    def _get_amount(self):
+        price, lot = self._asset.price, self._asset.lot
+        amount = (int((Decimal(self._sum) / price)) // lot) * lot
+        if amount < lot:
+            raise ValueError('Amount is smaller then one lot')
+        return amount
+
+    def _need_to_sell(self):
+        return self._command.lower() == 'sell'
+
+
+class PreciseDumpTicker(PreciseTicker):
+    def __init__(self, ticker) -> None:
+        super().__init__(ticker)
+        self._response = get_portfolio_positions()
+        self._position = 0
+        self._parse_response()
+
+    def _get_amount(self):
+        return abs(self._position)
+
+    def _need_to_sell(self):
+        return self._position > 0
+
+    def _parse_response(self):
+        for position in self._response:
+            if position.figi == self._asset.figi:
+                self._position = int(quotation_to_decimal(position.quantity))
+                return
+        raise KeyError(f'{self._asset.ticker} not found in portfolio.')
+
+
+async def process_sell_or_buy_with_sum(command, args):
+    return await PreciseSellBuyTicker(command, args).process()
+
+
+async def process_dump(command, ticker):
+    return await PreciseDumpTicker(ticker).process()

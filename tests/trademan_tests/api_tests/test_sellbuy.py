@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+from base.models import SellBuy
 from django.urls import reverse
 from rest_framework import status
 
@@ -89,3 +90,24 @@ def test_sellbuy_active_and_price_upon_execution(
     assert sellbuy_sample.active == active
     assert sellbuy_sample.avg_exec_price == price
     assert sellbuy_sample.executed == executed
+
+
+@pytest.mark.django_db
+def test_sellbuy_is_created(client, far_leg_sample):
+    pl = {
+        'figi': 'TGZZ.1',
+        'sell': True,
+        'amount': 10
+    }
+
+    response = client.post(reverse('sellbuy-list'), data=pl, format='json')
+    assert response.status_code == status.HTTP_201_CREATED
+    obj = SellBuy.objects.get(id=response.data['id'])
+    assert obj.sell is True
+    assert obj.asset.figi == 'TGZZ.1'
+    assert obj.amount == 10
+    assert obj.executed == 0
+    assert obj.avg_exec_price == Decimal('0')
+    assert response.data['figi'] == pl['figi']
+    assert response.data['sell'] == pl['sell']
+    assert response.data['amount'] == pl['amount']

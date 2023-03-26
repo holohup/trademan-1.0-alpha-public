@@ -66,9 +66,9 @@ class SellBuySerializer(BasicDataSerializer):
         )
         read_only_fields = (
             'id',
-            'figi',
             'min_price_increment',
             'ticker',
+            'figi',
             'lot',
             'sell',
             'amount',

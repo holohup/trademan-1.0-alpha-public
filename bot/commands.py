@@ -8,7 +8,7 @@ from grpc.aio._call import AioRpcError
 from instant_commands import (check_health, get_current_spread_prices, help,
                               test)
 from place_stops import place_stops, process_nuke_command
-from sellbuy import sellbuy
+from sellbuy import process_dump, process_sell_or_buy_with_sum, sellbuy
 from spreads import spreads
 from stop_orders import restore_stops, save_stops
 
@@ -56,6 +56,9 @@ ROUTINES = {
     'cancel': ('Cancel', cancel_all_orders),
     'tasks': ('Tasks', tasks),
     'health': ('Health check', check_health),
+    'sell': ('Sell ASAP', process_sell_or_buy_with_sum),
+    'buy': ('Buy ASAP', process_sell_or_buy_with_sum),
+    'dump': ('Dump it', process_dump),
 }
 
 
@@ -94,7 +97,14 @@ class CommandHandler:
         RUNNING_TASKS[self._title] = result
         try:
             await result
-        except (AioRpcError, AttributeError, ValueError, HTTPError) as error:
+        except (
+            AioRpcError,
+            AttributeError,
+            ValueError,
+            HTTPError,
+            ConnectionError,
+            KeyError
+        ) as error:
             self._result = f'Error executing {self._title}: {error}'
         else:
             self._result = result.result()

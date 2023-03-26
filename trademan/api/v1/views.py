@@ -41,6 +41,15 @@ class SellBuyViewSet(viewsets.ModelViewSet):
             )
         )
 
+    def create(self, serializer):
+        data = self.request.data
+        asset = get_object_or_404(Figi, figi=data['figi'])
+        sellbuy = SellBuy.objects.create(
+            asset=asset, amount=data['amount'], sell=data['sell']
+        )
+        serialized = self.get_serializer(sellbuy)
+        return Response(serialized.data, status=status.HTTP_201_CREATED)
+
 
 class SpreadsViewSet(viewsets.ModelViewSet):
     queryset = (

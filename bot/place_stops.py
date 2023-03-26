@@ -11,6 +11,11 @@ from tools.utils import parse_ticker_int_args
 
 LONG_STOP_PARAMS = StopOrderParams('buy', 'take_profit', 'gtd')
 SHORT_STOP_PARAMS = StopOrderParams('sell', 'take_profit', 'gtd')
+LEVELS = {
+    'stops': LONG_LEVELS,
+    'shorts': [str(-int(level)) for level in SHORT_LEVELS],
+}
+PARAMS = {'stops': LONG_STOP_PARAMS, 'shorts': SHORT_STOP_PARAMS}
 
 
 def sum_is_valid(asset, sum) -> bool:
@@ -38,12 +43,8 @@ async def process_stops(assets, levels, sum, params):
 async def place_stops(command, args):
     data = await async_get_api_data(command)
     assets = get_current_prices(prepare_asset_data(data))
-    if command == 'stops':
-        levels = LONG_LEVELS
-        params = LONG_STOP_PARAMS
-    else:
-        levels = [str(-int(level)) for level in SHORT_LEVELS]
-        params = SHORT_STOP_PARAMS
+    levels = LEVELS[command]
+    params = PARAMS[command]
     return await process_stops(assets, levels, STOPS_SUM, params)
 
 
