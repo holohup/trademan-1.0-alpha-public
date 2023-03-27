@@ -49,10 +49,8 @@ async def process_asset(asset):
 
 
 async def safe_order_cancel(asset: Asset):
-    if asset.order_placed:
-        await asset.cancel_order()
-    if asset.order_id:
-        await asset.update_executed()
+    await asset.cancel_order()
+    await asset.update_executed()
     if asset.executed > 0:
         await async_patch_sellbuy(asset)
 
