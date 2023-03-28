@@ -182,6 +182,7 @@ Although you might see more Bot commands in the source code, here's the list of 
 - **/tasks** - returns currently running tasks
 - **/nuke [ticker] [sum]** - places stop orders for the ticker, splitting sum into four: current price, 99% of current price, 95% of current price and 93% of current price, like in Art Cashin's formula
 - **/stash** and **/restore** - stashes active stop orders to the database and restores them. Needed in case you urgently need to cancel everything and don't want to loose your precious stop orders parameters. The commands clean up before saving or restoring stops, only one stash is available.
+- **/scan <rate>** - scans all the pairs of stock-future and future-future (available for trading) and returns the most profitable ones (the profit is normalized to yearly %, is counted upon the required margin to do the trade). Due to the message limits doesn't return more then 70 top profitable pairs. Rate is an optional parameter (the default rate is currently 7.5%).
 - **/tasks** - returns the list of currently running tasks.
 
 ## Plans for the future

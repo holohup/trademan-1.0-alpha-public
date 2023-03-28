@@ -43,6 +43,8 @@ class YieldingSpread:
     far_to_near_ratio: int
     margin: int = 0
     marginal_profit: float = 0
+    delta: int = 0
+    days: int = 0
 
 
 class SpreadScanner:
@@ -67,20 +69,28 @@ class SpreadScanner:
         self._build_spreads()
         self._count_potential_profits()
         result = []
-        for spread in self._spreads:
+        for spread in sorted(
+            self._spreads, key=lambda x: x.marginal_profit, reverse=True
+        ):
             if spread.marginal_profit > self._rate:
                 result.append(
                     f'{spread.near_leg.ticker} - {spread.far_leg.ticker}: '
-                    f'M = {spread.margin}, % = {spread.marginal_profit}'
+                    f'M = {spread.margin}, %={spread.marginal_profit} '
+                    f'delta = {spread.delta}, {spread.days} days.'
                 )
-        print('\n'.join(result))
-        return '\n'.join(result)
+        if len(result) > 70:
+            result = result[:70]
+        return '\n'.join(result) if result else 'No matching spreads found.'
 
     def _count_potential_profits(self):
         for spread in self._spreads:
-            margin, profit = ProfitCounter(spread).calculate_profit()
+            margin, profit, delta, days = ProfitCounter(
+                spread
+            ).calculate_profit()
             spread.margin = int(margin)
             spread.marginal_profit = profit
+            spread.delta = int(delta)
+            spread.days = days
 
     async def _get_instrument_lists(self):
         for instrument in self._responses.keys():
@@ -90,7 +100,10 @@ class SpreadScanner:
         for instrument in self._responses['shares']:
             self._stocks.append(StockData(instrument.figi, instrument.ticker))
         for instrument in self._responses['futures']:
-            if instrument.basic_asset in self._futures_with_counterparts:
+            if (
+                instrument.basic_asset in self._futures_with_counterparts
+                and instrument.asset_type == 'TYPE_SECURITY'
+            ):
                 self._futures.append(
                     FutureData(
                         instrument.figi,
@@ -103,7 +116,7 @@ class SpreadScanner:
                         ),
                         min_price_increment=quotation_to_decimal(
                             instrument.min_price_increment
-                        )
+                        ),
                     )
                 )
 
@@ -269,7 +282,12 @@ class ProfitCounter:
         absolute_profit = self._total_profit / self._total_margin
         year_periods = 365 / self._days_till_profit
         year_adjusted_profit = float((1 + absolute_profit)) ** year_periods - 1
-        return self._total_margin, year_adjusted_profit * 100
+        return (
+            self._total_margin,
+            round(year_adjusted_profit * 100, 2),
+            self._total_profit,
+            self._days_till_profit,
+        )
 
     @property
     def _days_till_profit(self):

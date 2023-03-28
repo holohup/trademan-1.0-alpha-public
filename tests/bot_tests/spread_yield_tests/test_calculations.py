@@ -52,6 +52,8 @@ def test_total_profit(sample_f_f_yielding_spread, sample_s_f_yielding_spread):
 
 def test_correct_count_profit(sample_yielding_spread):
     counter = ProfitCounter(sample_yielding_spread)
-    margin, profit = counter.calculate_profit()
+    margin, profit, total_profit, days = counter.calculate_profit()
     assert margin == Decimal('70000')
     assert int(profit) == 100
+    assert total_profit == Decimal('70000')
+    assert days == 364

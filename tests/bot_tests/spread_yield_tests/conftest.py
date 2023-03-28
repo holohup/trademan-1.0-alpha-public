@@ -570,7 +570,7 @@ def sample_yielding_spread():
             basic_asset_size=1,
             basic_asset='MGNT',
             expiration_date=datetime.datetime.now(tz=datetime.timezone.utc)
-            + datetime.timedelta(days=364),
+            + datetime.timedelta(days=365),
             min_price_increment_amount=Decimal('1.00000000'),
             short_enabled=True,
             sell_margin=Decimal('20000.000000'),
