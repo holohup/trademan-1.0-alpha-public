@@ -8,6 +8,7 @@ from grpc.aio._call import AioRpcError
 from instant_commands import (check_health, get_current_spread_prices, help,
                               test)
 from place_stops import place_stops, process_nuke_command
+from scanner.scanner import scan
 from sellbuy import process_dump, process_sell_or_buy_with_sum, sellbuy
 from spreads import spreads
 from stop_orders import restore_stops, save_stops
@@ -59,6 +60,7 @@ ROUTINES = {
     'sell': ('Sell ASAP', process_sell_or_buy_with_sum),
     'buy': ('Buy ASAP', process_sell_or_buy_with_sum),
     'dump': ('Dump it', process_dump),
+    'scan': ('Spread scanner', scan)
 }
 
 

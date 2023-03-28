@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 from tinkoff.invest.retrying.settings import RetryClientSettings
 
+CURRENT_INTEREST_RATE = '7.5'
+
 # place stops and shorts
 
 LONG_LEVELS = ('15', '20', '25')
