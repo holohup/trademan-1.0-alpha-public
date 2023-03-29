@@ -188,7 +188,7 @@ class Spread(models.Model):
     def __str__(self):
         action = 'Sell ' if self.sell else 'Buy '
         return action + (
-            f'{self.far_leg.ticker} - {self.near_leg.ticker}, '
+            f'{self.near_leg.ticker} - {self.far_leg.ticker}, '
             f'[{self.executed}/{self.amount}]'
         )
 

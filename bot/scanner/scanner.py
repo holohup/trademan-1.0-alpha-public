@@ -100,9 +100,9 @@ class SpreadScanner:
         for instrument in self._responses['shares']:
             self._stocks.append(StockData(instrument.figi, instrument.ticker))
         for instrument in self._responses['futures']:
-            if (
-                instrument.basic_asset in self._futures_with_counterparts
-                and instrument.asset_type == 'TYPE_SECURITY'
+            if instrument.basic_asset in self._futures_with_counterparts and (
+                instrument.asset_type == 'TYPE_SECURITY'
+                # or instrument.asset_type == 'TYPE_COMMODITY'
             ):
                 self._futures.append(
                     FutureData(

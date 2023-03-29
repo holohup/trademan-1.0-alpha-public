@@ -224,14 +224,14 @@ class Spread:
 
     def __str__(self):
         return (
-            f'{self._trade_direction} {self.amount} {self.far_leg.ticker}'
-            f' - {self.near_leg.ticker} for {self.price}'
+            f'{self._trade_direction} {self.amount} {self.near_leg.ticker}'
+            f' - {self.far_leg.ticker} for {self.price}'
         )
 
     def __repr__(self):
         return (
             f'\n {self._trade_direction} [{self.executed}/{self.amount}]'
-            f' {self.far_leg.ticker} - {self.near_leg.ticker}'
+            f' {self.near_leg.ticker} - {self.far_leg.ticker}'
             f' for {self.price} avg={self.avg_execution_price}'
         )
 

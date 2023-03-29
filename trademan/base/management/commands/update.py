@@ -25,9 +25,7 @@ INSTRUMENTS = {
     'Futures': InstrumentSettings(
         'F', RealExchange.REAL_EXCHANGE_MOEX, 'futures'
     ),
-    'Bonds': InstrumentSettings(
-        'B', RealExchange.REAL_EXCHANGE_MOEX, 'bonds'
-    )
+    'Bonds': InstrumentSettings('B', RealExchange.REAL_EXCHANGE_MOEX, 'bonds'),
 }
 
 
@@ -57,6 +55,7 @@ def prevalidate_instrument(inst: Union[Share, Future], inst_type: str) -> bool:
 
 def fill_fields(inst: Union[Share, Future], inst_type: str) -> dict:
     result = {
+        'figi': inst.figi,
         'ticker': inst.ticker,
         'lot': inst.lot,
         'name': inst.name,
@@ -100,7 +99,9 @@ def update_db(response, inst_type):
             updated += 1
             new_values = fill_fields(inst, inst_type)
             figis.add(inst.figi)
-            Figi.objects.update_or_create(figi=inst.figi, defaults=new_values)
+            Figi.objects.update_or_create(
+                ticker=inst.ticker, defaults=new_values
+            )
     return updated, figis
 
 
