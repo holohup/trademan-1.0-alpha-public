@@ -49,7 +49,8 @@ async def place_stops(command, args):
 
 
 async def process_nuke_command(command, args):
-    ticker, sum = parse_ticker_int_args(args)
+    args = parse_ticker_int_args(args)
+    ticker, sum = args.ticker, args.sum
     ticker_data = parse_ticker_info(ticker)
     assets = get_current_prices(prepare_asset_data([ticker_data]))
     asset = assets[0]

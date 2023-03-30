@@ -1,9 +1,16 @@
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from typing import Tuple
 
 from tinkoff.invest.schemas import Quotation
 from tinkoff.invest.utils import decimal_to_quotation
+
+
+@dataclass
+class SellBuyCommand:
+    ticker: str
+    amount: int = 0
+    sum: int = 0
 
 
 def get_correct_price(price: Decimal, increment: Decimal) -> Quotation:
@@ -23,10 +30,21 @@ def delta_minutes_to_utc(minutes):
     return datetime.now(tz=timezone.utc) + timedelta(minutes=minutes)
 
 
-def parse_ticker_int_args(args: str) -> Tuple[str, int]:
-    sum = 0
+def parse_ticker_int_args(args: str) -> SellBuyCommand:
+    sum, amount = 0, 0
     arguments = args.split()
-    ticker = arguments[0]
-    if len(arguments) > 1:
-        sum = arguments[1]
-    return ticker.upper(), int(sum)
+    if len(arguments) == 1:
+        return SellBuyCommand(arguments[0], amount, sum)
+    if len(arguments) > 2:
+        raise ValueError('Too many arguments, aborting')
+    if arguments[0].isnumeric():
+        ticker = arguments[1]
+        amount = int(arguments[0])
+    elif arguments[1].isnumeric():
+        ticker = arguments[0]
+        sum = int(arguments[1])
+    else:
+        raise ValueError(
+            'Format for arguments is: <ticker> <sum> or <amount> <ticker>'
+        )
+    return SellBuyCommand(ticker, amount, sum)

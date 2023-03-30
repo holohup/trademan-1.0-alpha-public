@@ -71,10 +71,9 @@ async def sellbuy(command, args):
          Исполнены заявки по инструментам: {result}'''
 
     except asyncio.CancelledError:
-        await asyncio.wait([asyncio.create_task(
-            safe_order_cancel(asset)
-        ) for asset in assets
-        ])
+        await asyncio.wait(
+            [asyncio.create_task(safe_order_cancel(asset)) for asset in assets]
+        )
         executed_tickers = [
             f'{asset.ticker}: {asset.executed} for {asset.avg_exec_price}'
             for asset in assets
@@ -88,7 +87,8 @@ async def sellbuy(command, args):
 
 class PreciseTicker(ABC):
     def __init__(self, args) -> None:
-        self._ticker, self._sum = parse_ticker_int_args(args)
+        a = parse_ticker_int_args(args)
+        self._ticker, self._sum, self._amount = a.ticker, a.sum, a.amount
         self._asset = self._create_asset()
 
     def _create_asset(self):
@@ -126,6 +126,8 @@ class PreciseSellBuyTicker(PreciseTicker):
         self._command = command
 
     def _get_amount(self):
+        if self._amount > 0:
+            return self._amount
         price, lot = self._asset.price, self._asset.lot
         amount = (int((Decimal(self._sum) / price)) // lot) * lot
         if amount < lot:
