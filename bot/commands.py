@@ -9,7 +9,7 @@ from instant_commands import (check_health, get_current_spread_prices, help,
                               test)
 from place_stops import place_stops, process_nuke_command
 from scanner.scanner import scan
-from sellbuy import process_dump, process_sell_or_buy_with_sum, sellbuy
+from sellbuy import sellbuy
 from spreads import spreads
 from stop_orders import restore_stops, save_stops
 
@@ -57,9 +57,9 @@ ROUTINES = {
     'cancel': ('Cancel', cancel_all_orders),
     'tasks': ('Tasks', tasks),
     'health': ('Health check', check_health),
-    'sell': ('Sell ASAP', process_sell_or_buy_with_sum),
-    'buy': ('Buy ASAP', process_sell_or_buy_with_sum),
-    'dump': ('Dump it', process_dump),
+    'sell': ('Sell ASAP', sellbuy),
+    'buy': ('Buy ASAP', sellbuy),
+    'dump': ('Dump it', sellbuy),
     'scan': ('Spread scanner', scan)
 }
 
@@ -75,6 +75,8 @@ class CommandHandler:
         self._message = message
         self._command = message.get_command(pure=True)
         self._args = message.get_args()
+        if not self._command:
+            raise KeyError('Please provide a command.')
         self._title, self._routine = ROUTINES[self._command]
         self._result = ''
 

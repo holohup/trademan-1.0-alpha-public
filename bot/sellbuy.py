@@ -55,8 +55,24 @@ async def safe_order_cancel(asset: Asset):
         await async_patch_sellbuy(asset)
 
 
+class SellBuyDataProvider:
+    def __init__(self, command, args) -> None:
+        self._command = command
+        self._args = args
+
+    async def get_data(self):
+        if self._command == 'sellbuy':
+            return prepare_assets_data(await async_get_api_data('sellbuy'))
+        if self._command == 'dump':
+            return await PreciseDumpTicker(self._args).provide_asset_as_list()
+        return await PreciseSellBuyTicker(
+            self._command, self._args
+        ).provide_asset_as_list()
+
+
 async def sellbuy(command, args):
-    assets = prepare_assets_data(await async_get_api_data('sellbuy'))
+    assets = await SellBuyDataProvider(command, args).get_data()
+    print(assets)
     if not assets:
         return 'No active assets to sell or buy'
     try:
@@ -111,10 +127,10 @@ class PreciseTicker(ABC):
     def _need_to_sell(self):
         pass
 
-    async def process(self):
+    async def provide_asset_as_list(self):
         self._fill_asset_amount_and_sell()
         self._asset.id = await self._create_db_entry()
-        return await process_asset(self._asset)
+        return [self._asset]
 
     async def _create_db_entry(self) -> int:
         return await async_create_sellbuy(self._asset)
@@ -157,11 +173,3 @@ class PreciseDumpTicker(PreciseTicker):
                 self._position = int(quotation_to_decimal(position.quantity))
                 return
         raise KeyError(f'{self._asset.ticker} not found in portfolio.')
-
-
-async def process_sell_or_buy_with_sum(command, args):
-    return await PreciseSellBuyTicker(command, args).process()
-
-
-async def process_dump(command, ticker):
-    return await PreciseDumpTicker(ticker).process()
