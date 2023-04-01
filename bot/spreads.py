@@ -53,8 +53,7 @@ async def cancel_active_orders_and_update_data(spreads):
 
 
 async def wait_till_market_open(spread: Spread):
-    if spread.far_leg.order_placed:
-        await spread.far_leg.cancel_order()
+    await spread.far_leg.cancel_order()
     sleep_time = spread.seconds_till_trading_starts
     logging.warning(
         f'{spread}: Not a trading time. Waiting '

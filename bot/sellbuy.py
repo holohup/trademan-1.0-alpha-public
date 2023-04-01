@@ -17,12 +17,11 @@ from tools.get_patch_prepare_data import (async_create_sellbuy,
 from tools.utils import parse_ticker_int_args
 
 
-async def sellbuy_cycle(asset):
+async def sellbuy_cycle(asset: Asset):
     await asset.get_price_from_order_book()
-    if asset.new_price != asset.last_price and asset.order_placed:
+    if asset.new_price != asset.last_price:
         await asset.cancel_order()
-    if asset.order_id:
-        await asset.update_executed()
+    await asset.update_executed()
     if not asset.order_placed and asset.next_order_amount >= asset.lot:
         await asset.place_sellbuy_order()
 
