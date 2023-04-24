@@ -1,8 +1,9 @@
 from decimal import Decimal
 
-from base.models import Figi, SellBuy, Spread, Stops
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+
+from base.models import Figi, SellBuy, Spread, Stops
 
 
 class AssetSerializer(serializers.ModelSerializer):

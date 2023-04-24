@@ -1,7 +1,5 @@
 from http import HTTPStatus
 
-from api.v1.stop_orders import TinkoffStopOrderAdapter
-from base.models import Figi, SellBuy, Spread, StopOrder, Stops
 from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponse
@@ -9,6 +7,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from api.v1.stop_orders import TinkoffStopOrderAdapter
+from base.models import Figi, SellBuy, Spread, StopOrder, Stops
 
 from .serializers import (SellBuySerializer, SpreadsSerializer,
                           StopsSerializer, TickerSerializer)

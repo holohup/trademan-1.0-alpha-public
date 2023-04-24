@@ -1,5 +1,6 @@
-from base.models import Figi
 from django.core.management.base import BaseCommand
+
+from base.models import Figi
 
 
 class Command(BaseCommand):
