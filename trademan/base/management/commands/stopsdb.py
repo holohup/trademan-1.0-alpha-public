@@ -1,7 +1,6 @@
+from base.models import Figi, Stops
 from django.core.management.base import BaseCommand
 from django.db import transaction
-
-from base.models import Figi, Stops
 
 STOP_BLACKLIST = [
     'RNFT', 'RENI', 'KRKOP', 'RGSS', 'SPBE', 'ISKJ', 'CNTL', 'BLNG', 'KZOS',

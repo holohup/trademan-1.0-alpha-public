@@ -1,7 +1,6 @@
+from base.models import Figi
 from django.core.management.base import BaseCommand
 from django.db import transaction
-
-from base.models import Figi
 
 EVENING_TRADED_STOCKS = (
     'AFKS', 'AFLT', 'ALRS', 'BELU', 'CBOM', 'CHMF', 'DSKY', 'ENPG', 'FEES',

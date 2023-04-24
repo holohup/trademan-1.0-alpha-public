@@ -1,6 +1,7 @@
 import sys
 from typing import NamedTuple, Union
 
+from base.models import Figi
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
@@ -9,8 +10,6 @@ from tinkoff.invest.retrying.settings import RetryClientSettings
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.schemas import Future, RealExchange, Share
 from tinkoff.invest.utils import quotation_to_decimal
-
-from base.models import Figi
 
 
 class InstrumentSettings(NamedTuple):
