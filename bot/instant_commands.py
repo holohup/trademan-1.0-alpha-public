@@ -49,7 +49,13 @@ async def get_current_spread_prices(command, args):
         ],
     )
     not_trading = ', '.join(
-        [str(spread) for spread in spreads if not spread.is_trading_now]
+        [
+            '\n'
+            + str(spread)
+            + f' t={spread.seconds_till_trading_starts // 60} min'
+            for spread in spreads
+            if not spread.is_trading_now
+        ]
     )
     return '\n'.join(result) + f'\nCurrently not trading: {not_trading}'
 
