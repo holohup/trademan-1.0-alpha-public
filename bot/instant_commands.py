@@ -52,7 +52,7 @@ async def get_current_spread_prices(command, args):
         [
             '\n'
             + str(spread)
-            + f' t={spread.seconds_till_trading_starts // 60} min'
+            + f' t = {spread.seconds_till_trading_starts // 60} min'
             for spread in spreads
             if not spread.is_trading_now
         ]
