@@ -332,7 +332,7 @@ async def get_api_response(instrument: str):
         return await getattr(client.instruments, instrument)()
 
 
-async def dividend_scan():
+async def dividend_scan(command, args):
     max_futures_ahead = 3
     interest_rate = 12
     percent_threshold = 1
