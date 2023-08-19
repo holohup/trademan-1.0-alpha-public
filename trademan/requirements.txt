@@ -1,6 +1,6 @@
 django==2.2.19
-tinkoff-investments==0.2.0b36
+tinkoff-investments==0.2.0b54
 python-dotenv==0.21.0
-protobuf==3.20.1
+protobuf==3.20.2
 djangorestframework==3.12.4
 pytest-django==4.5.2

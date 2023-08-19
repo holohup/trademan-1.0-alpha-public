@@ -33,7 +33,7 @@ def futures_response():
                     2022, 9, 1, 20, 59, 59, tzinfo=datetime.timezone.utc
                 ),
                 last_trade_date=datetime.datetime(
-                    2023, 6, 15, 20, 59, 59, tzinfo=datetime.timezone.utc
+                    2033, 6, 15, 20, 59, 59, tzinfo=datetime.timezone.utc
                 ),
                 futures_type='DELIVERY_TYPE_PHYSICAL_DELIVERY',
                 asset_type='TYPE_SECURITY',
@@ -43,7 +43,7 @@ def futures_response():
                 country_of_risk_name='Российская Федерация',
                 sector='SECTOR_TELECOM',
                 expiration_date=datetime.datetime(
-                    2023, 6, 16, 0, 0, tzinfo=datetime.timezone.utc
+                    2033, 6, 16, 0, 0, tzinfo=datetime.timezone.utc
                 ),
                 trading_status=STS.SECURITY_TRADING_STATUS_NORMAL_TRADING,
                 otc_flag=False,
@@ -190,7 +190,7 @@ def futures_response():
                 country_of_risk_name='Российская Федерация',
                 sector='SECTOR_MATERIALS',
                 expiration_date=datetime.datetime(
-                    2022, 12, 16, 0, 0, tzinfo=datetime.timezone.utc
+                    2033, 12, 16, 0, 0, tzinfo=datetime.timezone.utc
                 ),
                 trading_status=STS.SECURITY_TRADING_STATUS_NOT_AVAILABLE_FOR_TRADING,
                 otc_flag=False,
@@ -239,7 +239,7 @@ def futures_response():
                 country_of_risk_name='Российская Федерация',
                 sector='SECTOR_CONSUMER',
                 expiration_date=datetime.datetime(
-                    2023, 3, 17, 0, 0, tzinfo=datetime.timezone.utc
+                    2033, 3, 17, 0, 0, tzinfo=datetime.timezone.utc
                 ),
                 trading_status=STS.SECURITY_TRADING_STATUS_NOT_AVAILABLE_FOR_TRADING,
                 otc_flag=False,

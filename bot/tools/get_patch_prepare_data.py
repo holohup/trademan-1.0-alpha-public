@@ -90,6 +90,16 @@ def get_current_prices(assets):
     return assets
 
 
+def get_current_prices_by_uid(assets):
+    uids = [asset.uid for asset in assets]
+    with RetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
+        response = client.market_data.get_last_prices(instrument_id=uids)
+    return {
+        item.instrument_uid: quotation_to_decimal(item.price)
+        for item in response.last_prices
+    }
+
+
 def get_portfolio_positions():
     with RetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
         response = client.operations.get_portfolio(account_id=TCS_ACCOUNT_ID)

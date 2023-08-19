@@ -1,14 +1,15 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Union
+from typing import NamedTuple, Union
 
 from settings import CURRENT_INTEREST_RATE, TCS_RO_TOKEN
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest.retrying.settings import RetryClientSettings
 from tinkoff.invest.schemas import MoneyValue, Quotation, RealExchange
 from tinkoff.invest.utils import quotation_to_decimal
-from tools.get_patch_prepare_data import get_current_prices
+from tools.get_patch_prepare_data import (get_current_prices,
+                                          get_current_prices_by_uid)
 
 
 @dataclass
@@ -45,6 +46,14 @@ class YieldingSpread:
     marginal_profit: float = 0
     delta: int = 0
     days: int = 0
+
+
+class DividendSpread(NamedTuple):
+    stock_ticker: str
+    future_ticker: str
+    dividend: float
+    days_till_expiration: int
+    yld: float
 
 
 class SpreadScanner:
@@ -101,7 +110,8 @@ class SpreadScanner:
             self._stocks.append(StockData(instrument.figi, instrument.ticker))
         for instrument in self._responses['futures']:
             if instrument.basic_asset in self._futures_with_counterparts and (
-                instrument.asset_type == 'TYPE_SECURITY'
+                instrument.asset_type
+                == 'TYPE_SECURITY'
                 # or instrument.asset_type == 'TYPE_COMMODITY'
             ):
                 self._futures.append(
@@ -320,3 +330,86 @@ async def get_api_response(instrument: str):
         RetryClientSettings(use_retry=True, max_retry_attempt=10),
     ) as client:
         return await getattr(client.instruments, instrument)()
+
+
+async def dividend_scan():
+    max_futures_ahead = 3
+    interest_rate = 12
+    percent_threshold = 1
+    shares = await get_api_response('shares')
+    shares = shares.instruments
+    filtered_shares = {
+        share.ticker: share
+        for share in shares
+        if share.api_trade_available_flag is True
+        and share.sell_available_flag is True
+        and quotation_to_decimal(share.min_price_increment) > Decimal('0')
+        and share.short_enabled_flag is True
+    }
+    futures = await get_api_response('futures')
+    futures = futures.instruments
+    filtered_futures = {}
+    for future in futures:
+        if (
+            future.api_trade_available_flag is False
+            or future.buy_available_flag is False
+            or quotation_to_decimal(future.min_price_increment) <= Decimal('0')
+            or future.basic_asset not in filtered_shares.keys()
+            or future.last_trade_date <= datetime.now(tz=timezone.utc)
+        ):
+            continue
+        if future.basic_asset not in filtered_futures:
+            filtered_futures[future.basic_asset] = []
+        filtered_futures[future.basic_asset].append(future)
+
+    for stock_ticker in filtered_futures:
+        filtered_futures[stock_ticker] = sorted(
+            filtered_futures[stock_ticker], key=lambda d: d.expiration_date
+        )[:max_futures_ahead]
+    filtered_shares = {
+        ticker: uid
+        for ticker, uid in filtered_shares.items()
+        if ticker in filtered_futures.keys()
+    }
+    share_prices = get_current_prices_by_uid(list(filtered_shares.values()))
+    future_prices = get_current_prices_by_uid(
+        [d for f in filtered_futures.values() for d in f]
+    )
+    result = []
+    for ticker in filtered_shares:
+        price = share_prices[filtered_shares[ticker].uid]
+        for future in filtered_futures[ticker]:
+            f_price = future_prices[future.uid]
+            days_till_expiration = (
+                future.expiration_date - datetime.now(tz=timezone.utc)
+            ).days
+            honest_stock_price = (
+                price
+                * quotation_to_decimal(future.basic_asset_size)
+                * (
+                    (1 + Decimal(interest_rate / 100))
+                    ** Decimal((days_till_expiration / 365))
+                )
+            )
+            delta = f_price - honest_stock_price
+            if delta < 0:
+                norm_delta = -delta / quotation_to_decimal(
+                    future.basic_asset_size
+                )
+                result.append(
+                    DividendSpread(
+                        ticker,
+                        future.ticker,
+                        round(float(norm_delta), 2),
+                        days_till_expiration,
+                        round(float(norm_delta / price) * 100, 2),
+                    )
+                )
+    ordered = sorted(result, key=lambda s: s.yld, reverse=True)
+    spreads = [
+        f'{s.stock_ticker} - {s.future_ticker}: {s.dividend} RUB, {s.yld}%'
+        f', {s.days_till_expiration} days'
+        for s in ordered
+        if s.yld >= percent_threshold
+    ]
+    return '\n'.join(spreads)
