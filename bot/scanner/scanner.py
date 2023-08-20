@@ -433,7 +433,8 @@ class DividendScanner:
             for s in ordered
             if s.yld >= PERCENT_THRESHOLD
         ]
-        return '\n'.join(spreads)
+        print(len(spreads))
+        return '\n'.join(spreads[:70])
 
     async def _load_instruments(self) -> None:
         shares = await get_api_response('shares')
