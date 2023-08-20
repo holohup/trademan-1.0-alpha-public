@@ -8,6 +8,7 @@ import aiohttp
 from queue_handler import QUEUE
 from settings import (ENDPOINT_HOST, ENDPOINTS, RETRY_SETTINGS, TCS_ACCOUNT_ID,
                       TCS_RO_TOKEN)
+from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.utils import quotation_to_decimal
 from tools.adapters import SellBuyToJsonAdapter, SpreadToJsonAdapter
@@ -90,10 +91,10 @@ def get_current_prices(assets):
     return assets
 
 
-def get_current_prices_by_uid(assets):
+async def get_current_prices_by_uid(assets):
     uids = [asset.uid for asset in assets]
-    with RetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
-        response = client.market_data.get_last_prices(instrument_id=uids)
+    async with AsyncRetryingClient(TCS_RO_TOKEN, RETRY_SETTINGS) as client:
+        response = await client.market_data.get_last_prices(instrument_id=uids)
     return {
         item.instrument_uid: quotation_to_decimal(item.price)
         for item in response.last_prices

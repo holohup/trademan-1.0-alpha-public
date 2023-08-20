@@ -1,5 +1,6 @@
 import zoneinfo
 from datetime import datetime, time, timedelta
+from typing import Union
 
 from tools.trading_hours import (FutureTradingHours, StockTradingHours,
                                  TradingSession)
@@ -156,3 +157,54 @@ class SpreadTradingTime(TradingTime):
                 ] = TradingSession(period_open, period_close)
                 period_open = None
         return result
+
+
+class SimpleTradingTime:
+    def __init__(
+        self, schedule: Union[FutureTradingHours, StockTradingHours]
+    ) -> None:
+        schedule = schedule
+        self._trading_sessions = dict(schedule.base_hours)
+        self._trading_sessions.update(schedule.morning_hours)
+        self._trading_sessions.update(schedule.evening_hours)
+        self._update_trading_schedule_with_time_offset()
+        self._sorted_sess_cache = None
+
+    @property
+    def is_trading_now(self) -> bool:
+        if not self._today_is_a_trading_day:
+            return False
+        for open_time, close_time in self._sorted_sessions:
+            if open_time <= self._current_datetime.time() <= close_time:
+                return True
+        return False
+
+    @property
+    def _current_datetime(self) -> datetime:
+        return datetime.now(MOSCOW_ZONE)
+
+    @property
+    def _today_is_a_trading_day(self) -> bool:
+        return (
+            TRADE_DAYS[0] <= self._current_datetime.weekday() <= TRADE_DAYS[1]
+        )
+
+    @property
+    def _sorted_sessions(self) -> list:
+        if not self._sorted_sess_cache:
+            self._sorted_sess_cache = sorted(self._trading_sessions.values())
+        return self._sorted_sess_cache
+
+    def _update_trading_schedule_with_time_offset(self) -> None:
+        dt = self._current_datetime.date()
+        self._trading_sessions = {
+            title: TradingSession(
+                open=(
+                    datetime.combine(dt, period.open) + TIME_OFFSET
+                ).time(),
+                close=(
+                    datetime.combine(dt, period.close) - TIME_OFFSET
+                ).time(),
+            )
+            for title, period in self._trading_sessions.items()
+        }

@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 from tinkoff.invest.retrying.settings import RetryClientSettings
 
-CURRENT_INTEREST_RATE = '7.5'
+CURRENT_INTEREST_RATE = '12'
 
 # place stops and shorts
 
@@ -15,6 +15,11 @@ ORDER_TTL = 120
 # Art Cashin's formula
 
 NUKE_LEVELS = ('0', '1', '5', '7')
+
+# Dividend scanner for futures
+
+MAX_FUTURES_AHEAD = 3
+PERCENT_THRESHOLD = 1
 
 # tinkoff settings
 SLEEP_PAUSE = 1

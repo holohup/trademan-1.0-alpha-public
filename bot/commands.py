@@ -61,7 +61,7 @@ ROUTINES = {
     'buy': ('Buy ASAP', sellbuy),
     'dump': ('Dump it', sellbuy),
     'scan': ('Spread scanner', scan),
-    'dscan': ('Dividend scanned', dividend_scan)
+    'dscan': ('Dividend scanner', dividend_scan)
 }
 
 
