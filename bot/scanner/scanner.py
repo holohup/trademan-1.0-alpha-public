@@ -73,6 +73,7 @@ class DividendSpread(NamedTuple):
     days_till_expiration: int
     yld: float
     can_trade: bool
+    buy_price: float
 
 
 class DivSpread(NamedTuple):
@@ -386,8 +387,9 @@ async def get_api_response(instrument: str):
 
 
 class DividendScanner:
-    def __init__(self) -> None:
+    def __init__(self, result_limit=50) -> None:
         self._ir = float(CURRENT_INTEREST_RATE)
+        self._result_limit = result_limit
 
     async def scan_spreads(self):
         await self._load_instruments()
@@ -424,17 +426,18 @@ class DividendScanner:
                         days_till_expiration,
                         round(float(norm_delta / sell_price) * 100, 2),
                         can_trade=spread.can_trade,
+                        buy_price=float(buy_price - sell_price * spread.ratio),
                     )
                 )
         ordered = sorted(result, key=lambda s: s.yld, reverse=True)
         spreads = [
             f'{s.stock_ticker} - {s.future_ticker}: {s.dividend} RUB, {s.yld}%'
-            f', {s.days_till_expiration} days, {s.can_trade}'
+            f', {s.days_till_expiration} days, {s.can_trade},'
+            f' price: {s.buy_price}'
             for s in ordered
             if s.yld >= PERCENT_THRESHOLD
         ]
-        print(len(spreads))
-        return '\n'.join(spreads[:70])
+        return '\n'.join(spreads[: self._result_limit])
 
     async def _load_instruments(self) -> None:
         shares = await get_api_response('shares')
@@ -550,16 +553,16 @@ class DividendScanner:
                     )
                     result[uid] = OrderBook(
                         bid=quotation_to_decimal(ob.bids[0].price),
-                        ask=quotation_to_decimal(ob.asks[0].price)
+                        ask=quotation_to_decimal(ob.asks[0].price),
                     )
         self._orderbooks.update(result)
 
 
 async def dividend_scan(command, args):
-    return await DividendScanner().scan_spreads()
+    return await DividendScanner(int(args)).scan_spreads()
 
 
 if __name__ == '__main__':
     import asyncio
 
-    print(asyncio.run(dividend_scan(1, 1)))
+    print(asyncio.run(dividend_scan(1, 50)))
