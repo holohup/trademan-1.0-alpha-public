@@ -3,21 +3,15 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import NamedTuple, Union
 
-from settings import (
-    CURRENT_INTEREST_RATE,
-    MAX_FUTURES_AHEAD,
-    PERCENT_THRESHOLD,
-    TCS_RO_TOKEN,
-)
+from settings import (CURRENT_INTEREST_RATE, MAX_FUTURES_AHEAD,
+                      PERCENT_THRESHOLD, TCS_RO_TOKEN)
 from tinkoff.invest import Future, Share
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest.retrying.settings import RetryClientSettings
 from tinkoff.invest.schemas import MoneyValue, Quotation, RealExchange
 from tinkoff.invest.utils import quotation_to_decimal
-from tools.get_patch_prepare_data import (
-    get_current_prices,
-    get_current_prices_by_uid,
-)
+from tools.get_patch_prepare_data import (get_current_prices,
+                                          get_current_prices_by_uid)
 from tools.trading_hours import FutureTradingHours, StockTradingHours
 from tools.trading_time import SimpleTradingTime
 
