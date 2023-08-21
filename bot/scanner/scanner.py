@@ -558,7 +558,9 @@ class DividendScanner:
         self._orderbooks.update(result)
 
 
-async def dividend_scan(command, args='50'):
+async def dividend_scan(command, args):
+    if not args:
+        args = '50'
     return await DividendScanner(int(args)).scan_spreads()
 
 
