@@ -387,7 +387,7 @@ async def get_api_response(instrument: str):
 
 
 class DividendScanner:
-    def __init__(self, result_limit=50) -> None:
+    def __init__(self, result_limit) -> None:
         self._ir = float(CURRENT_INTEREST_RATE)
         self._result_limit = result_limit
 
@@ -558,11 +558,11 @@ class DividendScanner:
         self._orderbooks.update(result)
 
 
-async def dividend_scan(command, args):
+async def dividend_scan(command, args='50'):
     return await DividendScanner(int(args)).scan_spreads()
 
 
 if __name__ == '__main__':
     import asyncio
 
-    print(asyncio.run(dividend_scan(1, 50)))
+    print(asyncio.run(dividend_scan(1)))
