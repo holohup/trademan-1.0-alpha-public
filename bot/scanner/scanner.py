@@ -3,15 +3,21 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import NamedTuple, Union
 
-from settings import (CURRENT_INTEREST_RATE, MAX_FUTURES_AHEAD,
-                      PERCENT_THRESHOLD, TCS_RO_TOKEN)
+from settings import (
+    CURRENT_INTEREST_RATE,
+    MAX_FUTURES_AHEAD,
+    PERCENT_THRESHOLD,
+    TCS_RO_TOKEN,
+)
 from tinkoff.invest import Future, Share
 from tinkoff.invest.retrying.aio.client import AsyncRetryingClient
 from tinkoff.invest.retrying.settings import RetryClientSettings
 from tinkoff.invest.schemas import MoneyValue, Quotation, RealExchange
 from tinkoff.invest.utils import quotation_to_decimal
-from tools.get_patch_prepare_data import (get_current_prices,
-                                          get_current_prices_by_uid)
+from tools.get_patch_prepare_data import (
+    get_current_prices,
+    get_current_prices_by_uid,
+)
 from tools.trading_hours import FutureTradingHours, StockTradingHours
 from tools.trading_time import SimpleTradingTime
 
@@ -537,7 +543,9 @@ class DividendScanner:
                 }
             )
             stocks_to_update = []
-        uids_to_update = futures_to_update + stocks_to_update
+        uids_to_update = [
+            asset.uid for asset in futures_to_update + stocks_to_update
+        ]
         if uids_to_update:
             await self._update_from_orderbooks(uids_to_update)
 
@@ -549,11 +557,25 @@ class DividendScanner:
             for uid in uids_to_update:
                 if uid not in result.keys():
                     ob = await client.market_data.get_order_book(
-                        instrument_id=uid, depth=1
+                        instrument_id=str(uid), depth=1
                     )
+                    if ob.bids:
+                        bid = quotation_to_decimal(ob.bids[0].price)
+                    else:
+                        r = await client.market_data.get_last_prices(
+                            instrument_id=[str(uid)]
+                        )
+                        bid = quotation_to_decimal(r.last_prices[0].price)
+                    if ob.asks:
+                        ask = quotation_to_decimal(ob.asks[0].price)
+                    else:
+                        r = await client.market_data.get_last_prices(
+                            instrument_id=[str(uid)]
+                        )
+                        ask = quotation_to_decimal(r.last_prices[0].price)
                     result[uid] = OrderBook(
-                        bid=quotation_to_decimal(ob.bids[0].price),
-                        ask=quotation_to_decimal(ob.asks[0].price),
+                        bid=bid,
+                        ask=ask,
                     )
         self._orderbooks.update(result)
 
@@ -567,4 +589,4 @@ async def dividend_scan(command, args):
 if __name__ == '__main__':
     import asyncio
 
-    print(asyncio.run(dividend_scan(1)))
+    print(asyncio.run(dividend_scan(1, 50)))
