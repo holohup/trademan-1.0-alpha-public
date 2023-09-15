@@ -404,7 +404,7 @@ class DividendScanner:
             sell_price = self._orderbooks[sell_leg.uid].sell_price
             buy_price = self._orderbooks[buy_leg.uid].buy_price
             days_till_expiration = (
-                buy_leg.expiration_date - datetime.now(tz=timezone.utc)
+                buy_leg.last_trade_date - datetime.now(tz=timezone.utc)
             ).days
 
             time_adjusted_sell_price = (
