@@ -4,7 +4,7 @@ from django.db import transaction
 
 EVENING_TRADED_STOCKS = (
     'ABIO', 'AFKS', 'AFLT', 'ALRS', 'AQUA', 'ASTR', 'BANE', 'BANEP', 'BELU',
-    'BSPB','CARM', 'CBOM', 'CHMF', 'ELFV', 'ENPG', 'FEES', 'FESH', 'FLOT',
+    'BSPB', 'CARM', 'CBOM', 'CHMF', 'ELFV', 'ENPG', 'FEES', 'FESH', 'FLOT',
     'GAZP', 'GMKN', 'GTRK', 'HYDR', 'IRAO', 'IRKT', 'KMAZ', 'LEAS', 'LKOH',
     'MAGN', 'MGKL', 'MGNT', 'MOEX', 'MSNG', 'MTLR', 'MTLRP', 'MTSS', 'MVID',
     'NLMK', 'NMTP', 'NVTK', 'OGKB', 'PHOR', 'PIKK', 'PLZL', 'POSI', 'RASP',
