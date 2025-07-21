@@ -9,8 +9,7 @@ pytest-mock==3.10.0
 factory-boy==3.2.1
 django==2.2.19
 djangorestframework==3.12.4
-pytest-django==4.5.2
 tinkoff-investments==0.2.0b115
 python-dotenv==0.21.0
-protobuf==3.20.2
+protobuf>=4.25.1,<5.0.0
 aiogram==2.22.1
