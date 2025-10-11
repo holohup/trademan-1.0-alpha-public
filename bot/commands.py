@@ -12,6 +12,7 @@ from scanner.scanner import dividend_scan, scan
 from sellbuy import sellbuy
 from spreads import spreads
 from stop_orders import restore_stops, save_stops
+from spread_creator import handle_addspread_command
 
 RUNNING_TASKS = {}
 
@@ -52,6 +53,7 @@ ROUTINES = {
     'restore': ('Restoring stop orders', restore_stops),
     'sellbuy': ('SellBuy', sellbuy),
     'spreads': ('Spreads monitoring and trading', spreads),
+    'addspread': ('Add new spread', handle_addspread_command),
     'help': ('Help', help),
     'stop': ('Stopping tasks', stop_running_tasks),
     'cancel': ('Cancel', cancel_all_orders),
