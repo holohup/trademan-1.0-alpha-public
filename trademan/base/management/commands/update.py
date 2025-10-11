@@ -9,6 +9,12 @@ from django.db import transaction
 from tinkoff.invest.retrying.settings import RetryClientSettings
 from tinkoff.invest.retrying.sync.client import RetryingClient
 from tinkoff.invest.schemas import Future, RealExchange, Share
+
+# Support newer enum values when running with an older Tinkoff SDK
+try:  # pragma: no cover - defensive patch
+    RealExchange(4)
+except ValueError:
+    RealExchange._value2member_map_[4] = RealExchange(0)
 from tinkoff.invest.utils import quotation_to_decimal
 
 
