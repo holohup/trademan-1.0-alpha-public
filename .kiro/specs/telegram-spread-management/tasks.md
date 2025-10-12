@@ -23,14 +23,14 @@
   - Implement ticker parsing and validation from command arguments
   - _Requirements: 1.1, 1.4_
 
-- [ ] 2. Implement ticker validation and API integration
+- [x] 2. Implement ticker validation and API integration
 
   - Create API integration module for ticker validation
   - Add price fetching functionality using existing Tinkoff integration
   - Implement duplicate spread detection
   - _Requirements: 1.2, 1.3, 7.5_
 
-- [ ] 2.1 Create API integration module for spread creation
+- [x] 2.1 Create API integration module for spread creation
 
   - Write tests for ticker validation and price fetching functions
   - Write `bot/spread_api.py` with ticker validation functions
@@ -38,7 +38,7 @@
   - Add get_current_prices function using existing price fetching logic
   - _Requirements: 1.2, 1.3_
 
-- [ ] 2.2 Add spread creation API endpoint integration
+- [x] 2.2 Add spread creation API endpoint integration
 
   - Write tests for spread creation and duplicate detection functions
   - Implement create_spread function to POST to Django spreads endpoint
@@ -46,14 +46,14 @@
   - Handle API errors and connection issues gracefully
   - _Requirements: 6.1, 6.2, 7.4_
 
-- [ ] 3. Implement market-neutral price calculation logic
+- [x] 3. Implement market-neutral price calculation logic
 
   - Create price calculator module with ratio calculation
   - Implement spread price calculations for different asset type combinations
   - Add market-neutral explanation generation
   - _Requirements: 2.1, 2.2, 2.3_
 
-- [ ] 3.1 Create spread pricing calculation module
+- [x] 3.1 Create spread pricing calculation module
 
   - Write tests for spread price calculations and ratio calculations for different asset combinations
   - Write `bot/spread_pricing.py` with calculate_spread_price function
@@ -61,7 +61,7 @@
   - Add get_market_neutral_explanation function for user display
   - _Requirements: 2.1, 2.2, 2.3_
 
-- [ ] 3.2 Integrate price calculations with existing Tinkoff API
+- [x] 3.2 Integrate price calculations with existing Tinkoff API
 
   - Write tests for price integration and error handling scenarios
   - Use existing get_current_prices_by_uid function for market data
@@ -69,14 +69,14 @@
   - Add price unavailable handling and fallback logic
   - _Requirements: 2.5, 2.6_
 
-- [ ] 4. Create interactive menu system with inline keyboards
+- [x] 4. Create interactive menu system with inline keyboards
 
   - Implement inline keyboard generators for each step
   - Create callback query handlers for menu interactions
   - Add menu navigation and state transitions
   - _Requirements: 2.4, 3.1, 4.1, 5.1_
 
-- [ ] 4.1 Create inline keyboard menu generators
+- [x] 4.1 Create inline keyboard menu generators
 
   - Write tests for menu generation functions and keyboard layouts
   - Write `bot/spread_menu.py` with menu generation functions
@@ -85,7 +85,7 @@
   - Create generate_confirmation_menu for final review
   - _Requirements: 2.4, 3.1, 4.1, 5.1_
 
-- [ ] 4.2 Implement callback query handlers
+- [x] 4.2 Implement callback query handlers
 
   - Write tests for callback handling and state transitions
   - Add callback query handler to `bot/spread_creator.py`
