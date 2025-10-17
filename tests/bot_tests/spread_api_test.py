@@ -273,6 +273,68 @@ class TestCreateSpread:
             mock_post.assert_called_once()
 
     @pytest.mark.asyncio
+    async def test_create_spread_with_editable_ratio(self):
+        """Test spread creation with custom ratio."""
+        spread_data = {
+            'far_leg_figi': 'BBG004730N88',
+            'near_leg_figi': 'BBG00475KKY8',
+            'sell': True,
+            'price': 100,
+            'amount': 10,
+            'editable_ratio': 150
+        }
+        
+        mock_response_data = {'id': 124}
+        
+        with patch('aiohttp.ClientSession.post') as mock_post:
+            mock_response = AsyncMock()
+            mock_response.status = 201
+            mock_response.json = AsyncMock(return_value=mock_response_data)
+            mock_post.return_value.__aenter__.return_value = mock_response
+            
+            from bot.spread_api import create_spread
+            result = await create_spread(spread_data)
+            
+            assert result == 124
+            # Verify the payload includes editable_ratio
+            call_args = mock_post.call_args
+            payload = call_args[1]['json']
+            assert payload['editable_ratio'] == 150
+
+    @pytest.mark.asyncio
+    async def test_create_spread_payload_generation(self):
+        """Test correct payload generation for spread creation."""
+        spread_data = {
+            'far_leg_figi': 'BBG004730N88',
+            'near_leg_figi': 'BBG00475KKY8',
+            'sell': False,
+            'price': 200,
+            'amount': 5
+        }
+        
+        mock_response_data = {'id': 125}
+        
+        with patch('aiohttp.ClientSession.post') as mock_post:
+            mock_response = AsyncMock()
+            mock_response.status = 201
+            mock_response.json = AsyncMock(return_value=mock_response_data)
+            mock_post.return_value.__aenter__.return_value = mock_response
+            
+            from bot.spread_api import create_spread
+            await create_spread(spread_data)
+            
+            # Verify correct payload structure
+            call_args = mock_post.call_args
+            payload = call_args[1]['json']
+            
+            assert payload['far_leg_figi'] == 'BBG004730N88'
+            assert payload['near_leg_figi'] == 'BBG00475KKY8'
+            assert payload['sell'] is False
+            assert payload['price'] == 200
+            assert payload['amount'] == 5
+            assert 'editable_ratio' not in payload  # Should not be included when not provided
+
+    @pytest.mark.asyncio
     async def test_create_spread_server_error(self):
         """Test spread creation server error."""
         spread_data = {

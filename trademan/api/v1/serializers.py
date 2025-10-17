@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from base.models import Figi, SellBuy, Spread, Stops
+from base.models import Figi, SellBuy, Spread, SpreadStats, Stops
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -109,8 +109,10 @@ class TickerSerializer(serializers.ModelSerializer):
 
 
 class SpreadsSerializer(serializers.ModelSerializer):
-    far_leg = AssetSerializer()
-    near_leg = AssetSerializer()
+    far_leg = AssetSerializer(read_only=True)
+    near_leg = AssetSerializer(read_only=True)
+    far_leg_figi = serializers.CharField(write_only=True)
+    near_leg_figi = serializers.CharField(write_only=True)
 
     class Meta:
         model = Spread
@@ -122,13 +124,15 @@ class SpreadsSerializer(serializers.ModelSerializer):
             'ratio',
             'far_leg',
             'near_leg',
+            'far_leg_figi',
+            'near_leg_figi',
+            'editable_ratio',
         )
         read_only_fields = (
             'id',
-            'sell',
-            'price',
-            'amount',
             'ratio',
+            'far_leg',
+            'near_leg',
         )
 
     def to_representation(self, instance):
@@ -142,6 +146,37 @@ class SpreadsSerializer(serializers.ModelSerializer):
             instance.stats.near_leg_avg_price
         )
         return data
+
+    def create(self, validated_data):
+        """
+        Create a new spread with associated SpreadStats.
+        
+        The spread is created with active=True by default (model default).
+        A SpreadStats object is automatically created and associated.
+        """
+        # Extract FIGI data for creation
+        far_leg_figi = validated_data.pop('far_leg_figi')
+        near_leg_figi = validated_data.pop('near_leg_figi')
+        
+        # Get the Figi objects
+        try:
+            far_leg = Figi.objects.get(figi=far_leg_figi)
+            near_leg = Figi.objects.get(figi=near_leg_figi)
+        except Figi.DoesNotExist as e:
+            raise ValidationError(f"Invalid FIGI: {str(e)}")
+        
+        # Create SpreadStats object
+        stats = SpreadStats.objects.create()
+        
+        # Create the spread
+        spread = Spread.objects.create(
+            far_leg=far_leg,
+            near_leg=near_leg,
+            stats=stats,
+            **validated_data
+        )
+        
+        return spread
 
     def update(self, instance, validated_data):
         data = self.context.get('request').data

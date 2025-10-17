@@ -12,6 +12,7 @@ SPREAD_FIELDS = {
     'ratio': int,
     'far_leg': dict,
     'near_leg': dict,
+    'editable_ratio': int,
 }
 
 LEG_FIELDS = {
